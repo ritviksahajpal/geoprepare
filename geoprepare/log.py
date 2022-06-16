@@ -21,8 +21,7 @@ class Logger:
     # NOTSET	       0
     def __init__(self, dir_log, name_project='geoprepare', name_fl='logger', level=logging.INFO):
         log_format = '[%(asctime)s] %(message)s'
-        dir_log = Path(dir_log)
-        dir_log = dir_log / name_project / ar.now().format('MMMM_DD_YYYY')
+        dir_log = Path(dir_log) / name_project / ar.now().format('MMMM_DD_YYYY')
         util.make_dir_if_missing(dir_log)
 
         name_fl = name_fl + '.txt'

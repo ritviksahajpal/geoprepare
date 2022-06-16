@@ -75,15 +75,16 @@ class geoprepare:
 
         # Set up logger
         self.logger = log.Logger(dir_log=self.dir_log,
-                                 name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
+                                 name_fl=self.parser.get('DEFAULT', 'logfile'))
 
-if __name__ == '__main__':
+
+def run():
     # Read in configuration file
     geoprep = geoprepare()
 
     # Loop through all sections in parser
-    for section in geoprep.parser.sections():
-        if section == 'CHIRPS':
+    for dataset in geoprep.parser.sections():
+        if dataset == 'CHIRPS':
             import datasets.CHIRPS as CHIRPS
 
             # Parse configuration file for CHIRPS
@@ -96,3 +97,25 @@ if __name__ == '__main__':
             geoprep.final = geoprep.parser.get('CHIRPS', 'final')
 
             CHIRPS.run(geoprep)
+        elif dataset == 'NDVI':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'AGERA5':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'CHIRPS-GEFS':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'FLDAS':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'LST':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'ESI':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'CPC':
+            raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'SOIL-MOISTURE':
+            raise NotImplementedError(f'{dataset} not implemented')
+        else:
+            raise ValueError(f'Unknown dataset {dataset}')
+
+
+if __name__ == '__main__':
+    run()

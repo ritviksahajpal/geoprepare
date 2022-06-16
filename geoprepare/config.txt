@@ -34,6 +34,7 @@ start_year = 2003
 start_year = 2010
 
 [DEFAULT]
+logfile = log
 parallel_process = True
 fraction_cpus = 0.5
 start_year = 1982
