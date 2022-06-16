@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['CHIRPS', 'CHIRPS-GEFS']
+datasets = ['AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
 dir_base = D:\   ; /gpfs/data1/cmongp1/tarun
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
@@ -8,6 +8,7 @@ dir_download = ${dir_input}/download
 dir_output = ${dir_base}/output
 
 [AGERA5]
+start_year = 2022
 
 [AVHRR]
 

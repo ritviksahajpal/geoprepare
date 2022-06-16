@@ -1,13 +1,10 @@
 import os
 import pdb
-import netCDF4
 import itertools
 import cdsapi
 import urllib3
 import pyresample
 import rasterio
-import wget
-import logging
 import multiprocessing
 import zipfile
 import xarray as xr
@@ -21,14 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-import always
-import Code.preprocess.constants_preprocess as constants
-import pygeoutil.util as util
-import Code.base.log as log
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-syr = constants.START_YEAR
-eyr = constants.END_YEAR
 
 path_template = 'template.nc'
 
@@ -156,7 +146,7 @@ def arr_to_tif(arr, path_tif, profile):
 
 
 def process_agERA5(all_params):
-    var, nc_input, dir_output = all_params[0], all_params[1], all_params[2]
+    var, nc_input, dir_output = all_params
 
     date = get_date_from_fname(nc_input)
     year = date.year
@@ -170,7 +160,7 @@ def process_agERA5(all_params):
         arr_to_tif(arr, dir_output / fl_out, profile)
 
 
-def parallel_process_agERA5():
+def parallel_process_agERA5(params):
     """
 
     :param var:
@@ -179,17 +169,17 @@ def parallel_process_agERA5():
     all_params = []
 
     for var in list(variable_names.keys()):
-        dir_output = constants.dir_intermed / 'agera5' / 'tif' / var
-        util.make_dir_if_missing(dir_output)
+        dir_output = params.dir_interim / 'agera5' / 'tif' / var
+        os.makedirs(dir_output, exist_ok=True)
 
-        dir_nc = constants.dir_intermed / 'agera5' / 'nc' / var
+        dir_nc = params.dir_interim / 'agera5' / 'nc' / var
 
         nc_files = dir_nc.glob('*.nc')
         for nc_input in nc_files:
             all_params.extend(list(itertools.product([var], [nc_input], [dir_output])))
 
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+    if params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_agERA5, all_params))):
                     pbar.update()
@@ -202,8 +192,14 @@ def parallel_process_agERA5():
             process_agERA5(val)
 
 
-def download_nc(inputs, version="1.0"):
+def download_nc(params, inputs, version="1.0"):
     """
+
+    Args:
+        inputs ():
+        version ():
+
+    Returns:
 
     """
     path_download, path_nc, varname, year, mon = inputs
@@ -228,6 +224,8 @@ def download_nc(inputs, version="1.0"):
 
         # Check if netCDF file already exists, if not then download it
         if not os.path.exists(fname):
+            c = cdsapi.Client()
+
             try:
                 if statistic:
                     c.retrieve(
@@ -253,8 +251,7 @@ def download_nc(inputs, version="1.0"):
                         },
                         fzip)
             except Exception as e:
-                print(e)
-                print(f"Could not download {fname}")
+                params.logger.error(f"Could not download {fname} {e}")
 
             # Unzip file to get the netCDF file
             if os.path.isfile(fzip):
@@ -262,14 +259,14 @@ def download_nc(inputs, version="1.0"):
                     zip_ref.extractall(path_nc / varname)
 
 
-def download_parallel_nc(path_download, path_nc, variable):
+def download_parallel_nc(params, path_download, path_nc, variable):
     all_params = []
-    for year in range(syr, eyr):
+    for year in range(params.start_year, params.end_year):
         for mon in range(1, 13):
-            all_params.extend(list(itertools.product([path_download], [path_nc], [variable], [year], [mon])))
+            all_params.extend(list(itertools.product([params], [path_download], [path_nc], [variable], [year], [mon])))
 
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.85)) as p:
+    if params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_nc, all_params))):
                     pbar.set_description(f'Downloading AgERA5 {variable} year:{all_params[i][3]} month:{all_params[i][4]}')
@@ -279,16 +276,15 @@ def download_parallel_nc(path_download, path_nc, variable):
             download_nc(param)
 
 
-def run():
-    pass
+def run(params):
+    path_download = params.dir_download / 'agera5'
+    path_nc = params.dir_interim / 'agera5' / 'nc'
+
+    for variable in variable_names.keys():
+        download_parallel_nc(params, path_download, path_nc, variable)
+
+    parallel_process_agERA5(params)
 
 
 if __name__ == '__main__':
-    c = cdsapi.Client()
-    path_download = constants.dir_download / 'agera5'
-    path_nc = constants.dir_intermed / 'agera5' / 'nc'
-
-    for variable in variable_names.keys():
-        download_parallel_nc(path_download, path_nc, variable)
-
-    parallel_process_agERA5()
+    pass

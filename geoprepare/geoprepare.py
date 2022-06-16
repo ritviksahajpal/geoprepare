@@ -105,7 +105,15 @@ def run(path_config_file='config.txt'):
         elif dataset == 'NDVI':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'AGERA5':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import AgERA5
+
+            # Parse configuration file for AGERA5
+            geoprep.parse_config('AGERA5')
+
+            # Print all elements of configuration file
+            geoprep.pp_config('AGERA5')
+
+            AgERA5.run(geoprep)
         elif dataset == 'CHIRPS-GEFS':
             from .datasets import CHIRPS_GEFS
 
