@@ -107,7 +107,18 @@ def run(path_config_file='config.txt'):
         elif dataset == 'AGERA5':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'CHIRPS-GEFS':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import CHIRPS_GEFS
+
+            # Parse configuration file for CHIRPS-GEFS
+            geoprep.parse_config('CHIRPS-GEFS')
+
+            geoprep.data_dir = geoprep.parser.get('CHIRPS-GEFS', 'data_dir')
+            geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
+
+            # Print all elements of configuration file
+            geoprep.pp_config('CHIRPS-GEFS')
+
+            CHIRPS_GEFS.run(geoprep)
         elif dataset == 'FLDAS':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'LST':

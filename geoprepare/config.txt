@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['CHIRPS']
+datasets = ['CHIRPS', 'CHIRPS-GEFS']
 dir_base = D:\   ; /gpfs/data1/cmongp1/tarun
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
@@ -18,6 +18,8 @@ final = /pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/
 start_year = 2022
 
 [CHIRPS-GEFS]
+fill_value = -2147483648
+data_dir = /pub/org/chc/products/EWX/data/forecasts/CHIRPS-GEFS_precip_v12/15day/precip_mean/
 
 [CPC]
 
