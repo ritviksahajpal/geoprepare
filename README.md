@@ -19,6 +19,19 @@
 
 A sample config.txt file can be found in the `geoprepare` folder.
 
+## Config file
+[DATASETS]
+datasets = ['CHIRPS']
+dir_base =
+
+[DEFAULT]
+logfile = log
+parallel_process = True
+fraction_cpus = 0.5
+start_year = 1982
+end_year = 2022
+
+
 ## Features
 
 ### CHIRPS
