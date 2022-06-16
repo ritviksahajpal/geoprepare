@@ -2,7 +2,6 @@
 
 
 [![image](https://img.shields.io/pypi/v/geoprepare.svg)](https://pypi.python.org/pypi/geoprepare)
-[![image](https://img.shields.io/conda/vn/conda-forge/geoprepare.svg)](https://anaconda.org/conda-forge/geoprepare)
 
 
 **A Python package to prepare (download, extract, process input data) for GEOCIF and related models**
@@ -12,7 +11,7 @@
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
 
 ## Installation
-`pip install git+https://github.com/ritviksahajpal/geoprepare.git`
+`pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git`
 
 ## Usage
 `import geoprepare.geoprepare as gprp`
