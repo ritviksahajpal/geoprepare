@@ -15,7 +15,7 @@
 
 ## Usage
 `import geoprepare.geoprepare as gprp`<br/>
-`gpr.run(PATH_TO_CONFIG_FILE)`
+`gprp.run(PATH_TO_CONFIG_FILE)`
 
 A sample config.txt file can be found in the `geoprepare` folder
 
