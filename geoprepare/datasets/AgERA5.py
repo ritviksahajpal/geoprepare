@@ -261,7 +261,7 @@ def download_nc(inputs, version="1.0"):
 
 def download_parallel_nc(params, path_download, path_nc, variable):
     all_params = []
-    for year in range(params.start_year, params.end_year):
+    for year in range(params.start_year, params.end_year + 1):
         for mon in range(1, 13):
             all_params.extend(list(itertools.product([params], [path_download], [path_nc], [variable], [year], [mon])))
 
