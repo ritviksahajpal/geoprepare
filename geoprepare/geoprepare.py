@@ -3,6 +3,7 @@
 # email: ritvik@umd.edu
 ###############################################################################
 import os
+import ast
 import pdb
 import datetime
 import argparse
@@ -13,32 +14,31 @@ from configparser import ConfigParser, ExtendedInterpolation
 import log
 
 
-def read_config():
+def read_config(path_config_file='config.txt'):
     """
+
+    Args:
+        path_config_file ():
 
     Returns:
 
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', nargs='?', default='config.txt', help='Path to configuration file')
-    args = parser.parse_args()
-
     parser = ConfigParser(inline_comment_prefixes=(';',), interpolation=ExtendedInterpolation())
 
-    if not os.path.isfile(args.config):
-        raise FileNotFoundError(f'Cannot find {args.config}')
+    if not os.path.isfile(path_config_file):
+        raise FileNotFoundError(f'Cannot find {path_config_file}')
 
     try:
-        parser.read(args.config)
+        parser.read(path_config_file)
     except Exception as e:
-        raise IOError(f'Cannot read {args.config}: {e}')
+        raise IOError(f'Cannot read {path_config_file}: {e}')
 
-    return args, parser
+    return parser
 
 
 class geoprepare:
-    def __init__(self):
-        self.args, self.parser = read_config()
+    def __init__(self, path_config_file):
+        self.parser = read_config(path_config_file)
         self.redo_last_year = True
 
     def pp_config(self, section='DEFAULT'):
@@ -78,12 +78,13 @@ class geoprepare:
                                  name_fl=self.parser.get('DEFAULT', 'logfile'))
 
 
-def run():
+def run(path_config_file='config.txt'):
     # Read in configuration file
-    geoprep = geoprepare()
+    geoprep = geoprepare(path_config_file)
+    datasets = ast.literal_eval(geoprep.parser.get('DATASETS', 'datasets'))
 
-    # Loop through all sections in parser
-    for dataset in geoprep.parser.sections():
+    # Loop through all datasets in parser
+    for dataset in datasets:
         if dataset == 'CHIRPS':
             import datasets.CHIRPS as CHIRPS
 
@@ -114,7 +115,7 @@ def run():
         elif dataset == 'SOIL-MOISTURE':
             raise NotImplementedError(f'{dataset} not implemented')
         else:
-            raise ValueError(f'Unknown dataset {dataset}')
+            raise ValueError(f'{dataset} not implemented')
 
 
 if __name__ == '__main__':

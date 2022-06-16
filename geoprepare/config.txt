@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = [CHIRPS]
+datasets = ['CHIRPS']
 dir_base = D:\   ; /gpfs/data1/cmongp1/tarun
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log

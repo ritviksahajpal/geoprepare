@@ -14,6 +14,9 @@
 ## Installation
 `pip install git+https://github.com/ritviksahajpal/geoprepare.git`
 
+## Usage
+`import geoprepare as gpr`
+`gpr`
 ## Features
 
 ### CHIRPS
