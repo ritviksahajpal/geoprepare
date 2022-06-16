@@ -10,11 +10,12 @@
 
 -   Free software: MIT license
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
-    
+
 
 ## Features
 
--   TODO
+### CHIRPS
+- Download preliminary and final CHIRPS data
 
 ## Credits
 
