@@ -1,3 +1,7 @@
+###############################################################################
+# Ritvik Sahajpal
+# email: ritvik@umd.edu
+###############################################################################
 import os
 import pdb
 import datetime
@@ -37,9 +41,11 @@ class geoprepare:
         self.args, self.parser = read_config()
         self.redo_last_year = True
 
-    def pp_config(self):
-        for section in self.parser.sections():
-            self.logger.info(section, dict(self.parser[section]))
+    def pp_config(self, section='DEFAULT'):
+        if not self.parser:
+            raise ValueError('Parser not initialized')
+        else:
+            self.logger.info(dict(self.parser[section]))
 
     def parse_config(self, section='DEFAULT'):
         """
@@ -75,9 +81,6 @@ if __name__ == '__main__':
     # Read in configuration file
     geoprep = geoprepare()
 
-    # Print all elements of configuration file
-    geoprep.pp_config()
-
     # Loop through all sections in parser
     for section in geoprep.parser.sections():
         if section == 'CHIRPS':
@@ -85,6 +88,9 @@ if __name__ == '__main__':
 
             # Parse configuration file for CHIRPS
             geoprep.parse_config('CHIRPS')
+            # Print all elements of configuration file
+            geoprep.pp_config('CHIRPS')
+
             geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
             geoprep.prelim = geoprep.parser.get('CHIRPS', 'prelim')
             geoprep.final = geoprep.parser.get('CHIRPS', 'final')

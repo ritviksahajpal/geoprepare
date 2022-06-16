@@ -11,6 +11,8 @@
 -   Free software: MIT license
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
 
+## Installation
+`pip install git+https://github.com/ritviksahajpal/geoprepare.git`
 
 ## Features
 
