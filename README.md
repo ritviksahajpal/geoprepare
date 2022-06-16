@@ -14,29 +14,30 @@
 `pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git`
 
 ## Usage
-`import geoprepare.geoprepare as gprp`
-
+`import geoprepare.geoprepare as gprp`<br/>
 `gpr.run(PATH_TO_CONFIG_FILE)`
 
 A sample config.txt file can be found in the `geoprepare` folder
 
 ## Config file
-[DATASETS]
-datasets = ['CHIRPS']
-dir_base =
+[DATASETS]<br/>
+datasets = ['CHIRPS']<br/>
+dir_base =<br/>
 
-[DEFAULT]
-logfile = log
-parallel_process = True
-fraction_cpus = 0.5
-start_year = 1982
-end_year = 2022
-
+[DEFAULT]<br/>
+logfile = log<br/>
+parallel_process = True<br/>
+fraction_cpus = 0.5<br/>
+start_year = 1982<br/>
+end_year = 2022<br/>
 
 ## Features
 
 ### CHIRPS
 - Download preliminary and final CHIRPS data
+
+### CHIRPS-GEFS
+- Download preliminary and final CHIRPS-GEFS data
 
 ## Credits
 
