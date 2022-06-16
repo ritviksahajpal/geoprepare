@@ -279,6 +279,10 @@ def download_parallel_nc(path_download, path_nc, variable):
             download_nc(param)
 
 
+def run():
+    pass
+
+
 if __name__ == '__main__':
     c = cdsapi.Client()
     path_download = constants.dir_download / 'agera5'
