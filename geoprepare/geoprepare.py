@@ -86,7 +86,7 @@ def run(path_config_file='config.txt'):
     # Loop through all datasets in parser
     for dataset in datasets:
         if dataset == 'CHIRPS':
-            import datasets.CHIRPS as CHIRPS
+            from .datasets import CHIRPS
 
             # Parse configuration file for CHIRPS
             geoprep.parse_config('CHIRPS')
