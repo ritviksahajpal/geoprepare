@@ -119,7 +119,7 @@ def to_global(params, dir_download):
 
     if not os.path.isfile(dir_out / os.path.basename(forecast_file)):
         fl_out = dir_out / os.path.basename(forecast_file)
-        logger.info('Creating ' + str(fl_out))
+        params.logger.info('Creating ' + str(fl_out))
 
         # logger.info(type_product + ' global ' + dir_out / 'chirps_v2.0.' + str(year) + str(jd).zfill(3) + '_global.tif')
         ds = gdal.Open(forecast_file)
