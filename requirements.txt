@@ -2,7 +2,6 @@ affine>=2.3.0
 arrow>=1.2.2
 beautifulsoup4>=4.11.1
 cdsapi>=0.5.1
-GDAL>=3.4.2
 logzero>=1.7.0
 matplotlib>=3.5.1
 netCDF4>=1.5.8
