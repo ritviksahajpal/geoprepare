@@ -15,9 +15,10 @@
 
 ## Usage
 `import geoprepare.geoprepare as gprp`
+
 `gpr.run(PATH_TO_CONFIG_FILE)`
 
-A sample config.txt file can be found in the `geoprepare` folder.
+A sample config.txt file can be found in the `geoprepare` folder
 
 ## Config file
 [DATASETS]
