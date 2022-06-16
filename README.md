@@ -15,8 +15,11 @@
 `pip install git+https://github.com/ritviksahajpal/geoprepare.git`
 
 ## Usage
-`import geoprepare as gpr`
-`gpr`
+`import geoprepare.geoprepare as gprp`
+`gpr.run(PATH_TO_CONFIG_FILE)`
+
+A sample config.txt file can be found in the `geoprepare` folder.
+
 ## Features
 
 ### CHIRPS

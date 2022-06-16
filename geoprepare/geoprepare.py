@@ -42,10 +42,13 @@ class geoprepare:
         self.redo_last_year = True
 
     def pp_config(self, section='DEFAULT'):
+        from pprint import pformat
+
         if not self.parser:
             raise ValueError('Parser not initialized')
         else:
-            self.logger.info(dict(self.parser[section]))
+            self.logger.info(f'Downloading {section}')
+            self.logger.info(pformat(dict(self.parser[section])))
 
     def parse_config(self, section='DEFAULT'):
         """
@@ -90,12 +93,13 @@ def run(path_config_file='config.txt'):
 
             # Parse configuration file for CHIRPS
             geoprep.parse_config('CHIRPS')
-            # Print all elements of configuration file
-            geoprep.pp_config('CHIRPS')
 
             geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
             geoprep.prelim = geoprep.parser.get('CHIRPS', 'prelim')
             geoprep.final = geoprep.parser.get('CHIRPS', 'final')
+
+            # Print all elements of configuration file
+            geoprep.pp_config('CHIRPS')
 
             CHIRPS.run(geoprep)
         elif dataset == 'NDVI':
