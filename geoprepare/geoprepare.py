@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 from configparser import ConfigParser, ExtendedInterpolation
 
-import geoprepare.log as log
+from . import log
 
 
 def read_config(path_config_file='config.txt'):
