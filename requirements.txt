@@ -20,4 +20,4 @@ setuptools>=60.9.1
 tqdm>=4.62.3
 urllib3>=1.26.8
 wget>=3.2
-xarray>=2022.3.0
+xarray
