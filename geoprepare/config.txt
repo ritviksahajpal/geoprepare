@@ -2,6 +2,7 @@
 datasets = [CHIRPS]
 dir_base = D:\   ; /gpfs/data1/cmongp1/tarun
 dir_input = ${dir_base}/input
+dir_log = ${dir_input}/log
 dir_interim = ${dir_input}/interim
 dir_download = ${dir_input}/download
 dir_output = ${dir_base}/output

@@ -23,12 +23,6 @@ from tqdm import tqdm
 from datetime import datetime
 from pathlib import Path
 
-# import Code.base.log as log
-# import Code.base.constants as cc
-
-# logger = log.Logger(dir_log=cc.dir_tmp,
-#                     name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
-
 list_products = ['prelim', 'final']
 
 
@@ -59,6 +53,7 @@ def download(all_params):
             try:
                 ftp.cwd(params.prelim + str(year))
             except Exception as e:
+                params.logger.error(f'Could not connect to FTP server: {e}')
                 return SystemError(f'Encountered error {e}')
             dir_out = dir_prelim
 
@@ -83,9 +78,9 @@ def download(all_params):
 
 def unzip(all_params):
     """
-    Store CHIRPS preliminary unzipped (/intermed/chirps/prelim/unzipped)
-    Store CHIRPS final scaled (/intermed/chirps/final/scaled)
-    Store CHIRPS prelim scaled (/intermed/chirps/prelim/scaled)
+    Store CHIRPS preliminary unzipped (/interim/chirps/prelim/unzipped)
+    Store CHIRPS final scaled (/interim/chirps/final/scaled)
+    Store CHIRPS prelim scaled (/interim/chirps/prelim/scaled)
     :param all_params:
     :return:
     """
@@ -110,14 +105,13 @@ def unzip(all_params):
     fl_int = dir_integer / Path(f'chirps_v2_{year}{str(day_of_year).zfill(3)}_scaled.tif')
 
     if os.path.exists(fl_int):
-        pass
-        # logger.info('File exists ' + fl_int)
+        params.logger.info(f'File exists {fl_int}')
     else:
         if type_product == 'final':
             fl_unzip = dir_unzipped / Path(f'chirps_v2.0.{year}{str(day_of_year).zfill(3)}_unzip.tif')
 
             if os.path.isfile(fl_zip):
-                # logger.info('Unzipping ' + fl_zip + ' to ' + fl_unzip)
+                params.logger.info(f'Unzipping {fl_zip} to {fl_unzip}')
                 with gzip.open(fl_zip, 'rb') as hndl_zip:
                     with open(fl_unzip, 'wb') as hndl_unzip:
                         hndl_unzip.write(hndl_zip.read())
@@ -125,7 +119,7 @@ def unzip(all_params):
             fl_unzip = dir_prelim / Path(f'chirps-v2.0.{year}.{str(mon).zfill(2)}.{str(day).zfill(2)}.tif')
 
         if os.path.isfile(fl_unzip):
-            # logger.info('Converting to int ' + fl_unzip + ' to ' + fl_int)
+            params.logger.info(f'Converting to int {fl_unzip} to {fl_int}')
             with rasterio.open(os.path.normpath(fl_unzip)) as dataset:
                 profile = dataset.profile
                 profile.update(dtype=rasterio.int32, count=1)
@@ -152,15 +146,15 @@ def to_global(all_params):
     dir_out = params.dir_interim / 'chirps' / 'global'
     os.makedirs(dir_out, exist_ok=True)
 
-    if os.path.isfile(dir_integer / Path(f'chirps_v2_{year}{jd.zfill(3)}_scaled.tif')):
-        fl_out = dir_out / Path(f'chirps_v2.0.{year}{jd.zfill(3)}_global.tif')
+    if os.path.isfile(dir_integer / Path(f'chirps_v2_{year}{str(jd).zfill(3)}_scaled.tif')):
+        fl_out = dir_out / Path(f'chirps_v2.0.{year}{str(jd).zfill(3)}_global.tif')
 
         # Redo output file if it already exists, if it is this year or last
         if year < (datetime.today().year - 1) and os.path.isfile(fl_out):
             return
 
-        # logger.info(type_product + ' global ' + dir_out + os.sep + 'chirps_v2.0.' + str(year) + str(jd).zfill(3) + '_global.tif')
-        ds = gdal.Open(str(dir_integer) + os.sep + f'chirps_v2_{year}{jd.zfill(3)}_scaled.tif')
+        params.logger.info(f'{type_product} global {dir_out} / chirps_v2.0.{year}{str(jd).zfill(3)}_global.tif')
+        ds = gdal.Open(str(dir_integer) + os.sep + f'chirps_v2_{year}{str(jd).zfill(3)}_scaled.tif')
 
         b = ds.GetRasterBand(1)
         bArr = gdal.Band.ReadAsArray(b)
@@ -226,41 +220,24 @@ def run(params):
 
     ########################################
     # First process CHIRPS preliminary data
-    ########################################
-    all_params = []
-    for year in range(start_year, end_year):
-        sjd = 1
-        jd_end = 366 if calendar.isleap(year) else 365
-        for jd in range(sjd, jd_end):
-            all_params.extend(list(itertools.product(['prelim'], [year], [jd])))
-
-    if parallel_process:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * fraction_cpus)) as p:
-            with tqdm(total=len(all_params), desc='creating prelim CHIRPS global') as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
-                    pbar.update()
-    else:
-        for val in all_params:
-            to_global(val)
-
-    ##########################################################################################
     # Next process CHIRPS final data (thereby overwriting the preliminary data in some places)
-    ##########################################################################################
-    all_params = []
-    for year in range(start_year, end_year):
-        sjd = 1
-        jd_end = 366 if calendar.isleap(year) else 365
-        for jd in range(sjd, jd_end):
-            all_params.extend(list(itertools.product(['final'], [year], [jd])))
+    ########################################
+    for product in ['prelim', 'final']:
+        all_params = []
+        for year in range(start_year, end_year):
+            sjd = 1
+            jd_end = 366 if calendar.isleap(year) else 365
+            for jd in range(sjd, jd_end):
+                all_params.extend(list(itertools.product([product], [year], [jd], [params])))
 
-    if parallel_process:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * fraction_cpus)) as p:
-            with tqdm(total=len(all_params), desc='creating final CHIRPS global') as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
-                    pbar.update()
-    else:
-        for val in all_params:
-            to_global(val)
+        if parallel_process:
+            with multiprocessing.Pool(int(multiprocessing.cpu_count() * fraction_cpus)) as p:
+                with tqdm(total=len(all_params), desc=f'creating {product} CHIRPS global') as pbar:
+                    for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
+                        pbar.update()
+        else:
+            for val in all_params:
+                to_global(val)
 
 
 if __name__ == '__main__':

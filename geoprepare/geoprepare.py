@@ -1,7 +1,13 @@
 import os
 import pdb
+import datetime
+import argparse
 
 from pathlib import Path
+from configparser import ConfigParser, ExtendedInterpolation
+
+import log
+
 
 def read_config():
     """
@@ -9,9 +15,6 @@ def read_config():
     Returns:
 
     """
-    import argparse
-    from configparser import ConfigParser, ExtendedInterpolation
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', nargs='?', default='config.txt', help='Path to configuration file')
     args = parser.parse_args()
@@ -31,30 +34,24 @@ def read_config():
 
 class geoprepare:
     def __init__(self):
-        """
-
-        Args:
-            args (object):
-            parser (object):
-        """
         self.args, self.parser = read_config()
+        self.redo_last_year = True
 
     def pp_config(self):
-        """
-
-        Returns:
-
-        """
         for section in self.parser.sections():
-            print(section, dict(self.parser[section]))
+            self.logger.info(section, dict(self.parser[section]))
 
     def parse_config(self, section='DEFAULT'):
         """
+
+        Args:
+            section ():
 
         Returns:
 
         """
         self.dir_base = Path(self.parser.get('DATASETS', 'dir_base'))
+        self.dir_log = Path(self.parser.get('DATASETS', 'dir_log'))
         self.dir_input = Path(self.parser.get('DATASETS', 'dir_input'))
         self.dir_interim = Path(self.parser.get('DATASETS', 'dir_interim'))
         self.dir_download = Path(self.parser.get('DATASETS', 'dir_download'))
@@ -67,12 +64,12 @@ class geoprepare:
 
         # check if current date is on or after March 1st. If it is then set redo_last_year flag to False else True
         # If redo_last_year is True then we redo the download, processing etc of last year's data
-        import datetime
-
-        self.redo_last_year = True
         if datetime.datetime.today().month >= 3:
             self.redo_last_year = False
 
+        # Set up logger
+        self.logger = log.Logger(dir_log=self.dir_log,
+                                 name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
 
 if __name__ == '__main__':
     # Read in configuration file
@@ -93,6 +90,3 @@ if __name__ == '__main__':
             geoprep.final = geoprep.parser.get('CHIRPS', 'final')
 
             CHIRPS.run(geoprep)
-
-    pdb.set_trace()
-    pass
