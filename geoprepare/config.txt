@@ -1,0 +1,39 @@
+[DATASETS]
+datasets = [CHIRPS]
+dir_base = D:\   ; /gpfs/data1/cmongp1/tarun
+dir_input = ${dir_base}/input
+dir_interim = ${dir_input}/interim
+dir_download = ${dir_input}/download
+dir_output = ${dir_base}/output
+
+[AGERA5]
+
+[AVHRR]
+
+[CHIRPS]
+fill_value = -2147483648
+prelim = /pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/
+final = /pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/
+start_year = 2022
+
+[CHIRPS-GEFS]
+
+[CPC]
+
+[ESI]
+start_year = 2003
+
+[FLDAS]
+
+[LST]
+
+[NDVI]
+
+[SOIL-MOISTURE]
+start_year = 2010
+
+[DEFAULT]
+parallel_process = True
+fraction_cpus = 0.5
+start_year = 1982
+end_year = 2022

@@ -23,59 +23,54 @@ from tqdm import tqdm
 from datetime import datetime
 from pathlib import Path
 
-import always
-import Code.base.log as log
-import Code.base.constants as cc
-import Code.preprocess.constants_preprocess as constants
+# import Code.base.log as log
+# import Code.base.constants as cc
 
-logger = log.Logger(dir_log=cc.dir_tmp,
-                    name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
-
-syr = constants.START_YEAR
-eyr = constants.END_YEAR
-fill_value = constants.CHIRPS_Value
-
-dir_final = constants.dir_download / 'chirps' / 'final'  # zipped tiff of CHIRPS final
-dir_prelim = constants.dir_download / 'chirps' / 'prelim'  # unzipped tiff of CHIRPS prelim
+# logger = log.Logger(dir_log=cc.dir_tmp,
+#                     name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
 
 list_products = ['prelim', 'final']
 
 
-def download_CHIRPS(all_params):
+def download(all_params):
     """
-    https://data.chc.ucsb.edu/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/2020/
-    https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/tifs/p05/2020/
+    Preliminary CHIRPS data: /pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/
+    Final CHIRPS data: /pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/
     Download CHIRPS preliminary and final files
-    store prelim in: /cmongp1/GEOGLAM/Input/download/chirps/prelim
-    store final in: /cmongp1/GEOGLAM/Input/download/chirps/final.
-    :return:
+    store prelim in: /download/chirps/prelim
+    store final in: /download/chirps/final.
+
+    Args:
+        all_params ():
+
+    Returns:
+
     """
     from ftplib import FTP
 
-    type_data, year = all_params[0], all_params[1]
+    type_data, year, params, dir_prelim, dir_final = all_params
 
     # prelim data should only be downloaded for current and previous year at most
-    if type_data == 'prelim' and (always.redo_last_year and year < datetime.today().year - 1):
+    if type_data == 'prelim' and (params.redo_last_year and year < datetime.today().year - 1):
         return
 
     with FTP('ftp.chc.ucsb.edu', 'anonymous') as ftp:
         if type_data == 'prelim':
             try:
-                ftp.cwd('/pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/' + str(year))
+                ftp.cwd(params.prelim + str(year))
             except Exception as e:
-                logger.error(type_data + ' ' + str(year) + ' ' + str(e))
-                return
+                return SystemError(f'Encountered error {e}')
             dir_out = dir_prelim
 
         if type_data == 'final':
-            ftp.cwd('/pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/' + str(year))
+            ftp.cwd(params.final + str(year))
             dir_out = dir_final
 
         os.makedirs(dir_out, exist_ok=True)
 
         list_files = ftp.nlst()
 
-        for fl in tqdm(list_files, desc='Downloading ' + type_data + ' CHIRPS'):
+        for fl in tqdm(list_files, desc=f'Downloading {type_data} CHIRPS'):
             if fl.find('chirps') > -1:
                 local_filename = os.path.join(dir_out, fl)
 
@@ -88,24 +83,24 @@ def download_CHIRPS(all_params):
 
 def unzip(all_params):
     """
-    Store CHIRPS preliminary unzipped (/cmongp1/GEOGLAM/Input/intermed/chirps/prelim/unzipped)
-    Store CHIRPS final scaled (/cmongp1/GEOGLAM/Input/intermed/chirps/final/scaled)
-    Store CHIRPS prelim scaled (/cmongp1/GEOGLAM/Input/intermed/chirps/prelim/scaled)
+    Store CHIRPS preliminary unzipped (/intermed/chirps/prelim/unzipped)
+    Store CHIRPS final scaled (/intermed/chirps/final/scaled)
+    Store CHIRPS prelim scaled (/intermed/chirps/prelim/scaled)
     :param all_params:
     :return:
     """
     import gzip
 
-    type_product, year, mon, day = all_params[0], all_params[1], all_params[2], all_params[3]
+    type_product, year, mon, day, params, dir_prelim, dir_final = all_params
 
     if type_product == 'final':
-        dir_unzipped = constants.dir_intermed / 'chirps' / type_product / 'unzipped'
+        dir_unzipped = params.dir_interim / 'chirps' / type_product / 'unzipped'
         os.makedirs(dir_unzipped, exist_ok=True)
 
         # fl_zip refers to the downloaded zipped CHIRPS final file
         fl_zip = dir_final / Path(f'chirps-v2.0.{year}.{str(mon).zfill(2)}.{str(day).zfill(2)}.tif.gz')
 
-    dir_integer = constants.dir_intermed / 'chirps' / type_product / 'scaled'
+    dir_integer = params.dir_interim / 'chirps' / type_product / 'scaled'
     os.makedirs(dir_integer, exist_ok=True)
 
     # change to JD
@@ -151,27 +146,27 @@ def to_global(all_params):
     """
     from osgeo import osr, gdal
 
-    type_product, year, jd = all_params[0], all_params[1], all_params[2]
+    type_product, year, jd, params = all_params
 
-    dir_integer = constants.dir_intermed / 'chirps' / type_product / 'scaled'
-    dir_out = constants.dir_intermed / 'chirps' / 'global'
+    dir_integer = params.dir_interim / 'chirps' / type_product / 'scaled'
+    dir_out = params.dir_interim / 'chirps' / 'global'
     os.makedirs(dir_out, exist_ok=True)
 
-    if os.path.isfile(dir_integer / Path('chirps_v2_' + str(year) + str(jd).zfill(3) + '_scaled.tif')):
-        fl_out = dir_out / Path('chirps_v2.0.' + str(year) + str(jd).zfill(3) + '_global.tif')
+    if os.path.isfile(dir_integer / Path(f'chirps_v2_{year}{jd.zfill(3)}_scaled.tif')):
+        fl_out = dir_out / Path(f'chirps_v2.0.{year}{jd.zfill(3)}_global.tif')
 
         # Redo output file if it already exists, if it is this year or last
         if year < (datetime.today().year - 1) and os.path.isfile(fl_out):
             return
 
         # logger.info(type_product + ' global ' + dir_out + os.sep + 'chirps_v2.0.' + str(year) + str(jd).zfill(3) + '_global.tif')
-        ds = gdal.Open(str(dir_integer) + os.sep + 'chirps_v2_' + str(year) + str(jd).zfill(3) + '_scaled.tif')
+        ds = gdal.Open(str(dir_integer) + os.sep + f'chirps_v2_{year}{jd.zfill(3)}_scaled.tif')
 
         b = ds.GetRasterBand(1)
         bArr = gdal.Band.ReadAsArray(b)
         outArr = np.empty([3600, 7200], dtype=int)
-        outArr[0:800, :] = fill_value
-        outArr[2800:3600, :] = fill_value
+        outArr[0:800, :] = params.fill_value
+        outArr[2800:3600, :] = params.fill_value
         outArr[800:2800, :] = bArr
 
         otype = gdal.GDT_Int32
@@ -184,36 +179,44 @@ def to_global(all_params):
         dst_ds.GetRasterBand(1).WriteArray(outArr)
 
         ds = None
-    else:
-        pass
-        # logger.info('Does not exist ' + dir_integer / 'chirps' + str(year) + str(jd).zfill(3) + '_scaled.tif')
 
-if __name__ == '__main__':
+
+def run(params):
     import calendar
     from calendar import monthrange
+
+    start_year, end_year = params.start_year, params.end_year + 1
+    parallel_process = params.parallel_process
+    fraction_cpus = params.fraction_cpus
+    dir_prelim = params.dir_download / 'chirps' / 'prelim'  # unzipped tiff of CHIRPS prelim
+    dir_final = params.dir_download / 'chirps' / 'final'  # zipped tiff of CHIRPS final
+
+    os.makedirs(dir_prelim, exist_ok=True)
+    os.makedirs(dir_final, exist_ok=True)
 
     ##########
     # DOWNLOAD
     ##########
     all_params = []
     for type_data in list_products:
-        for year in range(syr, eyr):
-            all_params.extend(list(itertools.product([type_data], [year])))
+        for year in range(start_year, end_year):
+            all_params.extend(list(itertools.product([type_data], [year], [params], [dir_prelim], [dir_final])))
 
     for val in all_params:
-        download_CHIRPS(val)
+        download(val)
 
     ##########
     # Unzip
     ##########
     all_params = []
     for type_data in list_products:
-        for year in range(syr, eyr):
+        for year in range(start_year, end_year):
             for mon in range(1, 13):
                 for day in range(1, monthrange(year, mon)[1] + 1):
-                    all_params.extend(list(itertools.product([type_data], [year], [mon], [day])))
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+                    all_params.extend(list(itertools.product([type_data], [year], [mon], [day], [params], [dir_prelim], [dir_final])))
+
+    if parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * fraction_cpus)) as p:
             with tqdm(total=len(all_params), desc='unzipping CHIRPS') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(unzip, all_params))):
                     pbar.update()
@@ -225,13 +228,14 @@ if __name__ == '__main__':
     # First process CHIRPS preliminary data
     ########################################
     all_params = []
-    for year in range(syr, eyr):
-        sjd = constants.START_JD
-        jd_end = constants.END_JD if calendar.isleap(year) else constants.END_JD2
+    for year in range(start_year, end_year):
+        sjd = 1
+        jd_end = 366 if calendar.isleap(year) else 365
         for jd in range(sjd, jd_end):
             all_params.extend(list(itertools.product(['prelim'], [year], [jd])))
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+
+    if parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * fraction_cpus)) as p:
             with tqdm(total=len(all_params), desc='creating prelim CHIRPS global') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
                     pbar.update()
@@ -243,13 +247,14 @@ if __name__ == '__main__':
     # Next process CHIRPS final data (thereby overwriting the preliminary data in some places)
     ##########################################################################################
     all_params = []
-    for year in range(syr, eyr):
-        sjd = constants.START_JD
-        jd_end = constants.END_JD if calendar.isleap(year) else constants.END_JD2
+    for year in range(start_year, end_year):
+        sjd = 1
+        jd_end = 366 if calendar.isleap(year) else 365
         for jd in range(sjd, jd_end):
             all_params.extend(list(itertools.product(['final'], [year], [jd])))
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+
+    if parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * fraction_cpus)) as p:
             with tqdm(total=len(all_params), desc='creating final CHIRPS global') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
                     pbar.update()
@@ -258,4 +263,5 @@ if __name__ == '__main__':
             to_global(val)
 
 
-
+if __name__ == '__main__':
+    pass
