@@ -192,7 +192,7 @@ def parallel_process_agERA5(params):
             process_agERA5(val)
 
 
-def download_nc(params, inputs, version="1.0"):
+def download_nc(inputs, version="1.0"):
     """
 
     Args:
@@ -202,7 +202,7 @@ def download_nc(params, inputs, version="1.0"):
     Returns:
 
     """
-    path_download, path_nc, varname, year, mon = inputs
+    params, path_download, path_nc, varname, year, mon = inputs
     os.makedirs(path_download / varname, exist_ok=True)
     os.makedirs(path_nc / varname, exist_ok=True)
 
