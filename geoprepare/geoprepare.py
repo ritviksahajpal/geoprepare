@@ -81,7 +81,6 @@ class geoprepare:
 def run(path_config_file='config.txt'):
     # Read in configuration file
     geoprep = geoprepare(path_config_file)
-    pdb.set_trace()
     datasets = ast.literal_eval(geoprep.parser.get('DATASETS', 'datasets'))
 
     # Loop through all datasets in parser
