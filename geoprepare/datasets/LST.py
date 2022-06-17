@@ -144,6 +144,10 @@ def lst_tiff_qa(all_params):
         # logger.info(f'File exists: {dir_out} {name_file}')
 
 
+def run(params):
+    pass
+
+
 if __name__ == '__main__':
     import itertools
 

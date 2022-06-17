@@ -119,7 +119,6 @@ def run(path_config_file='config.txt'):
 
             # Parse configuration file for CHIRPS-GEFS
             geoprep.parse_config('CHIRPS-GEFS')
-
             geoprep.data_dir = geoprep.parser.get('CHIRPS-GEFS', 'data_dir')
             geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
 
@@ -134,7 +133,16 @@ def run(path_config_file='config.txt'):
         elif dataset == 'ESI':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'CPC':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import CPC
+
+            # Parse configuration file for CPC
+            geoprep.parse_config('CPC')
+            geoprep.data_dir = geoprep.parser.get('CPC', 'data_dir')
+
+            # Print all elements of configuration file
+            geoprep.pp_config('CPC')
+
+            CPC.run(geoprep)
         elif dataset == 'SOIL-MOISTURE':
             raise NotImplementedError(f'{dataset} not implemented')
         else:
