@@ -1,11 +1,8 @@
 import os
-import pdb
-import netCDF4
 import itertools
 import pyresample
 import rasterio
 import wget
-import xarray as xr
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -16,7 +13,7 @@ import multiprocessing
 
 import pygeoutil.util as util
 
-import common
+from geoprepare import common
 
 path_template = 'template.nc'
 
