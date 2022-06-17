@@ -1,6 +1,6 @@
 [DATASETS]
 datasets = ['CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
-dir_base = /gpfs/data1/cmongp1/tarun
+dir_base = D:\
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
 dir_interim = ${dir_input}/interim
@@ -24,7 +24,9 @@ fill_value = -2147483648
 data_dir = /pub/org/chc/products/EWX/data/forecasts/CHIRPS-GEFS_precip_v12/15day/precip_mean/
 
 [CPC]
+start_year = 2022
 data_dir = ftp://ftp.cdc.noaa.gov/Datasets
+
 [ESI]
 start_year = 2003
 
