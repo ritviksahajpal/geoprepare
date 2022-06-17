@@ -111,7 +111,7 @@ def parallel_process_CPC(params):
 
     for product in ['precip', 'tmax', 'tmin']:
         for year in range(params.start_year, params.end_year + 1):
-            all_params.extend(list(itertools.product([product], [year])))
+            all_params.extend(list(itertools.product([params], [product], [year])))
 
     if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:

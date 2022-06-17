@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['CPC', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+datasets = ['CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
 dir_base = /gpfs/data1/cmongp1/tarun
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
@@ -11,6 +11,7 @@ dir_output = ${dir_base}/output
 start_year = 2022
 
 [AVHRR]
+data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
 
 [CHIRPS]
 fill_value = -2147483648

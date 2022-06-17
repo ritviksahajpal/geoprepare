@@ -145,6 +145,17 @@ def run(path_config_file='config.txt'):
             CPC.run(geoprep)
         elif dataset == 'SOIL-MOISTURE':
             raise NotImplementedError(f'{dataset} not implemented')
+        elif dataset == 'AVHRR':
+            from .datasets import AVHRR
+
+            # Parse configuration file for AVHRR
+            geoprep.parse_config('AVHRR')
+            geoprep.data_dir = geoprep.parser.get('AVHRR', 'data_dir')
+
+            # Print all elements of configuration file
+            geoprep.pp_config('AVHRR')
+
+            AVHRR.run(geoprep)
         else:
             raise ValueError(f'{dataset} not implemented')
 

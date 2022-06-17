@@ -5,29 +5,16 @@ import glob
 import datetime
 import requests
 import rasterio
+import itertools
 
 import multiprocessing
 import numpy as np
-import xarray as xr
-from rasterio import merge
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from affine import Affine
 
-import always
-import pygeoutil.util as util
-import Code.base.constants as cc
-import Code.preprocess.constants_preprocess as constants
-import Code.base.log as log
-
-logger = log.Logger(dir_log=cc.dir_tmp,
-                    name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
-
-syr = 1982
-eyr = constants.END_YEAR
-
-base_url = 'https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access'
+from geoprepare import common
 
 path_template = 'template.nc'
 
@@ -36,41 +23,21 @@ profile = {'driver': 'GTiff', 'dtype': 'float32', 'nodata': -9999., 'width': 720
            'tiled': False, 'interleave': 'band'}
 
 
-def convert_to_nc_hndl(path_nc):
-    """
-
-    :param path_nc:
-    :return:
-    """
-    hndl_nc = path_nc
-    if not isinstance(path_nc, np.ma.MaskedArray):
-        _, ext = os.path.splitext(path_nc)
-
-    if ext in ['.nc', '.nc4']:
-        hndl_nc = xr.open_dataset(path_nc, decode_times=False)
-
-    return hndl_nc
-
-
-def arr_to_tif(arr, path_tif, profile):
-    """
-
-    :param arr:
-    :param path_tif:
-    :param profile:
-    :return:
-    """
-    with rasterio.open(path_tif, 'w', **profile) as dst:
-        dst.write(arr, 1)
-
-
 def download_AVHRR(all_params):
-    year = all_params[0]
+    """
 
-    folder_location = constants.dir_download / 'avhrr_v5' / str(year)
-    util.make_dir_if_missing(folder_location)
+    Args:
+        all_params ():
 
-    response = requests.get(base_url + "/" + str(year))
+    Returns:
+
+    """
+    params, year = all_params
+
+    folder_location = params.dir_download / 'avhrr_v5' / str(year)
+    os.makedirs(folder_location, exist_ok=True)
+
+    response = requests.get(f'{params.data_dir}/{year}')
     soup = BeautifulSoup(response.text, "html.parser")
 
     for link in tqdm(soup.select("a[href$='.nc']"), desc=f'AVHRR {year}'):
@@ -79,7 +46,7 @@ def download_AVHRR(all_params):
 
         if not os.path.isfile(filename):
             with open(filename, 'wb') as f:
-                f.write(requests.get(urljoin(base_url + "/" + str(year) + "/", link['href'])).content)
+                f.write(requests.get(urljoin(params.data_dir + "/" + str(year) + "/", link['href'])).content)
 
 
 def process_AVHRR(all_params):
@@ -88,13 +55,13 @@ def process_AVHRR(all_params):
     :param var:
     :return:
     """
-    year = all_params[0]
+    params, year = all_params
     var = 'NDVI'
 
-    dir_output = constants.dir_intermed / 'avhrr_v5' / str(year)
-    util.make_dir_if_missing(dir_output)
+    dir_output = params.dir_interim / 'avhrr_v5' / str(year)
+    os.makedirs(dir_output, exist_ok=True)
 
-    dir_nc = constants.dir_download / 'avhrr_v5' / str(year)
+    dir_nc = params.dir_download / 'avhrr_v5' / str(year)
 
     nc_files = [f for f in os.listdir(dir_nc) if f.endswith('.nc')]
 
@@ -106,10 +73,10 @@ def process_AVHRR(all_params):
 
         fl_out = f'avhrr_v5_{year}_{str(doy).zfill(3)}.tif'
 
-        hndl_nc = convert_to_nc_hndl(dir_nc / fl)
+        hndl_nc = common.convert_to_nc_hndl(dir_nc / fl)
         if not os.path.isfile(dir_output / fl_out):
             arr = hndl_nc.variables[var].values[0]
-            arr_to_tif(arr, dir_output / fl_out, profile)
+            common.arr_to_tif(arr, dir_output / fl_out, profile)
 
 
 def mvc(file_list, path_out=None, use_temporary=False):
@@ -144,7 +111,7 @@ def mvc(file_list, path_out=None, use_temporary=False):
         return path_out
 
 
-def create_composite(suffix_out_dir, chunk_size=10):
+def create_composite(params, suffix_out_dir, chunk_size=10):
     """
 
     Args:
@@ -154,9 +121,9 @@ def create_composite(suffix_out_dir, chunk_size=10):
     Returns:
 
     """
-    dir_output = constants.dir_intermed / 'avhrr_v5' / 'composite' / suffix_out_dir
-    dir_input = constants.dir_intermed / 'avhrr_v5'
-    util.make_dir_if_missing(dir_output)
+    dir_output = params.dir_interim / 'avhrr_v5' / 'composite' / suffix_out_dir
+    dir_input = params.dir_interim / 'avhrr_v5'
+    os.makedirs(dir_output, exist_ok=True)
 
     tif_files = glob.glob(f'{dir_input}/**/*.tif', recursive=True)
     tif_files = sorted(tif_files, key=lambda x: [x.split('_')[-2], x.split('_')[-1][:-4]])
@@ -174,14 +141,14 @@ def create_composite(suffix_out_dir, chunk_size=10):
             mvc(chunk, path_composite)
 
 
-def parallel_process_AVHRR():
+def parallel_process_AVHRR(params):
     all_params = []
 
-    for year in range(syr, eyr):
-        all_params.extend(list(itertools.product([year])))
+    for year in range(params.start_year, params.end_year + 1):
+        all_params.extend(list(itertools.product([params], [year])))
 
-    if False and constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+    if params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_AVHRR, all_params))):
                     pbar.update()
@@ -190,29 +157,26 @@ def parallel_process_AVHRR():
             process_AVHRR(val)
 
 
-if __name__ == '__main__':
-    import itertools
-    # Store git hash of current code
-    logger.info('################ GIT HASH ################')
-    logger.info(util.get_git_revision_hash())
-    logger.info('################ GIT HASH ################')
-
+def run(params):
     all_params = []
-    for year in range(syr, eyr):
-        all_params.extend(list(itertools.product([year])))
+    for year in range(params.start_year, params.end_year + 1):
+        all_params.extend(list(itertools.product([params], [year])))
 
     # Download AVHRR data
     if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.5)) as p:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             for i, _ in enumerate(p.imap_unordered(download_AVHRR, all_params)):
                 pass
     else:
         for val in all_params:
             download_AVHRR(val)
-    #
-    # # Process AVHRR files
-    # parallel_process_AVHRR()
 
-    create_composite(suffix_out_dir='dekadal', chunk_size=10)
-    create_composite(suffix_out_dir='monthly', chunk_size=30)
+    # Process AVHRR files
+    parallel_process_AVHRR(params)
 
+    create_composite(params, suffix_out_dir='dekadal', chunk_size=10)
+    create_composite(params, suffix_out_dir='monthly', chunk_size=30)
+
+
+if __name__ == '__main__':
+    pass
