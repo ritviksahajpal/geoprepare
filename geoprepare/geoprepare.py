@@ -1,12 +1,12 @@
 ###############################################################################
 # Ritvik Sahajpal
 # email: ritvik@umd.edu
+# June 18, 2022
 ###############################################################################
 import os
 import ast
 import pdb
 import datetime
-import argparse
 
 from pathlib import Path
 from configparser import ConfigParser, ExtendedInterpolation
@@ -36,7 +36,7 @@ def read_config(path_config_file='config.txt'):
     return parser
 
 
-class geoprepare:
+class GeoPrepare:
     def __init__(self, path_config_file):
         self.parser = read_config(path_config_file)
         self.redo_last_year = True
@@ -83,7 +83,7 @@ class geoprepare:
 
 def run(path_config_file='config.txt'):
     # Read in configuration file
-    geoprep = geoprepare(path_config_file)
+    geoprep = GeoPrepare(path_config_file)
     datasets = ast.literal_eval(geoprep.parser.get('DATASETS', 'datasets'))
 
     # Loop through all datasets in parser
@@ -111,8 +111,6 @@ def run(path_config_file='config.txt'):
 
             geoprep.data_dir = geoprep.parser.get('CHIRPS-GEFS', 'data_dir')
             geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
-        elif dataset == 'FLDAS':
-            raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'LST':
             from .datasets import LST as obj
 
@@ -133,6 +131,8 @@ def run(path_config_file='config.txt'):
             from .datasets import AVHRR as obj
 
             geoprep.data_dir = geoprep.parser.get('AVHRR', 'data_dir')
+        elif dataset == 'FLDAS':
+            raise NotImplementedError(f'{dataset} not implemented')
         else:
             raise ValueError(f'{dataset} not implemented')
 
@@ -142,6 +142,7 @@ def run(path_config_file='config.txt'):
         geoprep.pp_config(dataset)
         # Execute!
         obj.run(geoprep)
+
 
 if __name__ == '__main__':
     run()
