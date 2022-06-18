@@ -107,6 +107,8 @@ def run(path_config_file='config.txt'):
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'LST':
             from .datasets import LST as obj
+
+            geoprep.num_update_days = geoprep.parser.getint('LST', 'num_update_days')
         elif dataset == 'ESI':
             from .datasets import ESI as obj
 

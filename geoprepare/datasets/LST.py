@@ -14,6 +14,7 @@ import os
 import glob
 import pdb
 
+import pathlib
 import numpy as np
 import multiprocessing
 from tqdm import tqdm
@@ -30,16 +31,13 @@ def download_LST(params):
     dir_download = params.dir_download / 'modis_lst'
     os.makedirs(dir_download, exist_ok=True)
 
-    # number of days to check for update, count backward from the most recent data
-    count = 15
-
     modisDown = pymodis.downmodis.downModis(destinationFolder=dir_download,
                                             url="https://e4ftl01.cr.usgs.gov", tiles=None, path="MOLT",
-                                            product="MOD11C1.006", delta=count)
+                                            product="MOD11C1.006", delta=params.num_update_days)
     modisDown.connect()
     count = len(modisDown.getListDays())
 
-    pbar = tqdm(range(0, count, 1))
+    pbar = tqdm(range(0, params.num_update_days, 1))
     for n in pbar:
         day = modisDown.getListDays()[n]
         pbar.set_description(f'Download MODIS LST for {day}')
@@ -55,11 +53,18 @@ def download_LST(params):
             # maximum number of attempts to connect to the HTTP server before failing
             modisDown.dayDownload(day, list_files_down)
         else:
-            params.logger.error("A problem with the connection occured")
+            params.logger.error("A problem with the connection occurred")
 
 
 def qa_extraction(qa_infile):
-    """unpack qa data layer from a HDF5 container """
+    """
+    Unpack qa data layer from a HDF5 container
+    Args:
+        qa_infile ():
+
+    Returns:
+
+    """
 
     # open the dataset
     qa_hdf_ds = gdal.Open(qa_infile, gdal.GA_ReadOnly)
@@ -78,9 +83,15 @@ def qa_extraction(qa_infile):
 
 
 def hdf_subdataset_extraction(hdf_file):
-    # Retrieve the LST data layer
-    """unpack LST data layer from a HDF5 container """
+    """
+    Retrieve the LST data layer
+    unpack LST data layer from a HDF5 container
+    Args:
+        hdf_file ():
 
+    Returns:
+
+    """
     # open the dataset
     hdf_ds = gdal.Open(hdf_file, gdal.GA_ReadOnly)
     band_ds = gdal.Open(hdf_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
@@ -102,13 +113,11 @@ def lst_tiff_qa(all_params):
     """
     params, year, jd = all_params
 
-    dir_download = params.dir_download / 'modis_lst'
-    dir_out = params.dir_interim / 'lst'
-    os.makedirs(dir_out, exist_ok=True)
+    os.makedirs(params.dir_interim, exist_ok=True)
 
-    # Get the reference info (e.g., dimension, projection etc) for output images from a sample file
-    pdb.set_trace()
-    sample_file = dir_download / 'MOD11C1.A2018226.006.2018227181437.hdf'
+    # Get the reference info (e.g., dimension, projection) for output images from the first hdf file
+    hdf_files = list(params.dir_download.glob('*.hdf'))
+    sample_file = hdf_files[0]
     sample_hdf_ds = gdal.Open(str(sample_file), gdal.GA_ReadOnly)
     sample_band_ds = gdal.Open(sample_hdf_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
 
@@ -118,11 +127,11 @@ def lst_tiff_qa(all_params):
     Projection = sample_band_ds.GetProjection()
 
     name_file = f'MOD11C1.A{year}{str(jd).zfill(3)}_global.tif'
-    path_out = dir_out / name_file
+    path_out = params.dir_interim / name_file
 
     if not os.path.isfile(path_out):
 
-        fileList = glob.glob(str(dir_download) + os.sep + f'MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf')
+        fileList = glob.glob(str(params.dir_download) + os.sep + f'MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf')
 
         pbar = tqdm(fileList)
         for f in pbar:
@@ -145,6 +154,14 @@ def lst_tiff_qa(all_params):
 
 
 def run(params):
+    """
+
+    Args:
+        params ():
+
+    Returns:
+
+    """
     import itertools
 
     download_LST(params)

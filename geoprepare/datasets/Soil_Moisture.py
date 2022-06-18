@@ -62,34 +62,6 @@ util.make_dir_if_missing(dir_download)
 list_products = ['as2', 'as1']
 
 
-@retry(stop_max_attempt_number=3)
-def download_soil_moisture_out_of_date():
-    try:
-        ftp = ftplib.FTP(host_ftp, timeout=30)
-        ftp.login('geoglam', 'geog8765')
-    except Exception as e:
-        raise ValueError(f'Cannot connect to {host_ftp}')
-
-    dir_ftp = '/xport/ftp/pub/jbolten/FAS/L03/'
-    ftp.cwd(dir_ftp)
-    list_files = ftp.nlst()
-
-    for year in tqdm(range(syr, eyr), desc='downloading soil moisture'):
-        for fl in list_files:
-            name_fl = str(fl)
-            year_fl = name_fl[:4]
-            is_surface = name_fl.split('.')[1]
-
-            if int(year_fl) >= year:
-                if os.path.isfile(dir_download / name_fl):
-                    pass
-                else:
-                    dir_cur = os.getcwd()
-                    os.chdir(str(dir_download))
-                    ftp.retrbinary('RETR ' + name_fl, open(name_fl, 'wb').write)
-                    os.chdir(dir_cur)
-
-
 def download_soil_moisture():
     """
 
@@ -106,15 +78,15 @@ def download_soil_moisture():
         # If file has not been downloaded already, then download it
         name_fl = list_links[idx].get('href')
 
-        if not os.path.isfile(str(dir_download) + os.sep + name_fl):
+        if not os.path.isfile(dir_download / name_fl):
             download_link = url + data_html.findAll(href=re.compile("/*.grb2$"))[idx].get('href')
 
             request = requests.head(download_link)
 
             if request.status_code == 200:
                 # logger.info('Downloading: ' + name_fl)
-                r = requests.get(download_link, os.path.normpath(str(dir_download) + os.sep + name_fl))
-                with open(str(dir_download) + os.sep + name_fl, 'wb') as f:
+                r = requests.get(download_link, os.path.normpath(dir_download / name_fl))
+                with open(dir_download / name_fl, 'wb') as f:
                     f.write(r.content)
 
 
@@ -127,15 +99,15 @@ def process_soil_moisture(all_params):
     :param day:
     :return:
     """
-    product, year, month, day = all_params[0], all_params[1], all_params[2], all_params[3]
+    params, product, year, month, day = all_params
 
     # change to JD
     day_of_year = datetime.date(year, month, day).timetuple().tm_yday
 
-    dir_final = constants.dir_intermed / Path('soil_moisture_' + str(product))
-    util.make_dir_if_missing(dir_final)
+    dir_final = params.dir_interim / Path(f'soil_moisture_{product}')
+    os.makedirs(dir_final, exist_ok=True)
 
-    fl_final = 'nasa_usda_soil_moisture_' + str(year) + '_' + str(day_of_year).zfill(3) + '_' + str(product) + '_global.tif'
+    fl_final = f'nasa_usda_soil_moisture_' + str(year) + '_' + str(day_of_year).zfill(3) + '_' + str(product) + '_global.tif'
 
     if not os.path.exists(dir_final / fl_final):
         file_search = glob.glob(str(dir_download) + os.sep + str(year) + str(month).zfill(2) + str(day).zfill(2) + '*' + str(product) + '.grb2')
@@ -182,28 +154,24 @@ def process_soil_moisture(all_params):
         # logger.info('file exists: ' + dir_final / fl_final)
 
 
-if __name__ == '__main__':
+def run(params):
     import itertools
-    # Store git hash of current code
-    logger.info('################ GIT HASH ################')
-    logger.info(util.get_git_revision_hash())
-    logger.info('################ GIT HASH ################')
 
     # download_soil_moisture_out_of_date()
     try:
-        download_soil_moisture()
+        download_soil_moisture(params)
     except Exception as e:
-        logger.error('Download of soil moisture data failed')
+        params.logger.error('Download of soil moisture data failed')
 
     all_params = []
     for product in list_products:
         for year in range(syr, eyr):
             for month in range(1, 13):
                 for day in range(1, monthrange(year, month)[1] + 1):
-                    all_params.extend(list(itertools.product([product], [year], [month], [day])))
+                    all_params.extend(list(itertools.product([params], [product], [year], [month], [day])))
 
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+    if params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_soil_moisture, all_params))):
                     pbar.update()
@@ -213,3 +181,7 @@ if __name__ == '__main__':
             pbar.set_description(str(val))
             process_soil_moisture(val)
             pbar.update()
+
+
+if __name__ == '__main__':
+    pass
