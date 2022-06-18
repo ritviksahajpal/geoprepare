@@ -117,6 +117,7 @@ def lst_tiff_qa(all_params):
 
     # Get the reference info (e.g., dimension, projection) for output images from the first hdf file
     hdf_files = list(params.dir_download.glob('*.hdf'))
+    pdb.set_trace()
     sample_file = hdf_files[0]
     sample_hdf_ds = gdal.Open(str(sample_file), gdal.GA_ReadOnly)
     sample_band_ds = gdal.Open(sample_hdf_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
