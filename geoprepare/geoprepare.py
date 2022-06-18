@@ -118,7 +118,9 @@ def run(path_config_file='config.txt'):
 
             geoprep.data_dir = geoprep.parser.get('CPC', 'data_dir')
         elif dataset == 'SOIL-MOISTURE':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import SOIL_MOISTURE as obj
+
+            geoprep.data_dir = geoprep.parser.get('SOIL-MOISTURE', 'data_dir')
         elif dataset == 'AVHRR':
             from .datasets import AVHRR as obj
 

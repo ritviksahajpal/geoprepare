@@ -1,4 +1,6 @@
-# README ##############################################################################################################
+######################################################################################################################
+# Ritvik Sahajpal, Jie Zhang
+# ritvik@umd.edu
 # Data Download
 # The python script has been set to only download the grb2 files that do not exist in the folder
 # 2 sets of files are being downloaded: as1 (surface) and as2 (subsurface)
@@ -14,62 +16,33 @@ import datetime
 import glob
 import pdb
 import subprocess
-import sys
-import ftplib
-
-import always
 import multiprocessing
 import requests
 import re
 from bs4 import BeautifulSoup as soup
 from tqdm import tqdm
 from calendar import monthrange
-from retrying import retry
 from pathlib import Path
 
-import pygeoutil.util as util
-import Code.base.log as log
-import Code.base.constants as cc
-import Code.preprocess.constants_preprocess as constants
-
-logger = log.Logger(dir_log=cc.dir_tmp, name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
-
-syr = constants.START_YEAR
-eyr = constants.END_YEAR
-sjd = constants.START_JD
-ejd = constants.END_JD
-
-host_ftp = 'hrsl.ba.ars.usda.gov'
-
-# Surface and Subsurface soil moisture:
-#
-# https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L03/
-#
-# Soil moisture profile:
-#
-# https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L04/
-#
-# Surface and Subsurface soil moisture anomaly:
-#
-# https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L05/
-
-dir_download = constants.dir_download / 'soil_moisture_nasa_usda' / 'grib'
-dir_tif = constants.dir_download / 'soil_moisture_nasa_usda' / 'tif'
-
-util.make_dir_if_missing(dir_tif)
-util.make_dir_if_missing(dir_download)
+start_jd = 1
+end_jd = 367
 
 list_products = ['as2', 'as1']
 
 
-def download_soil_moisture():
+def download_soil_moisture(params):
     """
 
-    :return:
-    """
-    url = 'https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/'
+    Args:
+        params ():
 
-    data_html = soup(requests.get(url).text, 'lxml')
+    Returns:
+
+    """
+    dir_download = params.dir_download / 'soil_moisture_nasa_usda' / 'grib'
+    os.makedirs(dir_download, exist_ok=True)
+
+    data_html = soup(requests.get(params.data_dir).text, 'lxml')
 
     # Find all grb2 files on page
     list_links = data_html.findAll(href=re.compile("/*.grb2$"))
@@ -79,12 +52,12 @@ def download_soil_moisture():
         name_fl = list_links[idx].get('href')
 
         if not os.path.isfile(dir_download / name_fl):
-            download_link = url + data_html.findAll(href=re.compile("/*.grb2$"))[idx].get('href')
+            download_link = params.data_dir + data_html.findAll(href=re.compile("/*.grb2$"))[idx].get('href')
 
             request = requests.head(download_link)
 
             if request.status_code == 200:
-                # logger.info('Downloading: ' + name_fl)
+                # params.logger.info('Downloading: ' + name_fl)
                 r = requests.get(download_link, os.path.normpath(dir_download / name_fl))
                 with open(dir_download / name_fl, 'wb') as f:
                     f.write(r.content)
@@ -101,13 +74,18 @@ def process_soil_moisture(all_params):
     """
     params, product, year, month, day = all_params
 
+    dir_download = params.dir_download / 'soil_moisture_nasa_usda' / 'grib'
+    dir_tif = params.dir_download / 'soil_moisture_nasa_usda' / 'tif'
+    os.makedirs(dir_download, exist_ok=True)
+    os.makedirs(dir_tif, exist_ok=True)
+
     # change to JD
     day_of_year = datetime.date(year, month, day).timetuple().tm_yday
 
-    dir_final = params.dir_interim / Path(f'soil_moisture_{product}')
+    dir_final = params.dir_interim / f'soil_moisture_{product}'
     os.makedirs(dir_final, exist_ok=True)
 
-    fl_final = f'nasa_usda_soil_moisture_' + str(year) + '_' + str(day_of_year).zfill(3) + '_' + str(product) + '_global.tif'
+    fl_final = f'nasa_usda_soil_moisture_{year}_{str(day_of_year).zfill(3)}_{product}_global.tif'
 
     if not os.path.exists(dir_final / fl_final):
         file_search = glob.glob(str(dir_download) + os.sep + str(year) + str(month).zfill(2) + str(day).zfill(2) + '*' + str(product) + '.grb2')
@@ -149,9 +127,6 @@ def process_soil_moisture(all_params):
                        str(ras_final)]
 
             subprocess.call(command)
-    else:
-        pass
-        # logger.info('file exists: ' + dir_final / fl_final)
 
 
 def run(params):
@@ -165,7 +140,7 @@ def run(params):
 
     all_params = []
     for product in list_products:
-        for year in range(syr, eyr):
+        for year in range(params.start_year, params.end_year + 1):
             for month in range(1, 13):
                 for day in range(1, monthrange(year, month)[1] + 1):
                     all_params.extend(list(itertools.product([params], [product], [year], [month], [day])))
@@ -184,4 +159,12 @@ def run(params):
 
 
 if __name__ == '__main__':
+    # Surface and Subsurface soil moisture:
+    # https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L03/
+
+    # Soil moisture profile:
+    # https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L04/
+
+    # Surface and Subsurface soil moisture anomaly:
+    # https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L05/
     pass

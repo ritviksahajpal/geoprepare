@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+datasets = ['SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
 dir_base = D:\
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
@@ -40,6 +40,7 @@ num_update_days = 7
 
 [SOIL-MOISTURE]
 start_year = 2010
+data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
 
 [DEFAULT]
 logfile = log
