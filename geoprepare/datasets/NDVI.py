@@ -1,116 +1,271 @@
-# README ##############################################################################################################
-# Data Preprocessing
-# The data is already provided at a 0.05 degree resolution, global extent to match the crop masks.
-# In order to save space on the server, the files have been compressed so a script is written to uncompress the files.
-#
-# Data Extraction
-# Values range between 0 - 250. Fill values are between 251 - 255. Fill values are masked out in the extraction code.
-# Scaled by (NDVI * 200) + 50
-# True 0 NDVI values are in fact '50' in the data layers
-# '0' in the data layers are equivalent of missing data (i.e. over oceans etc)
-#######################################################################################################################
-import os
-import pdb
-import always
-import requests
-import re
-from bs4 import BeautifulSoup as soup
-import urllib.request
-import subprocess
-import multiprocessing
-from tqdm import tqdm
-import pygeoutil.util as util
+####################################
+# Author: F. Dan O'Neill
+# Date: 1/23/2020
+####################################
+"""This script takes a product name and a directory, and
+checks for newly available imagery or gaps in the archive.
+Imagery is then downloaded and written to disk to complete
+the archive.
 
-import Code.preprocess.constants_preprocess as constants
-import Code.base.log as log
-logger = log.Logger(name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
+Call is:
 
-base_url = "http://pekko.geog.umd.edu/users/bbarker/mod09.ndvi.global_0.05_degree.v1/"
+python update_cmg_archive.py {PRODUCT} {DIRECTORY} {scale_flag}
 
-syr = constants.START_YEAR
-eyr = constants.END_YEAR
-sjd = constants.START_JD
-ejd = constants.END_JD
+e.g.
 
+python update_cmg_archive.py "MOD09CMG" "C:/terra_archive/" -scale_mark
 
-def download_NDVI():
-    """
-    pekko.geog.umd.edu/users/bbarker/mod09.ndvi.global_0.05_degree.v1/mod09.ndvi.global_0.05_degree.2018.001.c6.v1.tif
-    :return:
-    """
-    dir_download = constants.dir_download + os.sep + 'ndvi'
-    util.make_dir_if_missing(dir_download)
+***
 
-    data_html = soup(requests.get(base_url).text, 'lxml')
+Parameters
+----------
+product:str
+	Name of desired imagery product
+directory:str
+	Path to directory where imagery
+	is currently stored
 
-    # Find all grib files on page
-    list_links = data_html.findAll(href=re.compile("/*.tif$"))
+Flags
+-----
+-scale_glam
+	Use GLAM system NDVI scaling
+	(NDVI * 10000)
+-scale_mark
+	Use Mark's NDVI scaling
+	((NDVI * 200) + 50)
+-start_year {%Y}
+	If this flag is not set, the script
+	sets the start year to that of the
+	earliest existing file in the directory.
+	This flag overrides that method, which is
+	necessary when first filling a directory,
+	for example.
 
-    for idx, link in enumerate(list_links):
-        # If file has not been downloaded already, then download it
-        name_fl = list_links[idx].get('href')
-
-        if not os.path.isfile(dir_download + os.sep + name_fl):
-            download_link = base_url + name_fl
-
-            request = requests.head(download_link)
-
-            if request.status_code == 200:
-                path_download = os.path.normpath(dir_download + os.sep + name_fl)
-                logger.info('downloading ' + path_download)
-
-                r = requests.get(download_link, path_download)
-                with open(path_download, 'wb') as f:
-                    f.write(r.content)
+"""
 
 
-def process_NDVI(all_params):
-    """
+## set up logging
+import logging, os
+logging.basicConfig(level=os.environ.get("LOGLEVEL","INFO"))
+log = logging.getLogger(__name__)
 
-    :param all_params:
-    :return:
-    """
-    dir_download = constants.dir_download + os.sep + 'ndvi'
-    dir_out = constants.dir_intermed + os.sep + 'ndvi'
-    util.make_dir_if_missing(dir_out)
+## import modules
+import argparse, gdal, glob, octvi, shutil, sys
+import numpy as np
+from datetime import datetime, timedelta
+from gdalnumeric import *
 
-    year, jd = all_params[0], all_params[1]
+def generateFileName(product:str,vi:str, year:int=None,doy:int=None,date:str=None) -> str:
+	"""This function converts a date into a valid file name
 
-    name_file = 'mod09.ndvi.global_0.05_degree.' + str(year) + '.' + str(jd).zfill(3) + '.c6.v1.tif'
+	Specify EITHER 'year' and 'doy' OR 'date'
 
-    if os.path.isfile(dir_download + os.sep + name_file):
-        if not os.path.isfile(dir_out + os.sep + name_file):
-            path_out = dir_out + os.sep + name_file
-            fl = dir_download + os.sep + name_file
+	***
 
-            # logger.info('Uncompressing ' + fl + ' to ' + path_out)
-            tiff_command = ['gdal_translate', '-ot', 'Byte', '-of', 'GTiff', '-co', 'COMPRESS=LZW', fl, path_out]
-            subprocess.call(tiff_command)
-        else:
-            pass
-            # logger.info('File exists: ' + dir_out + os.sep + name_file)
+	Parameters
+	----------
+	product:str
+		Name of imagery product (e.g. "MOD09CMG")
+	year:int
+		Year of image
+	doy:int
+		Day of year (doy) of image
+	date:str
+		%Y-%m-%d
+	"""
+	if year is None or doy is None:
+		try:
+			year,doy = datetime.strptime(date,"%Y-%m-%d").strftime("%Y-%j").split("-")
+		except:
+			log.error("Specify either year and doy OR date!")
 
+	prefix = product[:5].lower()
+	if vi == 'ndvi':
+		return f"{prefix}.ndvi.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif"
+	elif vi == 'gcvi':
+		return f"{prefix}.gcvi.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif"
 
-if __name__ == '__main__':
-    import itertools
+def check8DayValidity(product:str,date:str) -> bool:
+	"""This function returns whether all files in an 8-day range from
+	the provided date are available.
 
-    # Store git hash of current code
-    logger.info('################ GIT HASH ################')
-    logger.info(util.get_git_revision_hash())
-    logger.info('################ GIT HASH ################')
+	***
 
-    download_NDVI()
+	Parameters
+	---------
+	product:str
+		e.g. "MOD09CMG"
+	date:str
+		%Y-%m-%d
+	"""
+	for i in range(0,9):
+		compDate = (datetime.strptime(date,"%Y-%m-%d") + timedelta(days=i)).strftime("%Y-%m-%d")
+		if len(octvi.url.getDates(product,compDate)) == 0:
+			return False
+	return True
 
-    all_params = []
-    for year in range(syr, eyr):
-        for jd in range(sjd, ejd, 8):
-            all_params.extend(list(itertools.product([year], [jd])))
+def scaleConversion_glamToMark(in_file:str) -> None:
+	"""This function changes the scaling on an input file
 
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
-            with tqdm(total=len(all_params)) as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(process_NDVI, all_params))):
-                    pbar.update()
-    else:
-        for val in all_params:
-            process_NDVI(val)
+	The values are converted from GLAM scaling (NDVI * 10000) to
+	Mark's scaling ((NDVI * 200) + 50)
+
+	***
+
+	Parameters
+	----------
+	in_file:str
+		Path to the image file to be converted
+
+	"""
+	## define intermediate filename
+	extension = os.path.splitext(in_file)[1]
+	intermediate_file = in_file.replace(extension,f".TEMP{extension}")
+	## copy to intermediate file
+	with open(in_file,'rb') as rf:
+		with open(intermediate_file,'wb') as wf:
+			shutil.copyfileobj(rf,wf)
+	## open file with gdal
+	ds = gdal.Open(in_file, 0)
+	# extract projection and geotransform
+	srs = ds.GetProjection()
+	gt = ds.GetGeoTransform()
+	# convert to array
+	ds_band = ds.GetRasterBand(1)
+	arr = BandReadAsArray(ds_band)
+	rasterYSize, rasterXSize = arr.shape
+	# close file and band
+	ds = ds_band = None
+
+	## convert array values
+	arr = ((arr*.02) + 50)
+	arr[arr == -10] = 255
+	arr = np.uint8(arr)
+
+	## write to file
+	driver = gdal.GetDriverByName('GTiff')
+	dataset = driver.Create(in_file,rasterXSize,rasterYSize,1,gdal.GDT_Byte,['COMPRESS=LZW'])
+	dataset.GetRasterBand(1).WriteArray(arr)
+	dataset.GetRasterBand(1).SetNoDataValue(255)
+	dataset.SetGeoTransform(gt)
+	dataset.SetProjection(srs)
+	dataset.FlushCache() # Write to disk
+	del dataset
+
+	## remove intermediate file
+	os.remove(intermediate_file)
+
+def run(params):
+	from tqdm import tqdm
+
+	## validate arguments
+	if params.scale_glam:
+		assert not params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
+	else:
+		assert params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
+		assert params.vi == 'ndvi', "MARK scaling should only be used with NDVI"
+
+	## clean and collect existing files
+	# remove running composites
+	runningComposites = glob.glob(os.path.join(params.directory,"*.running_composite.tif"))
+	for c in runningComposites:
+		os.remove(c)
+	# get list of existing full files
+	extantFiles = glob.glob(os.path.join(params.directory,f"*.tif"))
+
+	## get missing dates
+	# first and last year
+	if params.start_year:
+		firstYear = int(params.start_year)
+	else:
+		firstYear = int(datetime.now().strftime("%Y"))
+		for f in extantFiles:
+			try:
+				fileYear = int(os.path.basename(f).split(".")[4])
+				if fileYear < firstYear:
+					firstYear = fileYear
+			except ValueError:
+				continue
+	# range of years and doys
+	years = [y for y in range(firstYear,int(datetime.now().strftime("%Y"))+1)]
+	doys =[ d for d in range(1,365,8)]
+
+	# filter missing dates
+	dates = {}
+	earliestDataDict = {"MOD09CMG":"2000.055","MYD09CMG":"2002.185"}
+	for y in tqdm(years, desc='year'):
+		for doy in tqdm(doys, desc='doy', leave=False):
+			if not os.path.exists(os.path.join(params.directory,generateFileName(params.product,params.vi, y,doy))):
+				formattedDate = datetime.strptime(f"{y}.{doy}","%Y.%j").strftime("%Y-%m-%d")
+				# is the image in the future?
+				if datetime.strptime(f"{y}.{doy}","%Y.%j") >= datetime.now() or datetime.strptime(f"{y}.{doy}","%Y.%j") < datetime.strptime(earliestDataDict.get(params.product,"2000.049"),"%Y.%j"):
+					continue
+				# does the image exist at all?
+				if len(octvi.url.getDates(params.product,formattedDate)) == 0: # if there is valid imagery for the date
+					dates[formattedDate] = "No imagery"
+				# are there missing files in the compositing period?
+				elif not check8DayValidity(params.product,formattedDate):
+					dates[formattedDate] = "Incomplete compositing period"
+				# if none of the above, it's available.
+				else:
+					dates[formattedDate] = "Available"
+	# special behavior if "-print_missing" is set
+	if params.print_missing:
+		for k in dates.keys():
+			outString = f"{k} : {dates[k]}"
+			print(outString)
+		sys.exit()
+
+	if params.vi == 'ndvi':
+		availableFiles = 0
+		completedFiles = 0
+		for d in dates.keys():
+			if dates[d] == "Available":
+				availableFiles += 1
+				log.info(f"Creating Composite for {d}")
+				outPath = os.path.join(params.directory,generateFileName(params.product,params.vi,date=d))
+				octvi.globalVi(params.product,d,outPath)
+				if params.scale_mark:
+					scaleConversion_glamToMark(outPath)
+
+				## reproject to WGS 1984
+				srs = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]'
+				ds = gdal.Open(outPath,1)
+				if ds:
+					res = ds.SetProjection(srs)
+					if res != 0:
+						log.error("--projection failed: {}".format(str(res)))
+						ds = None
+						continue
+					ds = None
+					completedFiles += 1
+				else:
+					log.error("--could not open with GDAL")
+	elif params.vi == 'gcvi':
+		availableFiles = 0
+		completedFiles = 0
+		for d in dates.keys():
+			if dates[d] == "Available":
+				availableFiles += 1
+				log.info(f"Creating Composite for {d}")
+				outPath = os.path.join(params.directory, generateFileName(params.product, params.vi,date=d))
+				octvi.globalVi(params.product, d, outPath,vi="GCVI")
+
+				## reproject to WGS 1984
+				srs = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]'
+				ds = gdal.Open(outPath, 1)
+				if ds:
+					res = ds.SetProjection(srs)
+					if res != 0:
+						log.error("--projection failed: {}".format(str(res)))
+						ds = None
+						continue
+					ds = None
+					completedFiles += 1
+				else:
+					log.error("--could not open with GDAL")
+
+	log.info(f"Done. {availableFiles} composites available; {completedFiles} composites created. Use -print_missing flag to see details of missing composites.")
+
+if __name__ == "__main__":
+	pass

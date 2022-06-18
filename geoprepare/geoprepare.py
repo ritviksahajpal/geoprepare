@@ -95,7 +95,15 @@ def run(path_config_file='config.txt'):
             geoprep.prelim = geoprep.parser.get('CHIRPS', 'prelim')
             geoprep.final = geoprep.parser.get('CHIRPS', 'final')
         elif dataset == 'NDVI':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import NDVI as obj
+
+            # product vi start_year scale_glam scale_mark print_missing
+            geoprep.product = geoprep.parser.get('NDVI', 'product')
+            geoprep.vi = geoprep.parser.get('NDVI', 'vi')
+            geoprep.start_year = geoprep.parser.getint('NDVI', 'start_year')
+            geoprep.scale_glam = geoprep.parser.getboolean('NDVI', 'scale_glam')  # Use GLAM scaling NDVI * 10000
+            geoprep.scale_mark = geoprep.parser.getboolean('NDVI', 'scale_mark')  # Use Mark's scaling (NDVI * 200) + 50
+            geoprep.print_missing = geoprep.parser.getboolean('NDVI', 'print_missing')  # Print missing dates (+status) and exit
         elif dataset == 'AGERA5':
             from .datasets import AgERA5 as obj
         elif dataset == 'CHIRPS-GEFS':

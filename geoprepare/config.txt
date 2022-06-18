@@ -37,6 +37,12 @@ data_dir = https://gis1.servirglobal.net//data//esi//
 num_update_days = 7
 
 [NDVI]
+product = MOD09CMG
+vi = ndvi
+start_year = 2022
+scale_glam = False
+scale_mark = True
+print_missing = False
 
 [SOIL-MOISTURE]
 start_year = 2010
