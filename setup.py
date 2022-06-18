@@ -44,7 +44,7 @@ setup(
     license="MIT license",
     long_description=readme,
     long_description_content_type='text/markdown',
-    include_package_data=True,
+    # include_package_data=True,
     keywords='geoprepare',
     name='geoprepare',
     packages=find_packages(include=['geoprepare', 'geoprepare.*']),
@@ -52,6 +52,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/ritviksahajpal/geoprepare',
-    version='0.0.1',
+    version='0.0.2',
     zip_safe=False,
 )
