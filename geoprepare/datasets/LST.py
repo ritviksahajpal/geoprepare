@@ -113,11 +113,11 @@ def lst_tiff_qa(all_params):
     """
     params, year, jd = all_params
 
+    dir_download = params.dir_download / 'modis_lst'
     os.makedirs(params.dir_interim, exist_ok=True)
 
     # Get the reference info (e.g., dimension, projection) for output images from the first hdf file
-    hdf_files = list(params.dir_download.glob('*.hdf'))
-    pdb.set_trace()
+    hdf_files = list(dir_download.glob('*.hdf'))
     sample_file = hdf_files[0]
     sample_hdf_ds = gdal.Open(str(sample_file), gdal.GA_ReadOnly)
     sample_band_ds = gdal.Open(sample_hdf_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
@@ -132,7 +132,7 @@ def lst_tiff_qa(all_params):
 
     if not os.path.isfile(path_out):
 
-        fileList = glob.glob(str(params.dir_download) + os.sep + f'MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf')
+        fileList = glob.glob(str(dir_download) + os.sep + f'MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf')
 
         pbar = tqdm(fileList)
         for f in pbar:
