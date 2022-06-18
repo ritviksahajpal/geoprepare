@@ -65,8 +65,7 @@ def remap_like(original_nc, target_nc, name_var, index=0):
     :return:
     """
     hndl_original = common.convert_to_nc_hndl(original_nc)
-    pdb.set_trace()
-    hndl_target = common.convert_to_nc_hndl(target_nc)
+    hndl_target = common.convert_to_nc_hndl(pathlib.Path(__file__).parent.resolve() / target_nc)
 
     lat = hndl_original.variables['lat'].values
     lon = hndl_original.variables['lon'].values
