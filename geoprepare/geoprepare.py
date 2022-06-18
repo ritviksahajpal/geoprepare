@@ -106,7 +106,7 @@ def run(path_config_file='config.txt'):
         elif dataset == 'FLDAS':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'LST':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import LST as obj
         elif dataset == 'ESI':
             from .datasets import ESI as obj
 

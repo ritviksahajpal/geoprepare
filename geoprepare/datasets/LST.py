@@ -1,38 +1,34 @@
-# README ##############################################################################################################
+######################################################################################################################
+# Ritvik Sahajpal, Jie Zhang
+# ritvik@umd.edu
 # Data Preprocessing
 # Global Daily MODIS Land Surface Temperature (LST) data at 0.05Deg (MOD11C1.006)
 # The data is already provided at a 0.05 degree resolution, global extent to match the crop masks.
-# For each day, pixels with poor LST quality were masked out based on the quality assurance (QA) layer (Note: The two least significant bits "00" indicate LST produced with good quality).
+# For each day, pixels with poor LST quality were masked out based on the quality assurance (QA) layer
+# (Note: The two least significant bits "00" indicate LST produced with good quality).
 # Daily LST data with good quality were output into daily tiff file.
 # Values range between 7500-65535. Fill values are 0. Fill values are masked out in the Weighted Average Extraction code.
 # The value is scaled Kelvin temperature and can be converted to Celsius temperature by LST=DN*0.02-273.15(°C).
 #######################################################################################################################
 import os
-import always
-from osgeo import gdal
-import numpy as np
 import glob
-import pymodis
+import pdb
+
+import numpy as np
 import multiprocessing
 from tqdm import tqdm
-import pygeoutil.util as util
+from osgeo import gdal
 
-import Code.preprocess.constants_preprocess as constants
-import Code.base.log as log
-import Code.base.constants as cc
+import pymodis
 
-logger = log.Logger(dir_log=cc.dir_tmp, name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
-
-syr = 2000
-eyr = constants.END_YEAR
-sjd = constants.START_JD
-ejd = constants.END_JD
+start_jd = 1
+end_jd = 367
 
 
-def download_LST():
+def download_LST(params):
     # destination folder
-    dir_download = constants.dir_download / 'modis_lst'
-    util.make_dir_if_missing(dir_download)
+    dir_download = params.dir_download / 'modis_lst'
+    os.makedirs(dir_download, exist_ok=True)
 
     # number of days to check for update, count backward from the most recent data
     count = 15
@@ -59,7 +55,7 @@ def download_LST():
             # maximum number of attempts to connect to the HTTP server before failing
             modisDown.dayDownload(day, list_files_down)
         else:
-            logger.error("A problem with the connection occured")
+            params.logger.error("A problem with the connection occured")
 
 
 def qa_extraction(qa_infile):
@@ -96,14 +92,22 @@ def hdf_subdataset_extraction(hdf_file):
 
 
 def lst_tiff_qa(all_params):
+    """
 
-    year, jd = all_params[0], all_params[1]
+    Args:
+        all_params ():
 
-    dir_download = constants.dir_download / 'modis_lst'
-    dir_out = constants.dir_intermed / 'lst'
-    util.make_dir_if_missing(dir_out)
+    Returns:
+
+    """
+    params, year, jd = all_params
+
+    dir_download = params.dir_download / 'modis_lst'
+    dir_out = params.dir_interim / 'lst'
+    os.makedirs(dir_out, exist_ok=True)
 
     # Get the reference info (e.g., dimension, projection etc) for output images from a sample file
+    pdb.set_trace()
     sample_file = dir_download / 'MOD11C1.A2018226.006.2018227181437.hdf'
     sample_hdf_ds = gdal.Open(str(sample_file), gdal.GA_ReadOnly)
     sample_band_ds = gdal.Open(sample_hdf_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
@@ -113,12 +117,12 @@ def lst_tiff_qa(all_params):
     GeoTransform = sample_band_ds.GetGeoTransform()
     Projection = sample_band_ds.GetProjection()
 
-    name_file= 'MOD11C1.A' + str(year) + str(jd).zfill(3) + '_global.tif'
+    name_file = f'MOD11C1.A{year}{str(jd).zfill(3)}_global.tif'
     path_out = dir_out / name_file
 
     if not os.path.isfile(path_out):
 
-        fileList = glob.glob(str(dir_download) + os.sep + 'MOD11C1.A' + str(year) + str(jd).zfill(3) + '*.006.*.hdf')
+        fileList = glob.glob(str(dir_download) + os.sep + f'MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf')
 
         pbar = tqdm(fileList)
         for f in pbar:
@@ -139,35 +143,26 @@ def lst_tiff_qa(all_params):
             out_ds.GetRasterBand(1).SetNoDataValue(np.NaN)
             out_ds = None
 
-    else:
-        pass
-        # logger.info(f'File exists: {dir_out} {name_file}')
-
 
 def run(params):
-    pass
-
-
-if __name__ == '__main__':
     import itertools
 
-    # Store git hash of current code
-    logger.info('################ GIT HASH ################')
-    logger.info(util.get_git_revision_hash())
-    logger.info('################ GIT HASH ################')
-
-    download_LST()
+    download_LST(params)
 
     all_params = []
-    for year in range(syr, eyr):
-        for jd in range(sjd, ejd, 1):
-            all_params.extend(list(itertools.product([year], [jd])))
+    for year in range(params.start_year, params.end_year + 1):
+        for jd in range(start_jd, end_jd, 1):
+            all_params.extend(list(itertools.product([params], [year], [jd])))
 
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+    if False and params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(lst_tiff_qa, all_params))):
                     pbar.update()
     else:
         for val in all_params:
             lst_tiff_qa(val)
+
+
+if __name__ == '__main__':
+    pass
