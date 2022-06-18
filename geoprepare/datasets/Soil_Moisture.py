@@ -132,7 +132,6 @@ def process_soil_moisture(all_params):
 def run(params):
     import itertools
 
-    # download_soil_moisture_out_of_date()
     try:
         download_soil_moisture(params)
     except Exception as e:
