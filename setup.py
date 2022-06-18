@@ -44,7 +44,7 @@ setup(
     license="MIT license",
     long_description=readme,
     long_description_content_type='text/markdown',
-    # include_package_data=True,
+    include_package_data=True,
     keywords='geoprepare',
     name='geoprepare',
     packages=find_packages(include=['geoprepare', 'geoprepare.*']),
