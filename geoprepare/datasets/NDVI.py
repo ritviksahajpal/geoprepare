@@ -161,10 +161,10 @@ def run(params):
 
     ## validate arguments
     if params.scale_glam:
-		assert not params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
-	else:
-		assert params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
-		assert params.vi == 'ndvi', "MARK scaling should only be used with NDVI"
+        assert not params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
+    else:
+        assert params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
+        assert params.vi == 'ndvi', "MARK scaling should only be used with NDVI"
 
 	## clean and collect existing files
 	# remove running composites
