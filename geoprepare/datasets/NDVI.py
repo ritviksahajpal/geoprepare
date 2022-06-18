@@ -156,10 +156,11 @@ def scaleConversion_glamToMark(in_file:str) -> None:
 	os.remove(intermediate_file)
 
 def run(params):
-	from tqdm import tqdm
+    from tqdm import tqdm
+    os.makedirs(params.dir_interim, exist_ok=True)
 
-	## validate arguments
-	if params.scale_glam:
+    ## validate arguments
+    if params.scale_glam:
 		assert not params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
 	else:
 		assert params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"

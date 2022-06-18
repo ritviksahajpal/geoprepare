@@ -185,7 +185,7 @@ def download_nc(inputs, version="1.0"):
     Returns:
 
     """
-    params, path_download, path_nc, varname, year, mon = inputs
+    c, params, path_download, path_nc, varname, year, mon = inputs
     os.makedirs(path_download / varname, exist_ok=True)
     os.makedirs(path_nc / varname, exist_ok=True)
 
@@ -207,8 +207,6 @@ def download_nc(inputs, version="1.0"):
 
         # Check if netCDF file already exists, if not then download it
         if not os.path.exists(fname):
-            c = cdsapi.Client()
-
             try:
                 if statistic:
                     c.retrieve(
@@ -242,7 +240,7 @@ def download_nc(inputs, version="1.0"):
                     zip_ref.extractall(path_nc / varname)
 
 
-def download_parallel_nc(params, path_download, path_nc, variable):
+def download_parallel_nc(c, params, path_download, path_nc, variable):
     """
 
     Args:
@@ -257,13 +255,13 @@ def download_parallel_nc(params, path_download, path_nc, variable):
     all_params = []
     for year in range(params.start_year, params.end_year + 1):
         for mon in range(1, 13):
-            all_params.extend(list(itertools.product([params], [path_download], [path_nc], [variable], [year], [mon])))
+            all_params.extend(list(itertools.product([c], [params], [path_download], [path_nc], [variable], [year], [mon])))
 
     if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_nc, all_params))):
-                    pbar.set_description(f'Downloading AgERA5 {variable} year:{all_params[i][3]} month:{all_params[i][4]}')
+                    pbar.set_description(f'Downloading AgERA5 {variable} year:{all_params[i][5]} month:{all_params[i][6]}')
                     pbar.update()
     else:
         for param in tqdm(all_params, desc=f'Downloading AgERA5 {variable} year:{year} month:{mon}'):
@@ -282,8 +280,14 @@ def run(params):
     path_download = params.dir_download / 'agera5'
     path_nc = params.dir_interim / 'agera5' / 'nc'
 
+    try:
+        c = cdsapi.Client()
+    except Exception as e:
+        params.logger.error(f"Cannot connect to CDSAPI: {e}")
+        exit(1)
+
     for variable in variable_names.keys():
-        download_parallel_nc(params, path_download, path_nc, variable)
+        download_parallel_nc(c, params, path_download, path_nc, variable)
 
     parallel_process_agERA5(params)
 
