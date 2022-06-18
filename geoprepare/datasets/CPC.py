@@ -1,3 +1,7 @@
+###############################################################################
+# Ritvik Sahajpal, Joanne Hall
+# ritvik@umd.edu
+###############################################################################
 import os
 import itertools
 import pdb
@@ -116,7 +120,7 @@ def parallel_process_CPC(params):
         for year in range(params.start_year, params.end_year + 1):
             all_params.extend(list(itertools.product([params], [product], [year])))
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_CPC, all_params))):

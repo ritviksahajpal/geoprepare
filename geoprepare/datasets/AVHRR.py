@@ -163,7 +163,7 @@ def run(params):
         all_params.extend(list(itertools.product([params], [year])))
 
     # Download AVHRR data
-    if constants.do_parallel_processing:
+    if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             for i, _ in enumerate(p.imap_unordered(download_AVHRR, all_params)):
                 pass

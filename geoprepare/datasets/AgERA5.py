@@ -1,3 +1,7 @@
+###############################################################################
+# Ritvik Sahajpal
+# ritvik@umd.edu
+###############################################################################
 import os
 import pdb
 import itertools
@@ -17,6 +21,7 @@ from affine import Affine
 from datetime import datetime
 from pathlib import Path
 
+from geoprepare import common
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -52,14 +57,6 @@ def get_list_days(year, month):
     return [day for day in range(1, days + 1)]
 
 
-def unzip_file(path_file):
-    """
-    Unzips a file
-    """
-    if path_file.endswith('.gz'):
-        os.system(f"gunzip {path_file}")
-
-
 def create_target_fname(meteo_variable_full_name, sday, agera5_dir, stat="final", v="1.0"):
     """
     Creates the AgERA5 variable filename for given variable and day
@@ -89,33 +86,20 @@ def get_date_from_fname(path_file):
     return date
 
 
-def convert_to_nc_hndl(path_nc):
-    """
-
-    :param path_nc:
-    :return:
-    """
-    hndl_nc = path_nc
-    if not isinstance(path_nc, np.ma.MaskedArray):
-        _, ext = os.path.splitext(path_nc)
-
-    if ext in ['.nc', '.nc4']:
-        hndl_nc = xr.open_dataset(path_nc)
-
-    return hndl_nc
-
-
 def remap_like(original_nc, target_nc, name_var, index=0):
     """
 
-    :param original_nc:
-    :param target_nc:
-    :param name_var:
-    :param index:
-    :return:
+    Args:
+        original_nc ():
+        target_nc ():
+        name_var ():
+        index ():
+
+    Returns:
+
     """
-    hndl_original = convert_to_nc_hndl(original_nc)
-    hndl_target = convert_to_nc_hndl(target_nc)
+    hndl_original = common.convert_to_nc_hndl(original_nc)
+    hndl_target = common.convert_to_nc_hndl(target_nc)
 
     lat = hndl_original.variables['lat'].values
     lon = hndl_original.variables['lon'].values
@@ -133,19 +117,15 @@ def remap_like(original_nc, target_nc, name_var, index=0):
     return remapped_var
 
 
-def arr_to_tif(arr, path_tif, profile):
-    """
-
-    :param arr:
-    :param path_tif:
-    :param profile:
-    :return:
-    """
-    with rasterio.open(path_tif, 'w', **profile) as dst:
-        dst.write(arr, 1)
-
-
 def process_agERA5(all_params):
+    """
+
+    Args:
+        all_params ():
+
+    Returns:
+
+    """
     var, nc_input, dir_output = all_params
 
     date = get_date_from_fname(nc_input)
@@ -157,14 +137,17 @@ def process_agERA5(all_params):
         arr = remap_like(nc_input, path_template, name_var=var)
         # arr = np.roll(arr.data, int(arr.data.shape[1] / 2.))
 
-        arr_to_tif(arr, dir_output / fl_out, profile)
+        common.arr_to_tif(arr, dir_output / fl_out, profile)
 
 
 def parallel_process_agERA5(params):
     """
 
-    :param var:
-    :return:
+    Args:
+        params ():
+
+    Returns:
+
     """
     all_params = []
 
@@ -260,6 +243,17 @@ def download_nc(inputs, version="1.0"):
 
 
 def download_parallel_nc(params, path_download, path_nc, variable):
+    """
+
+    Args:
+        params ():
+        path_download ():
+        path_nc ():
+        variable ():
+
+    Returns:
+
+    """
     all_params = []
     for year in range(params.start_year, params.end_year + 1):
         for mon in range(1, 13):
@@ -277,6 +271,14 @@ def download_parallel_nc(params, path_download, path_nc, variable):
 
 
 def run(params):
+    """
+
+    Args:
+        params ():
+
+    Returns:
+
+    """
     path_download = params.dir_download / 'agera5'
     path_nc = params.dir_interim / 'agera5' / 'nc'
 

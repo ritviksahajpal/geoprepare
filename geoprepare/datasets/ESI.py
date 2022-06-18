@@ -1,5 +1,7 @@
-# This scripts creates the global extent ESI tif files year and doy can be changed
-
+###############################################################################
+# Ritvik Sahajpal, Joanne Hall
+# ritvik@umd.edu
+###############################################################################
 import os
 import pdb
 
@@ -11,23 +13,10 @@ from tqdm import tqdm
 from pathlib import Path
 from osgeo.gdalnumeric import *
 
-import always
-import pygeoutil.util as util
-import Code.base.constants as cc
-import Code.preprocess.constants_preprocess as constants
-import Code.base.log as log
+start_jd = 8
+end_jd = 366
 
-logger = log.Logger(dir_log=cc.dir_tmp,
-                    name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
-
-syr = constants.START_YEAR
-eyr = constants.END_YEAR
-
-sjd = 8
-ejd = 366
-
-list_products = ['4wk']  #, '12wk']
-base_url = 'https://gis1.servirglobal.net//data//esi//'
+list_products = ['4wk', '12wk']
 
 
 def download_ESI(all_params):
@@ -39,22 +28,22 @@ def download_ESI(all_params):
     Returns:
 
     """
-    product, year = all_params[0], all_params[1]
+    params, product, year = all_params
 
-    dir_download = constants.dir_download / 'esi' / product / str(year)
-    util.make_dir_if_missing(dir_download)
-    
-    for jd in range(sjd, ejd, 7):
+    dir_download = params.dir_download / 'esi' / product / str(year)
+    os.makedirs(dir_download, exist_ok=True)
+
+    for jd in range(start_jd, end_jd, 7):
         # It is possible that the file is present as a tgz archive, in which case downloand and unzip it
         fl_download = f'DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif'
 
         # Download .tgz file if it has not been downloaded already or if we are updating data within the last year
         if not os.path.isfile(dir_download / fl_download):
-            request = requests.head(base_url + str(product).upper()+ '//'+ str(year) + '//'+ fl_download)
+            request = requests.head(f'{params.data_dir}{product.upper()}//{year}//{fl_download}')
 
             if request.status_code == 200:
-                # logger.info('Downloading ' + fl_download)
-                wget.download(base_url + str(product).upper()+ '//'+ str(year) + '//'+ fl_download, str(dir_download) + os.sep + fl_download)
+                # params.logger.info('Downloading ' + fl_download)
+                wget.download(f'{params.data_dir}{product.upper()}//{year}//{fl_download}', f'{dir_download}/{fl_download}')
 
 
 def to_global(all_params):
@@ -68,21 +57,21 @@ def to_global(all_params):
     """
     from osgeo import osr
 
-    product, year = all_params[0], all_params[1]
+    params, product, year = all_params
 
-    inpath = Path(os.path.normpath(constants.dir_download / 'esi' / product / str(year)))
-    outpath = Path(os.path.normpath(constants.dir_intermed / f'esi_{product}'))
+    inpath = Path(os.path.normpath(params.dir_download / 'esi' / product / str(year)))
+    outpath = Path(os.path.normpath(params.dir_interim / f'esi_{product}'))
 
-    util.make_dir_if_missing(outpath)
+    os.makedirs(outpath, exist_ok=True)
 
-    for jd in range(sjd, ejd, 7):
+    for jd in range(start_jd, end_jd, 7):
         format = 'GTiff'
         name_in = f'DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif'
         name_out = f'esi_dfppm_{product}_{year}{str(jd).zfill(3)}.tif'
 
         # check if output file does not exist but input file does
         if not os.path.exists(outpath / name_out) and os.path.isfile(inpath / name_in):
-            logger.info(f'Creating {outpath} / {name_out}')
+            params.logger.info(f'Creating {outpath} / {name_out}')
 
             ds = gdal.Open(str(inpath / name_in))
 
@@ -107,21 +96,25 @@ def to_global(all_params):
             ds = None
 
 
-if __name__ == '__main__':
+def run(params):
+    """
+
+    Args:
+        params ():
+
+    Returns:
+
+    """
     import itertools
-    # Store git hash of current code
-    logger.info('################ GIT HASH ################')
-    logger.info(util.get_git_revision_hash())
-    logger.info('################ GIT HASH ################')
 
     all_params = []
     for product in list_products:
-        for year in range(syr, eyr):
-            all_params.extend(list(itertools.product([product], [year])))
+        for year in range(params.start_year, params.end_year + 1):
+            all_params.extend(list(itertools.product([params], [product], [year])))
 
     # Download ESI data
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+    if params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_ESI, all_params))):
                     pbar.update()
@@ -132,14 +125,18 @@ if __name__ == '__main__':
     # Convert .tif to a global tif file
     all_params = []
     for product in list_products:
-        for year in range(syr, eyr):
-            all_params.extend(list(itertools.product([product], [year])))
+        for year in range(params.start_year, params.end_year + 1):
+            all_params.extend(list(itertools.product([params], [product], [year])))
 
-    if constants.do_parallel_processing:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * 0.8)) as p:
+    if params.parallel_process:
+        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
                     pbar.update()
     else:
         for val in all_params:
             to_global(val)
+
+
+if __name__ == '__main__':
+    pass

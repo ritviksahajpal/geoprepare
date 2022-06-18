@@ -29,6 +29,7 @@ data_dir = ftp://ftp.cdc.noaa.gov/Datasets
 
 [ESI]
 start_year = 2003
+data_dir = https://gis1.servirglobal.net//data//esi//
 
 [FLDAS]
 

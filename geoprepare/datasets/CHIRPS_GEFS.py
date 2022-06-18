@@ -1,3 +1,7 @@
+###############################################################################
+# Ritvik Sahajpal
+# ritvik@umd.edu
+###############################################################################
 import os
 import pdb
 import glob
@@ -5,9 +9,7 @@ import arrow as ar
 import numpy as np
 from tqdm import tqdm
 from ftplib import FTP
-from retrying import retry
 from osgeo import osr, gdal
-from pathlib import Path
 
 
 def get_forecast_file_name(params, list_files):
@@ -21,26 +23,29 @@ def get_forecast_file_name(params, list_files):
     """
     # Number of days to look back at if forecast file does not exist for current day
     MAX_DAYS = 15
+    current_day = ar.utcnow().date().strftime("%Y-%m-%d")
 
-    forecast_regex = 'data-mean_' + ar.utcnow().date().strftime('%Y%m%d')
+    forecast_regex = f'data-mean_{current_day}'
     forecast_file = [s for s in list_files if forecast_regex in s]
 
     # If forecast file does not exist for current day then look at previous day (upto 14 days ago)
     if not len(forecast_file):
-        params.logger.info('CHIRPS-GEFS data does not exist for ' + ar.utcnow().date().strftime('%Y-%m-%d'))
+        params.logger.info(f'CHIRPS-GEFS data does not exist for date: {current_day}')
         for day in range(1, MAX_DAYS):
-            forecast_regex = 'data-mean_' + ar.utcnow().shift(days=-day).date().strftime('%Y%m%d')
+            previous_day = ar.utcnow().shift(days=-day).date().strftime('%Y-%m-%d')
+
+            forecast_regex = f'data-mean_{previous_day}'
             forecast_file = [s for s in list_files if forecast_regex in s]
 
             # If data exists then break
             if len(forecast_file):
-                params.logger.info('Getting CHIRPS-GEFS data from ' + ar.utcnow().shift(days=-day).date().strftime('%Y-%m-%d'))
+                params.logger.info(f'Getting CHIRPS-GEFS data from {previous_day}')
                 break
 
     return forecast_file
 
 
-def delete_existing_files(dir_out):
+def delete_existing_files(params, dir_out):
     """
 
     Args:
@@ -62,20 +67,24 @@ def delete_existing_files(dir_out):
         try:
             os.remove(f)
         except:
-            logger.error('Unable to delete ' + f)
+            params.logger.error('Unable to delete ' + f)
 
 
-@retry(stop_max_attempt_number=3)
 def download_CHIRPS_GEFS(params, dir_out):
     """
     Download CHIRPS-GEFS 15 day forecast files
-    # ftp://chg-ftpout.geog.ucsb.edu/pub/org/chg/products/EWX/data/forecasts/CHIRPS-GEFS_precip/15day/precip_mean/
+    ftp://chg-ftpout.geog.ucsb.edu/pub/org/chg/products/EWX/data/forecasts/CHIRPS-GEFS_precip/15day/precip_mean/
     /cmongp1/GEOGLAM/Input/download/chirps_gefs
 
-    :return:
+    Args:
+        params ():
+        dir_out ():
+
+    Returns:
+
     """
     # Delete current file(s) in CHIRPS-GEFS directory
-    delete_existing_files(dir_out)
+    delete_existing_files(params, dir_out)
 
     # Download last available file from CHIRPS-GEFS server
     with FTP('data.chc.ucsb.edu', 'anonymous') as ftp:
@@ -104,8 +113,12 @@ def download_CHIRPS_GEFS(params, dir_out):
 def to_global(params, dir_download):
     """
 
-    :param all_params:
-    :return:
+    Args:
+        params ():
+        dir_download ():
+
+    Returns:
+
     """
     # Get path of downloaded CHIRPS-GEFS file
     filelist = glob.glob(os.path.join(dir_download, '*.tif'))
@@ -115,7 +128,7 @@ def to_global(params, dir_download):
 
     dir_out = params.dir_interim / 'chirps_gefs'
     os.makedirs(dir_out, exist_ok=True)
-    delete_existing_files(dir_out)
+    delete_existing_files(params, dir_out)
 
     if not os.path.isfile(dir_out / os.path.basename(forecast_file)):
         fl_out = dir_out / os.path.basename(forecast_file)
@@ -145,6 +158,14 @@ def to_global(params, dir_download):
 
 
 def run(params):
+    """
+
+    Args:
+        params ():
+
+    Returns:
+
+    """
     dir_download = params.dir_download / 'chirps_gefs'
     os.makedirs(dir_download, exist_ok=True)
 

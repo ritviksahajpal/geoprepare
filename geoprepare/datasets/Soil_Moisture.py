@@ -68,7 +68,7 @@ def download_soil_moisture_out_of_date():
         ftp = ftplib.FTP(host_ftp, timeout=30)
         ftp.login('geoglam', 'geog8765')
     except Exception as e:
-        raise ValueError('Cannot connect to ' + host_ftp)
+        raise ValueError(f'Cannot connect to {host_ftp}')
 
     dir_ftp = '/xport/ftp/pub/jbolten/FAS/L03/'
     ftp.cwd(dir_ftp)

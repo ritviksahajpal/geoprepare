@@ -1,4 +1,7 @@
-# README ###############################################################################################################
+########################################################################################################################
+# Ritvik Sahajpal, Joanne Hall
+# ritvik@umd.edu
+#
 # The original data is in zipped/unzipped tiff format at 0.05 degree resolution (zipped for final products and unzipped
 # for preliminary product in recent years). The naming convention is in year, month, day and to match the other datasets
 # the data has to be renamed into year, julian day.
@@ -134,9 +137,12 @@ def unzip(all_params):
 
 def to_global(all_params):
     """
+    Store CHIRPS preliminary global (/interim/chirps/prelim/global)
+    Args:
+        all_params ():
 
-    :param all_params:
-    :return:
+    Returns:
+
     """
     from osgeo import osr, gdal
 
@@ -176,6 +182,14 @@ def to_global(all_params):
 
 
 def run(params):
+    """
+
+    Args:
+        params ():
+
+    Returns:
+
+    """
     import calendar
     from calendar import monthrange
 
@@ -227,6 +241,7 @@ def run(params):
         for year in range(start_year, end_year):
             sjd = 1
             jd_end = 366 if calendar.isleap(year) else 365
+
             for jd in range(sjd, jd_end):
                 all_params.extend(list(itertools.product([product], [year], [jd], [params])))
 

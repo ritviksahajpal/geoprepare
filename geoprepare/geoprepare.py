@@ -89,76 +89,47 @@ def run(path_config_file='config.txt'):
     # Loop through all datasets in parser
     for dataset in datasets:
         if dataset == 'CHIRPS':
-            from .datasets import CHIRPS
-
-            # Parse configuration file for CHIRPS
-            geoprep.parse_config('CHIRPS')
+            from .datasets import CHIRPS as obj
 
             geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
             geoprep.prelim = geoprep.parser.get('CHIRPS', 'prelim')
             geoprep.final = geoprep.parser.get('CHIRPS', 'final')
-
-            # Print all elements of configuration file
-            geoprep.pp_config('CHIRPS')
-
-            CHIRPS.run(geoprep)
         elif dataset == 'NDVI':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'AGERA5':
-            from .datasets import AgERA5
-
-            # Parse configuration file for AGERA5
-            geoprep.parse_config('AGERA5')
-
-            # Print all elements of configuration file
-            geoprep.pp_config('AGERA5')
-
-            AgERA5.run(geoprep)
+            from .datasets import AgERA5 as obj
         elif dataset == 'CHIRPS-GEFS':
-            from .datasets import CHIRPS_GEFS
+            from .datasets import CHIRPS_GEFS as obj
 
-            # Parse configuration file for CHIRPS-GEFS
-            geoprep.parse_config('CHIRPS-GEFS')
             geoprep.data_dir = geoprep.parser.get('CHIRPS-GEFS', 'data_dir')
             geoprep.fill_value = geoprep.parser.getint('CHIRPS', 'fill_value')
-
-            # Print all elements of configuration file
-            geoprep.pp_config('CHIRPS-GEFS')
-
-            CHIRPS_GEFS.run(geoprep)
         elif dataset == 'FLDAS':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'LST':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'ESI':
-            raise NotImplementedError(f'{dataset} not implemented')
+            from .datasets import ESI as obj
+
+            geoprep.data_dir = geoprep.parser.get('ESI', 'data_dir')
         elif dataset == 'CPC':
-            from .datasets import CPC
+            from .datasets import CPC as obj
 
-            # Parse configuration file for CPC
-            geoprep.parse_config('CPC')
             geoprep.data_dir = geoprep.parser.get('CPC', 'data_dir')
-
-            # Print all elements of configuration file
-            geoprep.pp_config('CPC')
-
-            CPC.run(geoprep)
         elif dataset == 'SOIL-MOISTURE':
             raise NotImplementedError(f'{dataset} not implemented')
         elif dataset == 'AVHRR':
-            from .datasets import AVHRR
+            from .datasets import AVHRR as obj
 
-            # Parse configuration file for AVHRR
-            geoprep.parse_config('AVHRR')
             geoprep.data_dir = geoprep.parser.get('AVHRR', 'data_dir')
-
-            # Print all elements of configuration file
-            geoprep.pp_config('AVHRR')
-
-            AVHRR.run(geoprep)
         else:
             raise ValueError(f'{dataset} not implemented')
 
+        # Parse configuration file
+        geoprep.parse_config(dataset)
+        # Print all elements of configuration file
+        geoprep.pp_config(dataset)
+        # Execute!
+        obj.run(geoprep)
 
 if __name__ == '__main__':
     run()

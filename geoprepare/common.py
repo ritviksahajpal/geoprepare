@@ -5,6 +5,14 @@ import xarray as xr
 import numpy as np
 
 
+def unzip_file(path_file):
+    """
+    Unzips a file
+    """
+    if path_file.endswith('.gz'):
+        os.system(f"gunzip {path_file}")
+
+
 def convert_to_nc_hndl(path_nc):
     """
 
