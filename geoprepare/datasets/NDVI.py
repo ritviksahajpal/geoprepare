@@ -223,7 +223,7 @@ def run(params):
         for d in dates.keys():
             if dates[d] == "Available":
                 availableFiles += 1
-                log.info(f"Creating Composite for {d}")
+                params.logger.info(f"Creating Composite for {d}")
                 outPath = os.path.join(params.dir_interim,generateFileName(params.product,params.vi,date=d))
                 octvi.globalVi(params.product,d,outPath)
                 if params.scale_mark:
@@ -235,20 +235,20 @@ def run(params):
                 if ds:
                     res = ds.SetProjection(srs)
                     if res != 0:
-                        log.error("--projection failed: {}".format(str(res)))
+                        params.logger.error("--projection failed: {}".format(str(res)))
                         ds = None
                         continue
                     ds = None
                     completedFiles += 1
                 else:
-                    log.error("--could not open with GDAL")
+                    params.logger.error("--could not open with GDAL")
     elif params.vi == 'gcvi':
         availableFiles = 0
         completedFiles = 0
         for d in dates.keys():
             if dates[d] == "Available":
                 availableFiles += 1
-                log.info(f"Creating Composite for {d}")
+                params.logger.info(f"Creating Composite for {d}")
                 outPath = os.path.join(params.dir_interim, generateFileName(params.product, params.vi,date=d))
                 octvi.globalVi(params.product, d, outPath,vi="GCVI")
 
@@ -258,15 +258,15 @@ def run(params):
                 if ds:
                     res = ds.SetProjection(srs)
                     if res != 0:
-                        log.error("--projection failed: {}".format(str(res)))
+                        params.logger.error("--projection failed: {}".format(str(res)))
                         ds = None
                         continue
                     ds = None
                     completedFiles += 1
                 else:
-                    log.error("--could not open with GDAL")
+                    params.logger.error("--could not open with GDAL")
 
-    log.info(f"Done. {availableFiles} composites available; {completedFiles} composites created. Use -print_missing flag to see details of missing composites.")
+    params.logger.info(f"Done. {availableFiles} composites available; {completedFiles} composites created. Use -print_missing flag to see details of missing composites.")
 
 if __name__ == "__main__":
 	pass

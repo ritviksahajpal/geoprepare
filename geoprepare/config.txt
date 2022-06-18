@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+datasets = ['NDVI', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
 dir_base = D:\
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
@@ -24,11 +24,9 @@ fill_value = -2147483648
 data_dir = /pub/org/chc/products/EWX/data/forecasts/CHIRPS-GEFS_precip_v12/15day/precip_mean/
 
 [CPC]
-start_year = 2022
 data_dir = ftp://ftp.cdc.noaa.gov/Datasets
 
 [ESI]
-start_year = 2003
 data_dir = https://gis1.servirglobal.net//data//esi//
 
 [FLDAS]
@@ -39,18 +37,16 @@ num_update_days = 7
 [NDVI]
 product = MOD09CMG
 vi = ndvi
-start_year = 2022
 scale_glam = False
 scale_mark = True
 print_missing = False
 
 [SOIL-MOISTURE]
-start_year = 2010
 data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
 
 [DEFAULT]
 logfile = log
 parallel_process = True
 fraction_cpus = 0.5
-start_year = 1982
+start_year = 2022
 end_year = 2022
