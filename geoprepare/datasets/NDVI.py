@@ -167,11 +167,11 @@ def run(params):
 
 	## clean and collect existing files
 	# remove running composites
-	runningComposites = glob.glob(os.path.join(params.directory,"*.running_composite.tif"))
+	runningComposites = glob.glob(os.path.join(params.dir_interim,"*.running_composite.tif"))
 	for c in runningComposites:
 		os.remove(c)
 	# get list of existing full files
-	extantFiles = glob.glob(os.path.join(params.directory,f"*.tif"))
+	extantFiles = glob.glob(os.path.join(params.dir_interim,f"*.tif"))
 
 	## get missing dates
 	# first and last year
@@ -195,7 +195,7 @@ def run(params):
 	earliestDataDict = {"MOD09CMG":"2000.055","MYD09CMG":"2002.185"}
 	for y in tqdm(years, desc='year'):
 		for doy in tqdm(doys, desc='doy', leave=False):
-			if not os.path.exists(os.path.join(params.directory,generateFileName(params.product,params.vi, y,doy))):
+			if not os.path.exists(os.path.join(params.dir_interim,generateFileName(params.product,params.vi, y,doy))):
 				formattedDate = datetime.strptime(f"{y}.{doy}","%Y.%j").strftime("%Y-%m-%d")
 				# is the image in the future?
 				if datetime.strptime(f"{y}.{doy}","%Y.%j") >= datetime.now() or datetime.strptime(f"{y}.{doy}","%Y.%j") < datetime.strptime(earliestDataDict.get(params.product,"2000.049"),"%Y.%j"):
@@ -223,7 +223,7 @@ def run(params):
 			if dates[d] == "Available":
 				availableFiles += 1
 				log.info(f"Creating Composite for {d}")
-				outPath = os.path.join(params.directory,generateFileName(params.product,params.vi,date=d))
+				outPath = os.path.join(params.dir_interim,generateFileName(params.product,params.vi,date=d))
 				octvi.globalVi(params.product,d,outPath)
 				if params.scale_mark:
 					scaleConversion_glamToMark(outPath)
@@ -248,7 +248,7 @@ def run(params):
 			if dates[d] == "Available":
 				availableFiles += 1
 				log.info(f"Creating Composite for {d}")
-				outPath = os.path.join(params.directory, generateFileName(params.product, params.vi,date=d))
+				outPath = os.path.join(params.dir_interim, generateFileName(params.product, params.vi,date=d))
 				octvi.globalVi(params.product, d, outPath,vi="GCVI")
 
 				## reproject to WGS 1984
