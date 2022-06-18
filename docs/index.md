@@ -1,14 +1,14 @@
-# Welcome to geoprepare
+# Welcome to geodemo
 
 
-[![image](https://img.shields.io/pypi/v/geoprepare.svg)](https://pypi.python.org/pypi/geoprepare)
+[![image](https://img.shields.io/pypi/v/geodemo.svg)](https://pypi.python.org/pypi/geodemo)
 
 
-**A Python package to prepare (download, extract, process input data) for GEOCIF and related models**
+**A Python package for interactive mapping**
 
 
 -   Free software: MIT license
--   Documentation: <https://ritviksahajpal.github.io/geoprepare>
+-   Documentation: <https://geodemo.gishub.org>
     
 
 ## Features
