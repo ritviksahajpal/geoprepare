@@ -91,7 +91,7 @@ def download_CHIRPS_GEFS(params, dir_out):
         try:
             ftp.cwd(params.data_dir)
         except Exception as e:
-            # logger.error(type_data + ' ' + str(year) + ' ' + str(e))
+            params.logger.error(f'{e}')
             return
 
         list_files = ftp.nlst()
