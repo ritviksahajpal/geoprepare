@@ -5,6 +5,7 @@
 import os
 import pdb
 import itertools
+import pathlib
 import cdsapi
 import urllib3
 import pyresample
@@ -134,7 +135,7 @@ def process_agERA5(all_params):
     fl_out = f'agera5_{year}{str(pd.DatetimeIndex([date]).dayofyear[0]).zfill(3)}_{var}_global.tif'
 
     if not os.path.isfile(dir_output / fl_out):
-        arr = remap_like(nc_input, path_template, name_var=var)
+        arr = remap_like(nc_input, pathlib.Path(__file__).parent.resolve() / path_template, name_var=var)
         # arr = np.roll(arr.data, int(arr.data.shape[1] / 2.))
 
         common.arr_to_tif(arr, dir_output / fl_out, profile)

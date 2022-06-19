@@ -69,7 +69,7 @@ def remap_like(original_nc, target_nc, name_var, index=0):
     :return:
     """
     hndl_original = common.convert_to_nc_hndl(original_nc)
-    hndl_target = common.convert_to_nc_hndl(pathlib.Path(__file__).parent.resolve() / target_nc)
+    hndl_target = common.convert_to_nc_hndl(target_nc)
 
     lat = hndl_original.variables['lat'].values
     lon = hndl_original.variables['lon'].values
@@ -107,7 +107,7 @@ def process_CPC(all_params):
         fl_out = f'cpc_{year}{str(pd.DatetimeIndex([doy]).dayofyear[0]).zfill(3)}_{var}_global.tif'
 
         if not os.path.isfile(dir_output / fl_out):
-            arr = remap_like(nc_input, path_template, name_var=var, index=idx)
+            arr = remap_like(nc_input, pathlib.Path(__file__).parent.resolve() / path_template, name_var=var, index=idx)
             arr = np.roll(arr.data, int(arr.data.shape[1]/2.))
 
             common.arr_to_tif(arr, dir_output / fl_out, profile)
