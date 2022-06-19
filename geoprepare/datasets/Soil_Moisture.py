@@ -110,8 +110,7 @@ def process_soil_moisture(all_params):
                        '-a_nodata', '9999.0',
                        os.path.normpath(ras_input),
                        ras_interim]
-            pdb.set_trace()
-            subprocess.call(command)
+            subprocess.call(command, shell=True)
 
             ras_final = dir_final / fl_final
             # logger.info('Changing to 0.05 degree global extent: ' + ras_interim + ' ' + ras_final)
