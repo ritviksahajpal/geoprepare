@@ -30,7 +30,9 @@ def get_forecast_file_name(params, list_files):
 
     # If forecast file does not exist for current day then look at previous day (upto 14 days ago)
     if not len(forecast_file):
+        pdb.set_trace()
         params.logger.info(f'CHIRPS-GEFS data does not exist for date: {current_day}')
+
         for day in range(1, MAX_DAYS):
             previous_day = ar.utcnow().shift(days=-day).date().strftime('%Y-%m-%d')
 
