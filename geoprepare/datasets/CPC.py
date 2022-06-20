@@ -10,6 +10,7 @@ import pathlib
 import pyresample
 import rasterio
 import wget
+import xarray as xr
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -17,8 +18,6 @@ from affine import Affine
 from datetime import datetime
 from pathlib import Path
 import multiprocessing
-
-import pygeoutil.util as util
 
 from geoprepare import common
 
@@ -101,7 +100,7 @@ def process_CPC(all_params):
     dir_nc = params.dir_download / 'cpc' / 'original' / var
 
     nc_input = dir_nc / Path(f'{var}.{year}.nc')
-    hndl_nc = util.open_or_die(nc_input, use_xarray=True)
+    hndl_nc = xr.open_dataset(nc_input)
 
     for idx, doy in tqdm(enumerate(hndl_nc.variables['time'].values), desc=f'processing CPC {var} {year}'):
         fl_out = f'cpc_{year}{str(pd.DatetimeIndex([doy]).dayofyear[0]).zfill(3)}_{var}_global.tif'
