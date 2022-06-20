@@ -50,7 +50,12 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL","INFO"))
 log = logging.getLogger(__name__)
 
 ## import modules
-import argparse, gdal, glob, octvi, shutil, sys
+import argparse
+import gdal
+import glob
+import octvi
+import shutil
+import sys
 import numpy as np
 from datetime import datetime, timedelta
 from gdalnumeric import *
