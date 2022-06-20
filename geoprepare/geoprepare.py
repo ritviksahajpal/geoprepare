@@ -21,7 +21,7 @@ def read_config(path_config_file='config.txt'):
         path_config_file ():
 
     Returns:
-
+        Reads the config file and raises errors on failure
     """
     parser = ConfigParser(inline_comment_prefixes=(';',), interpolation=ExtendedInterpolation())
 
@@ -57,7 +57,7 @@ class GeoPrepare:
             section ():
 
         Returns:
-
+             Takes in all the variables of the config file and stores it as class variables
         """
         self.dir_base = Path(self.parser.get('DATASETS', 'dir_base'))
         self.dir_log = Path(self.parser.get('DATASETS', 'dir_log'))
@@ -82,6 +82,8 @@ class GeoPrepare:
 
 
 def run(path_config_file='config.txt'):
+    ''' Takes in a parameter holding the config file address 
+    RETURNS :'''
     # Read in configuration file
     geoprep = GeoPrepare(path_config_file)
     datasets = ast.literal_eval(geoprep.parser.get('DATASETS', 'datasets'))
