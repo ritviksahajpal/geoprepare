@@ -4,7 +4,6 @@ import logging
 import logzero
 import arrow as ar
 
-import pygeoutil.util as util
 from pathlib import Path
 
 logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
@@ -22,7 +21,7 @@ class Logger:
     def __init__(self, dir_log, name_project='geoprepare', name_fl='logger', level=logging.INFO):
         log_format = '[%(asctime)s] %(message)s'
         dir_log = Path(dir_log) / name_project / ar.now().format('MMMM_DD_YYYY')
-        util.make_dir_if_missing(dir_log)
+        os.makedirs(dir_log, exist_ok=True)
 
         name_fl = name_fl + '.txt'
         self.logger = logzero.setup_logger(name=name_fl,
