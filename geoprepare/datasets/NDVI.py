@@ -163,7 +163,8 @@ def scaleConversion_glamToMark(in_file:str) -> None:
 def run(params):
     from tqdm import tqdm
     os.makedirs(params.dir_interim, exist_ok=True)
-
+    import pdb
+    pdb.set_trace()
     ## validate arguments
     if params.scale_glam:
        assert not params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
@@ -199,8 +200,7 @@ def run(params):
     # filter missing dates
     dates = {}
     earliestDataDict = {"MOD09CMG":"2000.055","MYD09CMG":"2002.185"}
-    import pdb
-    pdb.set_trace()
+
     for y in tqdm(years, desc='year'):
         for doy in tqdm(doys, desc='doy', leave=False):
             if not os.path.exists(os.path.join(params.dir_interim,generateFileName(params.product,params.vi, y,doy))):
