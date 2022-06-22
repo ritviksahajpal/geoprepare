@@ -199,6 +199,8 @@ def run(params):
     # filter missing dates
     dates = {}
     earliestDataDict = {"MOD09CMG":"2000.055","MYD09CMG":"2002.185"}
+    import pdb
+    pdb.set_trace()
     for y in tqdm(years, desc='year'):
         for doy in tqdm(doys, desc='doy', leave=False):
             if not os.path.exists(os.path.join(params.dir_interim,generateFileName(params.product,params.vi, y,doy))):
