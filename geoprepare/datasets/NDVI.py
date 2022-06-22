@@ -163,8 +163,7 @@ def scaleConversion_glamToMark(in_file:str) -> None:
 def run(params):
     from tqdm import tqdm
     os.makedirs(params.dir_interim, exist_ok=True)
-    import pdb
-    pdb.set_trace()
+
     ## validate arguments
     if params.scale_glam:
        assert not params.scale_mark, "Set exactly one of -scale_glam or -scale_mark!"
@@ -223,7 +222,8 @@ def run(params):
             outString = f"{k} : {dates[k]}"
             print(outString)
         sys.exit()
-
+    import pdb
+    pdb.set_trace()
     if params.vi == 'ndvi':
         availableFiles = 0
         completedFiles = 0
