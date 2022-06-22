@@ -161,7 +161,7 @@ def scaleConversion_glamToMark(in_file:str) -> None:
 	os.remove(intermediate_file)
 
 def run(params):
-    from tqdm import tq
+    from tqdm import tqdm
 
     dir_interim = params.dir_interim / 'ndvi'
     os.makedirs(dir_interim, exist_ok=True)
