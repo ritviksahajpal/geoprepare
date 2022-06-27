@@ -189,7 +189,7 @@ def download_nc(inputs, version="1.0"):
     c, params, path_download, path_nc, varname, year, mon = inputs
     os.makedirs(path_download / varname, exist_ok=True)
     os.makedirs(path_nc / varname, exist_ok=True)
-    c = cdsapi.Client()
+
     days = get_list_days(year, mon)
     statistic = variable_names.get(varname)[1]
     variable = variable_names.get(varname)[0]
@@ -208,7 +208,6 @@ def download_nc(inputs, version="1.0"):
 
         # Check if netCDF file already exists, if not then download it
         if not os.path.exists(fname):
-            pdb.set_trace()
             try:
                 if statistic:
                     c.retrieve(
@@ -221,7 +220,7 @@ def download_nc(inputs, version="1.0"):
                             'day': str(day).zfill(2),
                             'format': 'zip'
                         },
-                        fzip)
+                        str(fzip))
                 else:
                     c.retrieve(
                         'sis-agrometeorological-indicators',
@@ -232,7 +231,7 @@ def download_nc(inputs, version="1.0"):
                             'day': str(day).zfill(2),
                             'format': 'zip'
                         },
-                        fzip)
+                        str(fzip))
             except Exception as e:
                 params.logger.error(f"Could not download {fname} {e}")
 
@@ -259,7 +258,7 @@ def download_parallel_nc(c, params, path_download, path_nc, variable):
         for mon in range(1, 13):
             all_params.extend(list(itertools.product([c], [params], [path_download], [path_nc], [variable], [year], [mon])))
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_nc, all_params))):
