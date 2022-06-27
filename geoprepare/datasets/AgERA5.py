@@ -189,7 +189,7 @@ def download_nc(inputs, version="1.0"):
     c, params, path_download, path_nc, varname, year, mon = inputs
     os.makedirs(path_download / varname, exist_ok=True)
     os.makedirs(path_nc / varname, exist_ok=True)
-
+    c = cdsapi.Client()
     days = get_list_days(year, mon)
     statistic = variable_names.get(varname)[1]
     variable = variable_names.get(varname)[0]
