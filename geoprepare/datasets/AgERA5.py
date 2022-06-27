@@ -208,6 +208,7 @@ def download_nc(inputs, version="1.0"):
 
         # Check if netCDF file already exists, if not then download it
         if not os.path.exists(fname):
+            pdb.set_trace()
             try:
                 if statistic:
                     c.retrieve(
@@ -258,7 +259,7 @@ def download_parallel_nc(c, params, path_download, path_nc, variable):
         for mon in range(1, 13):
             all_params.extend(list(itertools.product([c], [params], [path_download], [path_nc], [variable], [year], [mon])))
 
-    if params.parallel_process:
+    if False and params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_nc, all_params))):
