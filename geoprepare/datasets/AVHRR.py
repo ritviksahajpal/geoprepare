@@ -85,7 +85,7 @@ def process_AVHRR(all_params):
 
 def mvc(file_list, path_out=None, use_temporary=False):
     """
-
+    Maximum value composite
     Args:
         file_list:
         path_out:

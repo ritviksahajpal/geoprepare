@@ -85,7 +85,7 @@ def process_soil_moisture(all_params):
     dir_final = params.dir_interim / f'soil_moisture_{product}'
     os.makedirs(dir_final, exist_ok=True)
 
-    fl_final = f'nasa_usda_soil_moisture_{year}_{str(day_of_year).zfill(3)}_{product}_global.tif'
+    fl_final = f'nasa_usda_soil_moisture_{year}{str(day_of_year).zfill(3)}_{product}_global.tif'
 
     if not os.path.exists(dir_final / fl_final):
         file_search = glob.glob(str(dir_download) + os.sep + str(year) + str(month).zfill(2) + str(day).zfill(2) + '*' + str(product) + '.grb2')
