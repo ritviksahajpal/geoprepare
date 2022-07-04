@@ -5,7 +5,7 @@ import xarray as xr
 import numpy as np
 
 
-def read_config(path_config_file='config.txt'):
+def read_config(path_config_file):
     """
 
     Args:

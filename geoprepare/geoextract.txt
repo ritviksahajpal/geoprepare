@@ -1,10 +1,9 @@
-
-
 [kenya]
 category = EWCM
 calendar_file = EWCM_2021-6-17.xlsx
 shp_boundary = EWCM_Level_1.shp
 crops= ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
-USE_CROPLAND_MASK = True
+use_cropland_mask = True
 
 [DEFAULT]
+countries = ['kenya']

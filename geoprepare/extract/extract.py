@@ -386,16 +386,6 @@ def loop_process(params):
 
     # Parse config file
     import ast
-    import argparse
-    from configparser import ConfigParser
-
-    num_cpu = int(cpu_count() * params.fraction_cpus)
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', nargs='?', default='config_GEOGLAM.txt')
-    args = parser.parse_args()
-
-    parser = ConfigParser(inline_comment_prefixes=(';',))
-    parser.read(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'config' + os.sep + args.config)
 
     for adm0 in list_countries:
         for crop in ast.literal_eval(parser.get(adm0, 'crops')):
@@ -413,7 +403,7 @@ def loop_process(params):
 
     logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     logger.error('REDO flag: ' + str(constants.do_redo))
-    logger.error('Number CPUs: ' + str(num_cpu))
+    logger.error('Number CPUs: ' + str(params.fraction_cpus))
     logger.error(list_countries)
     logger.error(list_crops)
     logger.error(list_vars)
@@ -423,7 +413,7 @@ def loop_process(params):
     logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
     if False and constants.do_parallel:
-        with Pool(num_cpu) as p:
+        with Pool(params.fraction_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
                     pbar.set_description('Processing ' + ' '.join(str(x) for x in all_comb[i][:4]) + ' ' + os.path.basename(all_comb[i][4]))
