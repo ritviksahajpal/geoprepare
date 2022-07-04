@@ -34,7 +34,7 @@ class GeoExtract(base.BaseGeo):
         self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
 
 
-def run(path_config_file):
+def run(path_config_file='geoextract.txt'):
     from .extract import extract as obj
 
     # Read in configuration file
