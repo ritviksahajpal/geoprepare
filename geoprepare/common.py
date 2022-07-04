@@ -18,9 +18,6 @@ def read_config(path_config_file):
 
     parser = ConfigParser(inline_comment_prefixes=(';',), interpolation=ExtendedInterpolation())
 
-    if not os.path.isfile(path_config_file):
-        raise FileNotFoundError(f'Cannot find {path_config_file}')
-
     try:
         parser.read(path_config_file)
     except Exception as e:

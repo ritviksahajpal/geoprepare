@@ -37,7 +37,7 @@ class GeoPrepare(base.BaseGeo):
                                  name_fl=self.parser.get('DEFAULT', 'logfile'))
 
 
-def run(path_config_file='geoprepare.txt'):
+def run(path_config_file=['geoprepare.txt']):
     # Read in configuration file
     geoprep = GeoPrepare(path_config_file)
     datasets = ast.literal_eval(geoprep.parser.get('DATASETS', 'datasets'))

@@ -12,7 +12,7 @@ from . import common
 
 
 class BaseGeo:
-    def __init__(self, path_config_file):
+    def __init__(self, path_config_file=['geoprepare.txt', 'geoextract.txt']):
         self.parser = common.read_config(path_config_file)
         self.redo_last_year = True
 
