@@ -50,7 +50,7 @@ def download(all_params):
     # prelim data should only be downloaded for current and previous year at most
     if type_data == 'prelim' and (params.redo_last_year and year < datetime.today().year - 1):
         return
-
+    pdb.set_trace()
     with FTP('ftp.chc.ucsb.edu', 'anonymous') as ftp:
         if type_data == 'prelim':
             try:
