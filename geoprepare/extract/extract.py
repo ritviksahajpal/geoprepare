@@ -16,10 +16,6 @@ import arrow as ar
 from tqdm import tqdm
 from pathlib import Path
 
-import Code.preprocess.constants_preprocess as constants
-import Code.base.constants as constants_base
-import pygeoutil.util as util
-import Code.base.log as log
 import datetime
 SEP = os.sep
 
