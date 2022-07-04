@@ -39,6 +39,7 @@ def run(path_config_file='geoextract.txt'):
 
     # Read in configuration file
     geoextract = GeoExtract(path_config_file)
+    geoextract.parse_config('DEFAULT')
 
     # Run the extraction process
     obj.run(geoextract)
