@@ -19,13 +19,6 @@ from pathlib import Path
 import datetime
 SEP = os.sep
 
-# Logging (should be called before other modules)
-# See: http://stackoverflow.com/questions/20240464/python-logging-file-is-not-working-when-using-logging-basicconfig
-dir_logs = constants.dir_output / 'logs'
-util.make_dir_if_missing(dir_logs)
-
-# Logging
-logger = log.Logger(dir_log=constants_base.dir_tmp, name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0])
 
 from rasterio.io import MemoryFile
 import itertools
@@ -36,17 +29,6 @@ from multiprocessing import Pool, cpu_count
 
 np.seterr(invalid='ignore')  # HACK! Ignore 'RuntimeWarning: invalid value encountered in ...'.
 
-path_cmasks = constants_base.dir_all_inputs / 'crop_masks'
-path_vars = constants.dir_intermed
-path_out = constants_base.dir_all_inputs / always.dir_crop_inputs
-
-syr = constants.START_YEAR_PROCESSING
-eyr = constants.END_YEAR_PROCESSING
-
-list_countries = constants.COUNTRIES
-list_vars = constants.VARS
-list_crops = constants.CROPS
-list_yrs = range(syr, eyr)
 
 
 def get_var_fname(var, year, doy):
