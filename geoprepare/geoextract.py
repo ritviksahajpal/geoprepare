@@ -31,7 +31,7 @@ class GeoExtract(base.BaseGeo):
         super().parse_config(section='DEFAULT')
 
         self.countries = ast.literal_eval(self.parser.get('DEFAULT', 'countries'))
-        self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
+        # self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
 
 
 def run(path_config_file='geoextract.txt'):
