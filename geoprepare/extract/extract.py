@@ -386,31 +386,31 @@ def loop_process(params):
 
     # Parse config file
     import ast
-
-    for adm0 in list_countries:
-        for crop in ast.literal_eval(parser.get(adm0, 'crops')):
-            name_crop = 'cr' if parser.getboolean(adm0, 'USE_CROPLAND_MASK') else crop
-            list_cmasks = glob.glob(str(path_cmasks) + SEP + adm0 + SEP + name_crop + SEP + '*_' + name_crop + '_crop_mask.tif')
+    pdb.set_trace()
+    for adm0 in params.countries:
+        for crop in ast.literal_eval(params.parser.get(adm0, 'crops')):
+            name_crop = 'cr' if params.parser.getboolean(adm0, 'use_cropland_mask') else crop
+            list_cmasks = glob.glob(str(path_cmasks) + os.sep + adm0 + os.sep + name_crop + os.sep + '*_' + name_crop + '_crop_mask.tif')
 
             if len(list_cmasks):
-                for var in ast.literal_eval(parser.get(adm0, 'eo_model')):
+                for var in ast.literal_eval(params.parser.get(adm0, 'eo_model')):
                     if var in ['crop_stats', 'GDD']:
                         continue
                     all_comb.extend(list(itertools.product([adm0], [name_crop], [var], list_yrs, list(list_cmasks))))
-                all_comb.extend(list(itertools.product([adm0], [name_crop], ['soil_moisture_as2'], list_yrs, list(list_cmasks))))
+                all_comb.extend(list(itertools.product([adm0], [name_crop], list_yrs, list(list_cmasks))))
 
     all_comb = remove_duplicates(all_comb)
 
-    logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    logger.error('REDO flag: ' + str(constants.do_redo))
-    logger.error('Number CPUs: ' + str(params.fraction_cpus))
-    logger.error(list_countries)
-    logger.error(list_crops)
-    logger.error(list_vars)
-    logger.error(str(syr) + ' ' + str(eyr))
-    logger.error('Total number of csvs to process: ' + str(len(all_comb)))
-    logger.error('Storing outputs at ' + str(path_out))
-    logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    params.logger.error('REDO flag: ' + str(constants.do_redo))
+    params.logger.error('Number CPUs: ' + str(params.fraction_cpus))
+    params.logger.error(list_countries)
+    params.logger.error(list_crops)
+    params.logger.error(list_vars)
+    params.logger.error(str(syr) + ' ' + str(eyr))
+    params.logger.error('Total number of csvs to process: ' + str(len(all_comb)))
+    params.logger.error('Storing outputs at ' + str(path_out))
+    params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
     if False and constants.do_parallel:
         with Pool(params.fraction_cpus) as p:
