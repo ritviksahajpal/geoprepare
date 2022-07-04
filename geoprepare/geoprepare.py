@@ -8,47 +8,13 @@ import ast
 import pdb
 import datetime
 
-from pathlib import Path
-from configparser import ConfigParser, ExtendedInterpolation
-
 from . import log
+from . import base
 
 
-def read_config(path_config_file='config.txt'):
-    """
-
-    Args:
-        path_config_file ():
-
-    Returns:
-
-    """
-    parser = ConfigParser(inline_comment_prefixes=(';',), interpolation=ExtendedInterpolation())
-
-    if not os.path.isfile(path_config_file):
-        raise FileNotFoundError(f'Cannot find {path_config_file}')
-
-    try:
-        parser.read(path_config_file)
-    except Exception as e:
-        raise IOError(f'Cannot read {path_config_file}: {e}')
-
-    return parser
-
-
-class GeoPrepare:
+class GeoPrepare(base.BaseGeo):
     def __init__(self, path_config_file):
-        self.parser = read_config(path_config_file)
-        self.redo_last_year = True
-
-    def pp_config(self, section='DEFAULT'):
-        from pprint import pformat
-
-        if not self.parser:
-            raise ValueError('Parser not initialized')
-        else:
-            self.logger.info(f'Downloading {section}')
-            self.logger.info(pformat(dict(self.parser[section])))
+        super().__init__(path_config_file)
 
     def parse_config(self, section='DEFAULT'):
         """
@@ -59,17 +25,7 @@ class GeoPrepare:
         Returns:
 
         """
-        self.dir_base = Path(self.parser.get('DATASETS', 'dir_base'))
-        self.dir_log = Path(self.parser.get('DATASETS', 'dir_log'))
-        self.dir_input = Path(self.parser.get('DATASETS', 'dir_input'))
-        self.dir_interim = Path(self.parser.get('DATASETS', 'dir_interim'))
-        self.dir_download = Path(self.parser.get('DATASETS', 'dir_download'))
-        self.dir_output = Path(self.parser.get('DATASETS', 'dir_output'))
-
-        self.parallel_process = self.parser.getboolean(section, 'parallel_process')
-        self.start_year = self.parser.getint(section, 'start_year')
-        self.end_year = self.parser.getint(section, 'end_year')
-        self.fraction_cpus = self.parser.getfloat(section, 'fraction_cpus')
+        super().parse_config(section='DEFAULT')
 
         # check if current date is on or after March 1st. If it is then set redo_last_year flag to False else True
         # If redo_last_year is True then we redo the download, processing etc of last year's data

@@ -5,6 +5,30 @@ import xarray as xr
 import numpy as np
 
 
+def read_config(path_config_file='config.txt'):
+    """
+
+    Args:
+        path_config_file ():
+
+    Returns:
+
+    """
+    from configparser import ConfigParser, ExtendedInterpolation
+
+    parser = ConfigParser(inline_comment_prefixes=(';',), interpolation=ExtendedInterpolation())
+
+    if not os.path.isfile(path_config_file):
+        raise FileNotFoundError(f'Cannot find {path_config_file}')
+
+    try:
+        parser.read(path_config_file)
+    except Exception as e:
+        raise IOError(f'Cannot read {path_config_file}: {e}')
+
+    return parser
+
+
 def unzip_file(path_file):
     """
     Unzips a file

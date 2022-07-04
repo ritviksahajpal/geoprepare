@@ -1,5 +1,7 @@
 [DATASETS]
 datasets = ['NDVI', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+
+[PATHS]
 dir_base = D:\
 dir_input = ${dir_base}/input
 dir_log = ${dir_input}/log
