@@ -39,7 +39,7 @@ def run(path_config_file='geoextract.txt'):
 
     # Read in configuration file
     geoextract = GeoExtract(path_config_file)
-
+    pdb.set_trace()
     # Run the extraction process
     obj.run(geoextract)
 
