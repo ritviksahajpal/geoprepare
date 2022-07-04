@@ -354,7 +354,7 @@ def remove_duplicates(lst):
     return list(set([i for i in lst]))
 
 
-def loop_process(params):
+def run(params):
     """
 
     Returns:
@@ -403,10 +403,6 @@ def loop_process(params):
             pbar.set_description('Processing ' + ' '.join(str(x) for x in all_comb[i][:4]) + ' ' + os.path.basename(all_comb[i][4]) + '\n')
             pbar.update()
             process(val)
-
-
-def run(params):
-    pass
 
 
 if __name__ == '__main__':
