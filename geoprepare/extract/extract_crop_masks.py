@@ -60,11 +60,10 @@ def get_crop_name(long_name, use_cropland):
 
 
 def mask(path_raster, shape):
-    import fiona
     import rasterio.mask
 
     with rasterio.open(path_raster) as src:
-        out_image, out_transform = rasterio.mask.mask(src, shape, crop=True)
+        out_image, out_transform = rasterio.mask.mask(src, shape)
 
     return out_image
 
