@@ -112,7 +112,7 @@ def create_crop_masks(params, path_crop, country, df_cmask):
         if not os.path.isfile(path_out_ras):
             os.makedirs(dir_out, exist_ok=True)
 
-            params.logger.info(f'{dir_out} {name_adm0} {name_adm1}')
+            # params.logger.info(f'{dir_out} {name_adm0} {name_adm1}')
 
             # Open the global .tif file and split into ADM1s
             # with rasterio.open(dat_level1) as src:
