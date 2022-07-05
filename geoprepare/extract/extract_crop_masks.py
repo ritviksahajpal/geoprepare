@@ -13,7 +13,6 @@ import ast
 from configparser import ConfigParser
 from pathlib import Path
 
-import always
 import logging
 import itertools
 import pandas as pd
@@ -26,26 +25,9 @@ from multiprocessing import Pool
 from tqdm import tqdm
 import rasterio
 
-import Code.base.log as log
-import Code.base.constants as constants
 import pygeoutil.util as utils
 import pygeoutil.rgeo as rgeo
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--config', nargs='?', default='config_GEOGLAM.txt')
-parser.add_argument('--season', nargs='?', type=int, default=1)
-parser.add_argument('--ignore_fall', action='store_false')  # store_false will default to True when the command-line argument is not present
-parser.add_argument('--output_dir', nargs='?', default='processed')
-args = parser.parse_args()
-
-parser = ConfigParser(inline_comment_prefixes=(';',))
-parser.read(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + os.sep + 'config' + os.sep + args.config)
-
-# Logging
-logger = log.Logger(dir_log=constants.dir_tmp, name_fl=os.path.splitext(os.path.basename(os.path.abspath(__file__)))[0], level=logging.ERROR)
-
-dir_crop_masks = constants.dir_all_inputs / 'crop_masks'
 
 def get_cropped_area(path_crop):
     """
@@ -347,7 +329,7 @@ def run(params):
     crops = params.dir_masks.glob('*.tif')
 
     for country in params.countries:
-        category = parser.get(country, 'category')
+        category = params.parser.get(country, 'category')
 
         df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, 'shp_boundary'))
         df_cmask.fillna({'ADM0_NAME': '', 'ADM1_NAME': ''}, inplace=True)
@@ -363,7 +345,7 @@ def run(params):
 
     if len(frames):
         df_full = pd.concat(frames)
-        df_full.to_csv(dir_crop_masks / 'stats_crop_masks.csv')
+        df_full.to_csv(params.dir_crop_masks / 'stats_crop_masks.csv')
 
 
 if __name__ == '__main__':
