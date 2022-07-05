@@ -9,3 +9,4 @@ mask =
 [DEFAULT]
 countries = ['kenya']
 forecast_seasons = [2022]
+upper_percentile = 50
