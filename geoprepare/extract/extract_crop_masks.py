@@ -59,15 +59,12 @@ def get_crop_name(long_name, use_cropland):
     return
 
 
-def mask(path_raster, path_shp):
+def mask(path_raster, shape):
     import fiona
     import rasterio.mask
 
-    with fiona.open(path_shp, "r") as shapefile:
-        shapes = [feature["geometry"] for feature in shapefile]
-
     with rasterio.open(path_raster) as src:
-        out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+        out_image, out_transform = rasterio.mask.mask(src, shape, crop=True)
 
     return out_image
 
@@ -92,7 +89,7 @@ def create_crop_masks(params, path_crop, country, df_cmask):
     for row in df_cmask.iterrows():
         name_adm0 = get_adm_names(row[1], 'ADM0_NAME')
         name_adm1 = get_adm_names(row[1], 'ADM1_NAME')
-        pdb.set_trace()
+
         str_ID = get_adm_names(row[1], 'str_ID')
         num_ID = str(get_adm_names(row[1], 'num_ID'))
 
@@ -121,7 +118,8 @@ def create_crop_masks(params, path_crop, country, df_cmask):
             # with rasterio.open(dat_level1) as src:
             #     b1 = src.read(1)
             #
-            # mask(path_crop)
+            pdb.set_trace()
+            b1 = mask(path_crop, [row['geometry']])
 
             # Copy data to new array and replace all values except those corresponding to ADM1_NAME
             arr = b1.copy()
