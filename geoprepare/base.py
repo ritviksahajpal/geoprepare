@@ -40,6 +40,7 @@ class BaseGeo:
         self.dir_interim = Path(self.parser.get('PATHS', 'dir_interim'))
         self.dir_download = Path(self.parser.get('PATHS', 'dir_download'))
         self.dir_output = Path(self.parser.get('PATHS', 'dir_output'))
+        self.dir_global_datasets = Path(self.parser.get('PATHS', 'dir_global_datasets'))
 
         self.parallel_process = self.parser.getboolean(section, 'parallel_process')
         self.start_year = self.parser.getint(section, 'start_year')
