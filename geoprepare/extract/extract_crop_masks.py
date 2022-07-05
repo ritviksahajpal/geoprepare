@@ -150,13 +150,13 @@ def run(params):
 
         # Create crop masks for region
         if use_cropland_mask:
-            path_mask = params.dir_global_datasets / 'mask' / params.parser.get(country, 'mask')
+            path_mask = params.dir_global_datasets / 'masks' / params.parser.get(country, 'mask')
             create_crop_masks(params, path_mask, country, df_cmask)
         else:
             crops = ast.literal_eval(params.parser.get(country, 'crops'))
 
             for crop in crops:
-                path_mask = params.dir_global_datasets / 'mask' / params.parser.get(crop, 'mask')
+                path_mask = params.dir_global_datasets / 'masks' / params.parser.get(crop, 'mask')
                 create_crop_masks(params, path_mask, country, df_cmask)
 
 
