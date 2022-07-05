@@ -2,6 +2,6 @@
 
 __author__ = """Ritvik Sahajpal"""
 __email__ = 'ritvik@umd.edu'
-__version__ = '0.0.1'
+__version__ = '0.1.2'
 
-__all__ = ['log', 'common']
+__all__ = ['log', 'common', 'base', 'geoprepare', 'geoextract']
