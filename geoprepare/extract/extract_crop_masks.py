@@ -75,8 +75,9 @@ def create_crop_masks(params, path_crop, country, df_cmask):
 
     """
     df = pd.DataFrame(columns=['adm0', 'adm1', 'crop', f'p{params.upper_percentile}'])
-    df_cmask = df_cmask[df_cmask['lower_ADM0_NAME'] == country]
     pdb.set_trace()
+    df_cmask = df_cmask[df_cmask['lower_ADM0_NAME'] == country]
+
     # Iterate though rows of dataframe, create crop masks for each ADM1 region inside of a folder named after ADM0
     # Read lookup table that links admin1's to the admin0 or country that they are in
     for row in df_cmask.iterrows():
