@@ -21,8 +21,11 @@ import geoprepare.geoprepare as gprp
 import geoprepare.geoextract as gext
 
 # Provide full path to the configuration files
-gprp.run(['geoprepare.txt', 'geoextract.txt'])
-gext.run(['geoprepare.txt', 'geoextract.txt'])
+# Download and preprocess data
+gprp.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
+
+# Extract crop masks and EO variables
+gext.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
 
 ```
 These files can be found in the `geoprepare` folder and can be adapted to your machine
