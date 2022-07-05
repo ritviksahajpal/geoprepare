@@ -81,7 +81,6 @@ def create_crop_masks(params, path_crop, country, df_cmask):
     Returns:
 
     """
-    df = pd.DataFrame(columns=['adm0', 'adm1', 'crop', f'p{params.upper_percentile}'])
     df_cmask = df_cmask[df_cmask['lcountry'] == country]
 
     # Iterate though rows of dataframe, create crop masks for each ADM1 region inside of a folder named after ADM0
@@ -118,13 +117,8 @@ def create_crop_masks(params, path_crop, country, df_cmask):
             # with rasterio.open(dat_level1) as src:
             #     b1 = src.read(1)
             #
-            pdb.set_trace()
-            b1 = mask(path_crop, [row['geometry']])
-
-            # Copy data to new array and replace all values except those corresponding to ADM1_NAME
-            arr = b1.copy()
-            arr[arr != int(num_ID)] = 0
-            arr[arr != 0] = 1
+            arr = mask(path_crop, [row[1]['geometry']])
+            arr[arr < 0] = 0.
 
             # Mask by crop percentage mask
             # https://github.com/ozak/georasters
@@ -149,8 +143,6 @@ def create_crop_masks(params, path_crop, country, df_cmask):
             except:
                 params.logger.error(f'Cannot create crop-mask {name_adm0} {name_adm1}_{str(str_ID).zfill(9)}_{dir_crop}')
 
-    return df
-
 
 def run(params):
     crops = params.dir_masks.glob('*.tif')
@@ -163,16 +155,10 @@ def run(params):
         df_cmask['lcountry'] = df_cmask['ADM0_NAME'].str.replace(' ', '_').str.lower()
         df_cmask = df_cmask[['ADM1_NAME', 'ADM0_NAME', 'Country_ID', 'Region_ID', 'num_ID', 'str_ID', 'R_ID', 'C_ID', 'lcountry', 'geometry']]
 
-        frames = []
         for crop in tqdm(crops):
-            df = create_crop_masks(params, crop, country, df_cmask)
-            df.loc[:, 'category'] = category
-
-            frames.append(df)
-
-    if len(frames):
-        df_full = pd.concat(frames)
-        df_full.to_csv(params.dir_crop_masks / 'stats_crop_masks.csv')
+            create_crop_masks(params, crop, country, df_cmask)
+            pdb.set_trace()
+            k = 1
 
 
 if __name__ == '__main__':
