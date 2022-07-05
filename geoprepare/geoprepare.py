@@ -35,6 +35,7 @@ class GeoPrepare(base.BaseGeo):
 def run(path_config_file=['geoprepare.txt']):
     # Read in configuration file
     geoprep = GeoPrepare(path_config_file)
+    breakpoint()
     datasets = ast.literal_eval(geoprep.parser.get('DATASETS', 'datasets'))
 
     # Loop through all datasets in parser

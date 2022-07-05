@@ -18,8 +18,12 @@ pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviks
 ## Usage
 ```python
 import geoprepare.geoprepare as gprp
+import geoprepare.geoextract as gext
+
 # Provide full path to the configuration files
-gprp.run(['geoextract.txt', 'geoprepare.txt'])
+gprp.run(['geoprepare.txt', 'geoextract.txt'])
+gext.run(['geoprepare.txt', 'geoextract.txt'])
+
 ```
 These files can be found in the `geoprepare` folder and can be adapted to your machine
 
