@@ -51,10 +51,10 @@ def run(path_config_file='geoextract.txt'):
     obj.run(geoextract)
 
     # Extract EO data
-    from .extract import extract_EO as obj
-
-    # Run the extraction process
-    obj.run(geoextract)
+    # from .extract import extract_EO as obj
+    #
+    # # Run the extraction process
+    # obj.run(geoextract)
 
 
 if __name__ =='__main__':

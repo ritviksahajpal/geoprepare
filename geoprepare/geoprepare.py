@@ -8,7 +8,6 @@ import ast
 import pdb
 import datetime
 
-from . import log
 from . import base
 
 
@@ -31,10 +30,6 @@ class GeoPrepare(base.BaseGeo):
         # If redo_last_year is True then we redo the download, processing etc of last year's data
         if datetime.datetime.today().month >= 3:
             self.redo_last_year = False
-
-        # Set up logger
-        self.logger = log.Logger(dir_log=self.dir_log,
-                                 name_fl=self.parser.get('DEFAULT', 'logfile'))
 
 
 def run(path_config_file=['geoprepare.txt']):

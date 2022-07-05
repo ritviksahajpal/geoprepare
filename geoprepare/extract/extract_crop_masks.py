@@ -38,8 +38,13 @@ def get_adm_names(vals, name_val):
 
 def get_crop_name(long_name, use_cropland):
     """
-    :param long_name:
-    :return:
+
+    Args:
+        long_name ():
+        use_cropland ():
+
+    Returns:
+
     """
     if use_cropland:
         if os.path.splitext(os.path.basename(long_name))[0] == 'cropland_v9':
@@ -68,12 +73,12 @@ def mask(path_raster, shape):
     return out_image
 
 
-def create_crop_masks(params, path_crop, country, df_cmask):
+def create_crop_masks(params, path_crop_mask, country, df_cmask):
     """
 
     Args:
         params ():
-        path_crop ():
+        path_crop_mask ():
         country ():
         df_cmask ():
 
@@ -82,48 +87,41 @@ def create_crop_masks(params, path_crop, country, df_cmask):
     """
     df_cmask = df_cmask[df_cmask['lcountry'] == country]
 
-    # Iterate though rows of dataframe, create crop masks for each ADM1 region inside of a folder named after ADM0
-    # Read lookup table that links admin1's to the admin0 or country that they are in
+    # Iterate though rows of dataframe, create crop masks for each region
     for row in df_cmask.iterrows():
         name_adm0 = get_adm_names(row[1], 'ADM0_NAME')
         name_adm1 = get_adm_names(row[1], 'ADM1_NAME')
-
         str_ID = get_adm_names(row[1], 'str_ID')
-        num_ID = str(get_adm_names(row[1], 'num_ID'))
-
-        name_adm0 = name_adm0.lower().strip().replace(' ', '_').replace('.', '')
-        name_adm1 = name_adm1.lower().strip().replace(' ', '_')
 
         # Do not create masks for missing ADM1's
         if not name_adm1:
             continue
 
-        # Create output directory
-        dir_crop = get_crop_name(path_crop, params.parser.getboolean(name_adm0, 'use_cropland_mask'))
-        if not dir_crop:
+        # convert adm1 and adm0 names to standard format (lower case, no spaces and no periods
+        name_adm0 = name_adm0.lower().strip().replace(' ', '_').replace('.', '')
+        name_adm1 = name_adm1.lower().strip().replace(' ', '_')
+
+        crop_name = get_crop_name(path_crop_mask, params.parser.getboolean(name_adm0, 'use_cropland_mask'))
+        if not crop_name:
             continue
 
-        dir_out = params.dir_crop_masks / name_adm0 / dir_crop
-        path_out_ras = dir_out / f'{name_adm1}_{str(str_ID).zfill(9)}_{dir_crop}_crop_mask.tif'
+        # Create output directory
+        dir_out = params.dir_crop_masks / name_adm0 / crop_name
+        path_out_ras = dir_out / f'{name_adm1}_{str(str_ID).zfill(9)}_{crop_name}_crop_mask.tif'
 
         # If subset file exists, then do not recreate it
         if not os.path.isfile(path_out_ras):
             os.makedirs(dir_out, exist_ok=True)
 
-            # params.logger.info(f'{dir_out} {name_adm0} {name_adm1}')
-
-            # Open the global .tif file and split into ADM1s
-            # with rasterio.open(dat_level1) as src:
-            #     b1 = src.read(1)
-            arr = mask(path_crop, [row[1]['geometry']])[0]
+            params.logger.info(f'{dir_out} {name_adm0} {name_adm1}')
+            arr = mask(path_crop_mask, [row[1]['geometry']])[0]
             arr[arr < 0] = 0.
 
-            # Mask by crop percentage mask
-            # https://github.com/ozak/georasters
-            with rasterio.open(path_crop) as src_cmask:
-                # b2 = src_cmask.read(1)
-                # arr = arr * b2  # Multiply masked region with crop mask containing percentage of crop
+            # If sum of array is 0, then do not output array
+            if not np.ma.sum(arr):
+                continue
 
+            with rasterio.open(path_crop_mask) as src_cmask:
                 profile = src_cmask.profile
                 profile.update(
                     dtype=rasterio.int32,
@@ -131,34 +129,25 @@ def create_crop_masks(params, path_crop, country, df_cmask):
                     nodata=0,
                     compress='lzw')
 
-                # If sum of array is 0, then do not output array
-                if not np.ma.sum(arr):
-                    continue
-
             try:
                 with rasterio.open(path_out_ras, 'w', **profile) as dst:
                     dst.write(arr.astype(rasterio.int32), 1)
             except:
-                params.logger.error(f'Cannot create crop-mask {name_adm0} {name_adm1}_{str(str_ID).zfill(9)}_{dir_crop}')
+                params.logger.error(f'Cannot create crop-mask {name_adm0} {name_adm1}_{str(str_ID).zfill(9)}_{crop_name}')
 
 
 def run(params):
-    crops = params.dir_masks.glob('*.tif')
+    crop_masks = params.dir_masks.glob('*.tif')
 
     for country in params.countries:
-        category = params.parser.get(country, 'category')
-
         df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, 'shp_boundary'))
         df_cmask.fillna({'ADM0_NAME': '', 'ADM1_NAME': ''}, inplace=True)
         df_cmask['lcountry'] = df_cmask['ADM0_NAME'].str.replace(' ', '_').str.lower()
         df_cmask = df_cmask[['ADM1_NAME', 'ADM0_NAME', 'Country_ID', 'Region_ID', 'num_ID', 'str_ID', 'R_ID', 'C_ID', 'lcountry', 'geometry']]
 
-        for crop in tqdm(crops):
-            create_crop_masks(params, crop, country, df_cmask)
-            pdb.set_trace()
-            k = 1
+        for crop_mask in tqdm(crop_masks):
+            create_crop_masks(params, crop_mask, country, df_cmask)
 
 
 if __name__ == '__main__':
-    # loop_get_crop_area()
     run()

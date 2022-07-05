@@ -8,8 +8,9 @@ import pdb
 import ast
 
 from pathlib import Path
-from . import common
 
+from . import common
+from . import log
 
 class BaseGeo:
     def __init__(self, path_config_file=['geoprepare.txt', 'geoextract.txt']):
@@ -46,3 +47,7 @@ class BaseGeo:
         self.start_year = self.parser.getint(section, 'start_year')
         self.end_year = self.parser.getint(section, 'end_year')
         self.fraction_cpus = self.parser.getfloat(section, 'fraction_cpus')
+
+        # Set up logger
+        self.logger = log.Logger(dir_log=self.dir_log,
+                                 name_fl=self.parser.get('DEFAULT', 'logfile'))
