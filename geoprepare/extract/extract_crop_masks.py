@@ -330,7 +330,7 @@ def run(params):
 
     for country in params.countries:
         category = params.parser.get(country, 'category')
-
+        pdb.set_trace()
         df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, 'shp_boundary'))
         df_cmask.fillna({'ADM0_NAME': '', 'ADM1_NAME': ''}, inplace=True)
         df_cmask['lcountry'] = df_cmask['country'].str.replace(' ', '_').str.lower()
