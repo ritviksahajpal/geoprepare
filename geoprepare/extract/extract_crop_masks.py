@@ -145,10 +145,19 @@ def run(params):
         df_cmask['lcountry'] = df_cmask['ADM0_NAME'].str.replace(' ', '_').str.lower()
         df_cmask = df_cmask[['ADM1_NAME', 'ADM0_NAME', 'Country_ID', 'Region_ID', 'num_ID', 'str_ID', 'R_ID', 'C_ID', 'lcountry', 'geometry']]
 
-        # Read
-        pdb.set_trace()
-        for crop_mask in tqdm(crop_masks):
-            create_crop_masks(params, crop_mask, country, df_cmask)
+        # Check if we use a cropland mask or not
+        use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
+
+        # Create crop masks for region
+        if use_cropland_mask:
+            path_mask = params.dir_global_datasets / 'mask' / params.parser.get(country, 'mask')
+            create_crop_masks(params, path_mask, country, df_cmask)
+        else:
+            crops = ast.literal_eval(params.parser.get(country, 'crops'))
+
+            for crop in crops:
+                path_mask = params.dir_global_datasets / 'mask' / params.parser.get(crop, 'mask')
+                create_crop_masks(params, path_mask, country, df_cmask)
 
 
 if __name__ == '__main__':
