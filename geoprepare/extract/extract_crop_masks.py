@@ -116,8 +116,7 @@ def create_crop_masks(params, path_crop, country, df_cmask):
             # with rasterio.open(dat_level1) as src:
             #     b1 = src.read(1)
             #
-            pdb.set_trace()
-            arr = mask(path_crop, [row[1]['geometry']])
+            arr = mask(path_crop, [row[1]['geometry']])[0]
             arr[arr < 0] = 0.
 
             # Mask by crop percentage mask
