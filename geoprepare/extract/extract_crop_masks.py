@@ -25,9 +25,6 @@ from multiprocessing import Pool
 from tqdm import tqdm
 import rasterio
 
-import pygeoutil.util as utils
-import pygeoutil.rgeo as rgeo
-
 
 def get_adm_names(vals, name_val):
     """
@@ -62,6 +59,19 @@ def get_crop_name(long_name, use_cropland):
     return
 
 
+def mask(path_raster, path_shp):
+    import fiona
+    import rasterio.mask
+
+    with fiona.open(path_shp, "r") as shapefile:
+        shapes = [feature["geometry"] for feature in shapefile]
+
+    with rasterio.open(path_raster) as src:
+        out_image, out_transform = rasterio.mask.mask(src, shapes, crop=True)
+
+    return out_image
+
+
 def create_crop_masks(params, path_crop, country, df_cmask):
     """
 
@@ -75,7 +85,6 @@ def create_crop_masks(params, path_crop, country, df_cmask):
 
     """
     df = pd.DataFrame(columns=['adm0', 'adm1', 'crop', f'p{params.upper_percentile}'])
-    pdb.set_trace()
     df_cmask = df_cmask[df_cmask['lcountry'] == country]
 
     # Iterate though rows of dataframe, create crop masks for each ADM1 region inside of a folder named after ADM0
@@ -83,17 +92,11 @@ def create_crop_masks(params, path_crop, country, df_cmask):
     for row in df_cmask.iterrows():
         name_adm0 = get_adm_names(row[1], 'ADM0_NAME')
         name_adm1 = get_adm_names(row[1], 'ADM1_NAME')
-        name_adm0 = name_adm0.replace('ô', 'o')
-
-        # Create crop mask only if adm0 is in country list
-        if name_adm0.lower() not in [x.replace('_', ' ').lower() for x in params.countries]:
-            params.logger.info('Ignoring ' + name_adm0)
-            continue
-
+        pdb.set_trace()
         str_ID = get_adm_names(row[1], 'str_ID')
         num_ID = str(get_adm_names(row[1], 'num_ID'))
 
-        name_adm0 = name_adm0.lower().strip().replace(' ', '_').str.replace('.', '')
+        name_adm0 = name_adm0.lower().strip().replace(' ', '_').replace('.', '')
         name_adm1 = name_adm1.lower().strip().replace(' ', '_')
 
         # Do not create masks for missing ADM1's
@@ -105,18 +108,20 @@ def create_crop_masks(params, path_crop, country, df_cmask):
         if not dir_crop:
             continue
 
-        dir_out = dir_crop_masks / name_adm0 / dir_crop
+        dir_out = params.dir_crop_masks / name_adm0 / dir_crop
         path_out_ras = dir_out / f'{name_adm1}_{str(str_ID).zfill(9)}_{dir_crop}_crop_mask.tif'
 
         # If subset file exists, then do not recreate it
         if not os.path.isfile(path_out_ras):
+            os.makedirs(dir_out, exist_ok=True)
+
             params.logger.info(f'{dir_out} {name_adm0} {name_adm1}')
 
-            utils.make_dir_if_missing(dir_out)
-
             # Open the global .tif file and split into ADM1s
-            with rasterio.open(dat_level1) as src:
-                b1 = src.read(1)
+            # with rasterio.open(dat_level1) as src:
+            #     b1 = src.read(1)
+            #
+            # mask(path_crop)
 
             # Copy data to new array and replace all values except those corresponding to ADM1_NAME
             arr = b1.copy()
@@ -158,7 +163,7 @@ def run(params):
         df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, 'shp_boundary'))
         df_cmask.fillna({'ADM0_NAME': '', 'ADM1_NAME': ''}, inplace=True)
         df_cmask['lcountry'] = df_cmask['ADM0_NAME'].str.replace(' ', '_').str.lower()
-        df_cmask = df_cmask[['ADM1_NAME', 'ADM0_NAME', 'Country_ID', 'Region_ID', 'num_ID', 'str_ID', 'R_ID', 'C_ID', 'lcountry']]
+        df_cmask = df_cmask[['ADM1_NAME', 'ADM0_NAME', 'Country_ID', 'Region_ID', 'num_ID', 'str_ID', 'R_ID', 'C_ID', 'lcountry', 'geometry']]
 
         frames = []
         for crop in tqdm(crops):
