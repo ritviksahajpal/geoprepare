@@ -145,6 +145,8 @@ def run(params):
         df_cmask['lcountry'] = df_cmask['ADM0_NAME'].str.replace(' ', '_').str.lower()
         df_cmask = df_cmask[['ADM1_NAME', 'ADM0_NAME', 'Country_ID', 'Region_ID', 'num_ID', 'str_ID', 'R_ID', 'C_ID', 'lcountry', 'geometry']]
 
+        # Read
+        pdb.set_trace()
         for crop_mask in tqdm(crop_masks):
             create_crop_masks(params, crop_mask, country, df_cmask)
 

@@ -35,7 +35,6 @@ class GeoExtract(base.BaseGeo):
         self.dir_regions = self.dir_global_datasets / 'regions'
         self.dir_regions_shp = self.dir_regions / 'shps'
         self.dir_crop_masks = self.dir_input / 'crop_masks'
-        self.upper_percentile = self.parser.getint(section, 'upper_percentile')
 
         # self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
 

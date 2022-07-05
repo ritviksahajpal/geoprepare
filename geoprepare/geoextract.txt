@@ -2,11 +2,31 @@
 category = EWCM
 calendar_file = EWCM_2021-6-17.xlsx
 shp_boundary = EWCM_Level_1.shp
-crops= ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 use_cropland_mask = True
-mask =
+
+[ww]
+mask = cropland_v9.tif
+
+[mz]
+mask = cropland_v9.tif
+
+[sb]
+mask = cropland_v9.tif
+
+[rc]
+mask = cropland_v9.tif
+
+[tf]
+mask = cropland_v9.tif
+
+[sr]
+mask = cropland_v9.tif
+
+[ml]
+mask = cropland_v9.tif
 
 [DEFAULT]
 countries = ['kenya']
 forecast_seasons = [2022]
-upper_percentile = 50
+mask = cropland_v9.tif
