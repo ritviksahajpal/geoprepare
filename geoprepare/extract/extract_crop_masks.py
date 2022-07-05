@@ -113,7 +113,7 @@ def create_crop_masks(params, path_crop_mask, country, df_cmask):
         if not os.path.isfile(path_out_ras):
             os.makedirs(dir_out, exist_ok=True)
 
-            params.logger.info(f'{dir_out} {name_adm0} {name_adm1}')
+            params.logger.info(f'creating crop mask in {dir_out} for {name_adm0}, {name_adm1}')
             arr = mask(path_crop_mask, [row[1]['geometry']])[0]
             arr[arr < 0] = 0.
 
