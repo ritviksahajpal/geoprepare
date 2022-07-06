@@ -32,7 +32,7 @@ np.seterr(invalid='ignore')  # HACK! Ignore 'RuntimeWarning: invalid value encou
 
 
 
-def get_var_fname(var, year, doy):
+def get_var_fname(params, var, year, doy):
     """
     determines the infile name
     :param var:
@@ -153,7 +153,7 @@ def nancount(var):
     return np.size(var[indices])
 
 
-def compute_stats(adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path_outf):
+def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path_outf):
     """
 
     :param adm0:
@@ -172,7 +172,7 @@ def compute_stats(adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path
 
     # Check if current year or previous year and REDO flag is False AND variable != CHIRPS
     # If so then only modify those lines where we do not have data currently
-    redo_part_file = (current_year == year or (current_year > year and not constants.do_redo)) and ((name_var != 'chirps') or (name_var != 'chirps_gefs'))
+    redo_part_file = (current_year == year or (current_year > year and not params.redo)) and ((name_var != 'chirps') or (name_var != 'chirps_gefs'))
 
     if redo_part_file and os.path.isfile(path_outf):
         with open(path_outf) as hndl_outf:
@@ -185,8 +185,8 @@ def compute_stats(adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path
         # Process a single date for chirps_gefs
         empty_str = str(adm0) + ',' + str(adm1_name) + ',' + str(adm1_num) + ',' + str(forecast_date.year) + ',' + str(forecast_date.timetuple().tm_yday) + ',' + nan_str
 
-        fl_var = path_vars / name_var / Path(get_var_fname(name_var, year, 1))
-        pdb.set_trace()
+        fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, 1))
+
         if not os.path.isfile(fl_var):
             out_str = empty_str
         else:
@@ -235,7 +235,7 @@ def compute_stats(adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path
 
             empty_str = str(adm0) + ',' + str(adm1_name) + ',' + str(adm1_num) + ',' + str(year) + ',' + str(jd) + ',' + nan_str
 
-            fl_var = path_vars / Path(get_var_fname(name_var, year, jd))
+            fl_var = params.dir_interim / Path(get_var_fname(params, name_var, year, jd))
             if not os.path.isfile(fl_var):
                 out_str = empty_str
             else:
@@ -288,7 +288,7 @@ def process(val):
     :param val:
     :return:
     """
-    adm0, crop, var, yr, crop_mask = val[0], val[1], val[2], val[3], val[4]
+    params, adm0, crop, var, yr, crop_mask = val
 
     if var == 'chirps_gefs' and yr != ar.utcnow().year:
         return
@@ -302,43 +302,41 @@ def process(val):
     # Extracting 9 digit number
     adm1_num = adm1[adm1_len+1:]
 
+    do_threshold = params.parser.getboolean(adm0, 'do_threshold')
+    if do_threshold:
+        lower_threshold = params.parser.getint(adm0, 'lower_threshold')
+        dir_crop_inputs = Path(f'crop_t{int(lower_threshold / 100)}')
+    else:
+        upper_percentile = params.parser.getint(adm0, 'upper_percentile')
+        dir_crop_inputs = Path(f'crop_p{upper_percentile}')
+
+    path_out = params.dir_input / dir_crop_inputs
+
     # need to include test for any instance where the length of the 9 digit number does not equal 9 (just incase)
     # adm1_num_len = len(adm1_num)
     # if adm1_num_len <> 9:
     dir_out = path_out / var / adm0 / crop
-    path_outf = dir_out / Path(adm1_name + '_' + adm1_num + '_' + str(yr) + '_' + var + '_' + crop + '.csv')
+    path_outf = dir_out / Path(f'{adm1_name}_{adm1_num}_{yr}_{var}_{crop}.csv')
 
-    util.make_dir_if_missing(dir_out)
+    os.makedirs(dir_out, exist_ok=True)
 
     # Process variable:
     # 1. if output csv does not exist OR
     # 2. if processing current year OR
     # 3. if REDO flag is set to true
-    if not os.path.isfile(path_outf) or datetime.datetime.now().year == yr or constants.do_redo:
+    if not os.path.isfile(path_outf) or datetime.datetime.now().year == yr or params.redo:
         with MemoryFile(open(crop_mask, 'rb').read()) as memfile:
             with memfile.open() as hndl_crop_mask:
                 mask_crop_per = hndl_crop_mask.read(1).astype(float)
 
-                if constants_base.do_threshold:
-                    mask_crop_per[mask_crop_per < constants_base.lower_threshold] = 0.0  # Create crop mask and mask pixel LT CP
-
-                    # If no pixels then reduce threshold by half
-                    if not np.count_nonzero(mask_crop_per):
-                        # logger.error('Reducing threshold by half for ' + adm1 + ' for crop ' + crop_name)
-                        mask_crop_per = hndl_crop_mask.read(1).astype(float)
-                        mask_crop_per[mask_crop_per < constants_base.lower_threshold/2.] = 0.0  # Create crop mask and mask pixel LT CP
-                    # If no pixels then reduce threshold by half
-                    if not np.count_nonzero(mask_crop_per):
-                        # logger.error('Reducing threshold by half for ' + adm1 + ' for crop ' + crop_name)
-                        mask_crop_per = hndl_crop_mask.read(1).astype(float)
-                        mask_crop_per[mask_crop_per < constants_base.lower_threshold / 4.] = 0.0  # Create crop mask and mask pixel LT CP
+                if params.do_threshold:
+                    mask_crop_per[mask_crop_per < params.lower_threshold] = 0.0  # Create crop mask and mask pixel LT CP
                 else:
                     # TODO # If no pixels then reduce threshold by half
-                    val_percentile = np.percentile(mask_crop_per[mask_crop_per > 0.], constants_base.upper_percentile)
+                    val_percentile = np.percentile(mask_crop_per[mask_crop_per > 0.], params.upper_percentile)
                     mask_crop_per[mask_crop_per < val_percentile] = 0.0
 
                 if np.count_nonzero(mask_crop_per):  # if there are no pixels then skip
-                    # print(adm0 + ' ' + adm1_name + ' ' + adm1_num + ' ' + crop + ' ' + var + ' ' + str(yr))
                     tmp_str = compute_stats(adm0, adm1_name, adm1_num, yr, var, mask_crop_per, path_outf)
 
                     # Append all strings together
@@ -347,8 +345,6 @@ def process(val):
                     hndl_out = open(path_outf, 'w')
                     hndl_out.write(data_out)
                     hndl_out.close()
-    else:
-        pass
 
 
 def remove_duplicates(lst):
@@ -362,33 +358,34 @@ def run(params):
 
     """
     all_comb = []
-    breakpoint()
-    for adm0 in params.countries:
-        for crop in ast.literal_eval(params.parser.get(adm0, 'crops')):
-            name_crop = 'cr' if params.parser.getboolean(adm0, 'use_cropland_mask') else crop
-            list_cmasks = glob.glob(str(path_cmasks) + os.sep + adm0 + os.sep + name_crop + os.sep + '*_' + name_crop + '_crop_mask.tif')
+    list_yrs = range(params.start_year, params.end_year)
 
-            if len(list_cmasks):
-                for var in ast.literal_eval(params.parser.get(adm0, 'eo_model')):
+    for country in params.countries:
+        # Check if we use a cropland mask or not
+        use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
+
+        for crop in ast.literal_eval(params.parser.get(country, 'crops')):
+            name_crop = 'cr' if use_cropland_mask else crop
+            path_crop_masks = params.dir_crop_masks / country / name_crop
+            list_crop_masks = path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif')
+
+            if len(list_crop_masks):
+                for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
                     if var in ['crop_stats', 'GDD']:
                         continue
-                    all_comb.extend(list(itertools.product([adm0], [name_crop], [var], list_yrs, list(list_cmasks))))
-                all_comb.extend(list(itertools.product([adm0], [name_crop], list_yrs, list(list_cmasks))))
+                    all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], list_yrs, list(list_crop_masks))))
 
     all_comb = remove_duplicates(all_comb)
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    params.logger.error('REDO flag: ' + str(constants.do_redo))
-    params.logger.error('Number CPUs: ' + str(params.fraction_cpus))
-    params.logger.error(list_countries)
-    params.logger.error(list_crops)
-    params.logger.error(list_vars)
-    params.logger.error(str(syr) + ' ' + str(eyr))
-    params.logger.error('Total number of csvs to process: ' + str(len(all_comb)))
-    params.logger.error('Storing outputs at ' + str(path_out))
+    params.logger.error(f'Number CPUs: {params.fraction_cpus}')
+    params.logger.error(params.countries)
+    params.logger.error(f'{params.start_year} {params.end_year}')
+    params.logger.error(f'Total number of csvs to process: {len(all_comb)}')
+    params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
-    if False and constants.do_parallel:
+    if False and params.parallel_process:
         with Pool(params.fraction_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):

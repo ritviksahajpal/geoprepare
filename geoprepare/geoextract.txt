@@ -27,6 +27,11 @@ mask = cropland_v9.tif
 mask = cropland_v9.tif
 
 [DEFAULT]
+redo = False
+do_threshold = True
+lower_threshold = 20
+upper_percentile = 90
 countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
+eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'cpc_precip', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
