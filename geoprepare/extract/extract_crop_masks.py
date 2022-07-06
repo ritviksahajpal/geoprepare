@@ -137,8 +137,14 @@ def create_crop_masks(params, path_crop_mask, country, df_cmask):
 
 
 def run(params):
-    crop_masks = params.dir_masks.glob('*.tif')
+    """
 
+    Args:
+        params ():
+
+    Returns:
+
+    """
     for country in params.countries:
         df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, 'shp_boundary'))
         df_cmask.fillna({'ADM0_NAME': '', 'ADM1_NAME': ''}, inplace=True)

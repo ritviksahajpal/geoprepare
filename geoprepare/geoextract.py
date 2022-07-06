@@ -41,19 +41,19 @@ class GeoExtract(base.BaseGeo):
 
 def run(path_config_file='geoextract.txt'):
     # Create crop masks
-    from .extract import extract_crop_masks as obj
-
-    # Read in configuration file
+    # from .extract import extract_crop_masks as obj
+    #
+    # # Read in configuration file
     geoextract = GeoExtract(path_config_file)
     geoextract.parse_config('DEFAULT')
-
-    obj.run(geoextract)
+    #
+    # obj.run(geoextract)
 
     # Extract EO data
-    # from .extract import extract_EO as obj
-    #
-    # # Run the extraction process
-    # obj.run(geoextract)
+    from .extract import extract_EO as obj
+
+    # Run the extraction process
+    obj.run(geoextract)
 
 
 if __name__ =='__main__':

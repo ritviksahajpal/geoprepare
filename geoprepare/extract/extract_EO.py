@@ -362,7 +362,7 @@ def run(params):
 
     """
     all_comb = []
-
+    breakpoint()
     for adm0 in params.countries:
         for crop in ast.literal_eval(params.parser.get(adm0, 'crops')):
             name_crop = 'cr' if params.parser.getboolean(adm0, 'use_cropland_mask') else crop
