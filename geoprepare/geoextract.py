@@ -41,7 +41,7 @@ class GeoExtract(base.BaseGeo):
 
 
 def run(path_config_file='geoextract.txt'):
-    # Read in configuration file
+    # Read in configuration file.
     geoextract = GeoExtract(path_config_file)
     geoextract.parse_config('DEFAULT')
 
