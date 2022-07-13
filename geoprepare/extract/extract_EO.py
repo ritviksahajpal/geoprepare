@@ -2,12 +2,13 @@
 # 1. Read in files for EO variables (NDVI, soil moisture, precipitation, etc.) from /cmongp1/GEOGLAM/Input/intermed
 # 2. For each admin1 produce a single csv file per year, by multiplying the variable value in each grid cell by the
 # percentage of crop area in that grid cell
-# 3. Apply a threshold based on either lower_threshold or upper_percentile flags
-#    3.a lower_threshold: select all grid cells in admin1 with crop area above this precentage
-#    3.b upper_percentile: select all grid cells in admin1 with crop area above this percentile
+# 3. Apply a threshold based on either floor or ceil flags
+#    3.a floor: select all grid cells in admin1 with crop area above this precentage
+#    3.b ceil: select all grid cells in admin1 with crop area above this percentile
 # 4. Output csv file to constants_base.dir_all_inputs + os.sep + always.dir_crop_inputs (/cmongp1/GEOGLAM/Input/crop_*)
 #######################################################################################################################
 import os
+import re
 import pdb
 import ast
 
@@ -73,7 +74,7 @@ def get_var_fname(params, var, year, doy):
     elif var == 'chirps':
         fname = Path('global') / f'chirps_v2.0.{year_doy}_global.tif'
     elif var == 'chirps_gefs':
-        filelist = glob.glob(str(constants.dir_intermed) + os.sep + 'chirps_gefs' + os.sep + '*.tif')
+        filelist = glob.glob(str(params.dir_interim) + os.sep + 'chirps_gefs' + os.sep + '*.tif')
         fname = os.path.basename(filelist[0])
     elif var == 'smos' and year_doy >= '2015124':
         fname = 'SM_OPER_MIR_CLF33A_' + year_doy + '.tif'
@@ -82,7 +83,7 @@ def get_var_fname(params, var, year, doy):
     elif var == 'lst':
         fname = f'MOD11C1.A{year_doy}_global.tif'
     else:
-        logger.error('Variable ' + var + ' does not exist')
+        params.logger.error('Variable ' + var + ' does not exist')
 
     return fname
 
@@ -153,170 +154,177 @@ def nancount(var):
     return np.size(var[indices])
 
 
+def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_name, adm1_num, year, jd):
+    with MemoryFile(open(fl_var, 'rb').read()) as memfile:
+        with memfile.open() as fl_var:
+            arr_var = get_var(name_var, fl_var)
+            arr_crop_var = arr_var * (mask_crop_per > 0.0)
+            sum_crop_var = bn.nansum(arr_crop_var)
+
+            # if there are crop pixels but the underlying data layer has no data then sum_crop_var will be 0
+            if sum_crop_var == 0:
+                out_str = empty_str
+            else:
+                if name_var in ['esi_4wk', 'esi_12wk']:
+                    wavg_unscaled = nanaverage(arr_crop_var, mask_crop_per)
+                    wavg = (wavg_unscaled / 10.0) - 4.0
+                else:
+                    wavg = nanaverage(arr_crop_var, mask_crop_per)
+
+                cpwe = mask_crop_per[~np.isnan(arr_crop_var)]  # Crop Mask Weighted Average
+                cpwe[cpwe <= 0.0] = np.NaN
+                arr_crop_var[arr_crop_var <= 0.0] = np.NaN
+                num = np.count_nonzero(~np.isnan(arr_crop_var))  # Total number of pixels (after threshold)
+                med = bn.nanmedian(cpwe)  # Median crop percentage of pixels (after threshold)
+                av = bn.nanmean(cpwe)  # Average crop percentage of the pixels (after threshold)
+                min_pix = bn.nanmin(cpwe)  # Min crop percentage of pixels (after threshold)
+                max_pix = bn.nanmax(cpwe)  # Max crop percentage of the pixels (after threshold)
+
+                out_str = f'{adm0},{adm1_name},{adm1_num},{year},{jd},{wavg},{num},{av},{med},{min_pix},{max_pix}'
+
+    return out_str
+
+
 def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path_outf):
     """
 
-    :param adm0:
-    :param adm1_name:
-    :param adm1_num:
-    :param year:
-    :param name_var:
-    :param mask_crop_per:
-    :return:
+    Args:
+        params ():
+        adm0 ():
+        adm1_name ():
+        adm1_num ():
+        year ():
+        name_var ():
+        mask_crop_per ():
+        path_outf ():
+
+    Returns:
+
     """
-    end_jd = 367 if calendar.isleap(year) else 366  # Checking if year is leap year
-    nan_str = str(np.NaN) + ',' + str(np.NaN) + ',' + str(np.NaN) + ',' + str(np.NaN) + ',' + str(np.NaN) + ',' + str(np.NaN)
-    arr_str = []
-    hndl_outf = None
     current_year = ar.utcnow().year
+    end_jd = 367 if calendar.isleap(year) else 366  # Checking if year is leap year
 
-    # Check if current year or previous year and REDO flag is False AND variable != CHIRPS
+    stat_str = []
+    nan_str = f'{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}'
+    hndl_outf = None
+
+    # Check if we are processing current year or in case of a previous year the REDO flag is False
     # If so then only modify those lines where we do not have data currently
-    redo_part_file = (current_year == year or (current_year > year and not params.redo)) and ((name_var != 'chirps') or (name_var != 'chirps_gefs'))
+    keep_partial_file = (current_year == year or (current_year > year and not params.redo))
 
-    if redo_part_file and os.path.isfile(path_outf):
+    if keep_partial_file and os.path.isfile(path_outf):
         with open(path_outf) as hndl_outf:
             reader = csv.reader(hndl_outf)
             list_rows = list(reader)
 
     if name_var == 'chirps_gefs':
         forecast_date = ar.utcnow().shift(days=+15).date()
+        jd = forecast_date.timetuple().tm_yday
 
         # Process a single date for chirps_gefs
-        empty_str = str(adm0) + ',' + str(adm1_name) + ',' + str(adm1_num) + ',' + str(forecast_date.year) + ',' + str(forecast_date.timetuple().tm_yday) + ',' + nan_str
+        empty_str = f'{adm0},{adm1_name},{adm1_num},{forecast_date.year},{jd},{nan_str}'
 
         fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, 1))
 
         if not os.path.isfile(fl_var):
             out_str = empty_str
         else:
-            with MemoryFile(open(fl_var, 'rb').read()) as memfile:
-                with memfile.open() as fl_var:
-                    arr_var = get_var(name_var, fl_var)
-                    arr_crop_var = arr_var * (mask_crop_per > 0.0)
-                    sum_crop_var = bn.nansum(arr_crop_var)
+            out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_name, adm1_num, year, jd)
 
-                    # if there are crop pixels but the underlying data layer has no data then sum_crop_var will be 0
-                    if sum_crop_var == 0:
-                        out_str = empty_str
-                    else:
-                        wavg = nanaverage(arr_crop_var, mask_crop_per)
-                        # print(jd)
-                        cpwe = mask_crop_per[~np.isnan(arr_crop_var)]  # Crop Mask Weighted Average
-                        cpwe[cpwe <= 0.0] = np.NaN
-                        arr_crop_var[arr_crop_var <= 0.0] = np.NaN
-                        num = np.count_nonzero(~np.isnan(arr_crop_var))  # Total number of pixels (after threshold)
-                        med = bn.nanmedian(cpwe)  # Median crop percentage of pixels (after threshold)
-                        av = bn.nanmean(cpwe)  # Average crop percentage of the pixels (after threshold)
-                        min_pix = bn.nanmin(cpwe)  # Min crop percentage of pixels (after threshold)
-                        max_pix = bn.nanmax(cpwe)  # Max crop percentage of the pixels (after threshold)
-
-                        # var, var + '_tot_pix', var + '_wa_crop', var + '_wmed_crop', var + '_min_crop', var + '_max_crop'
-                        out_str = str(adm0) + ',' + \
-                                  str(adm1_name) + ',' + \
-                                  str(adm1_num) + ',' + \
-                                  str(forecast_date.year) + ',' + \
-                                  str(forecast_date.timetuple().tm_yday) + ',' + \
-                                  str(wavg) + ',' + \
-                                  str(num) + ',' + \
-                                  str(av) + ',' + \
-                                  str(med) + ',' + \
-                                  str(min_pix) + ',' + \
-                                  str(max_pix)
-
-        arr_str.append(out_str)
-        return arr_str
+        stat_str.append(out_str)
     else:
-        arr_str = []
+        stat_str = []
         for jd in range(1, end_jd):
-            if redo_part_file and hndl_outf and list_rows[jd - 1][5] != 'nan':
-                arr_str.append(','.join(list_rows[jd - 1]))
+            if keep_partial_file and hndl_outf and list_rows[jd - 1][5] != 'nan':
+                stat_str.append(','.join(list_rows[jd - 1]))
                 continue
 
-            empty_str = str(adm0) + ',' + str(adm1_name) + ',' + str(adm1_num) + ',' + str(year) + ',' + str(jd) + ',' + nan_str
+            empty_str = f'{adm0},{adm1_name},{adm1_num},{year},{jd},{nan_str}'
 
             fl_var = params.dir_interim / Path(get_var_fname(params, name_var, year, jd))
             if not os.path.isfile(fl_var):
                 out_str = empty_str
             else:
-                with MemoryFile(open(fl_var, 'rb').read()) as memfile:
-                    with memfile.open() as fl_var:
-                        arr_var = get_var(name_var, fl_var)
-                        arr_crop_var = arr_var * (mask_crop_per > 0.0)
-                        sum_crop_var = bn.nansum(arr_crop_var)
+                out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_name, adm1_num, year, jd)
 
-                        # if there are crop pixels but the underlying data layer has no data then sum_crop_var will be 0
-                        if sum_crop_var == 0:
-                            out_str = empty_str
-                        else:
-                            if name_var in ['esi_4wk', 'esi_12wk']:
-                                wavg_unscaled = nanaverage(arr_crop_var, mask_crop_per)
-                                wavg = (wavg_unscaled / 10.0) - 4.0
-                            else:
-                                wavg = nanaverage(arr_crop_var, mask_crop_per)
-                            # print(jd)
-                            cpwe = mask_crop_per[~np.isnan(arr_crop_var)]  # Crop Mask Weighted Average
-                            cpwe[cpwe <= 0.0] = np.NaN
-                            arr_crop_var[arr_crop_var <= 0.0] = np.NaN
-                            num = np.count_nonzero(~np.isnan(arr_crop_var))  # Total number of pixels (after threshold)
-                            med = bn.nanmedian(cpwe)  # Median crop percentage of pixels (after threshold)
-                            av = bn.nanmean(cpwe)  # Average crop percentage of the pixels (after threshold)
-                            min_pix = bn.nanmin(cpwe)  # Min crop percentage of pixels (after threshold)
-                            max_pix = bn.nanmax(cpwe)  # Max crop percentage of the pixels (after threshold)
+            stat_str.append(out_str)
 
-                            out_str = str(adm0) + ',' + \
-                                      str(adm1_name) + ',' + \
-                                      str(adm1_num) + ',' + \
-                                      str(year) + ',' + \
-                                      str(jd) + ',' + \
-                                      str(wavg) + ',' + \
-                                      str(num) + ',' + \
-                                      str(av) + ',' + \
-                                      str(med) + ',' + \
-                                      str(min_pix) + ',' + \
-                                      str(max_pix)
+    return stat_str
 
-            arr_str.append(out_str)
 
-        return arr_str
+def setup(params, country, var, crop, crop_mask, threshold, limit):
+    """
+
+    Args:
+        params ():
+        country ():
+        var ():
+        crop ():
+        crop_mask ():
+
+    Returns:
+
+    """
+    # Extracting 'kansas' from 'kansas_188017000' and finding length to extract 9 digit number
+    # the \d{9} bit matches exactly 9 digits. the bit of the regex that is in (?= ... ) is a lookahead,
+    # which means it is not part of the actual match, but it only matches if that follows the match.
+    region_name = re.search(r'.+(?=_\d{9}_)', crop_mask).group(1)
+
+    # Extract numeric admin identifier from crop mask file name
+    region_id = re.findall(r'\d+', crop_mask)[0]
+
+    if threshold:
+        dir_crop_inputs = Path(f'crop_t{int(limit / 100)}')
+    else:
+        dir_crop_inputs = Path(f'crop_p{limit}')
+
+    dir_out = params.dir_input / dir_crop_inputs / var / country / crop
+
+    return region_name, region_id, dir_out
+
+
+def crop_mask_limit(params, country, threshold):
+    """
+
+    Args:
+        params ():
+        country ():
+        threshold ():
+
+    Returns:
+
+    """
+    limit_type = 'floor' if threshold else 'ceil'
+
+    limit = params.parser.getint(country, limit_type)
+
+    return limit
 
 
 def process(val):
     """
-    val: adm0, crop, var
-    adm0 can refer to country i.e. admin 0 level region
-    :param val:
-    :return:
+
+    Args:
+        val ():
+        params:
+        country:
+        crop:
+        var:
+        year:
+        crop_mask: name of crop mask file
+
+    Returns:
+
     """
-    params, adm0, crop, var, yr, crop_mask = val
+    params, country, crop, var, year, crop_mask = val
 
-    if var == 'chirps_gefs' and yr != ar.utcnow().year:
+    # Do not process CHIRPS forecast data if it is not for the current year
+    if var == 'chirps_gefs' and year != ar.utcnow().year:
         return
-    # Get admin level 1 region e.g. 'kansas_188017000' from 'kansas_188017000_ww_crop_mask.tif'
-    adm1 = os.path.basename(crop_mask)[:-17]
-    crop_name = os.path.basename(crop_mask)[-16:-14]
-    # Extracting 'kansas' and finding length to extract 9 digit number
-    adm1_name = adm1[:-10]
-    adm1_len = len(adm1_name)
 
-    # Extracting 9 digit number
-    adm1_num = adm1[adm1_len+1:]
-
-    do_threshold = params.parser.getboolean(adm0, 'do_threshold')
-    if do_threshold:
-        lower_threshold = params.parser.getint(adm0, 'lower_threshold')
-        dir_crop_inputs = Path(f'crop_t{int(lower_threshold / 100)}')
-    else:
-        upper_percentile = params.parser.getint(adm0, 'upper_percentile')
-        dir_crop_inputs = Path(f'crop_p{upper_percentile}')
-
-    path_out = params.dir_input / dir_crop_inputs
-
-    # need to include test for any instance where the length of the 9 digit number does not equal 9 (just incase)
-    # adm1_num_len = len(adm1_num)
-    # if adm1_num_len <> 9:
-    dir_out = path_out / var / adm0 / crop
-    path_outf = dir_out / Path(f'{adm1_name}_{adm1_num}_{yr}_{var}_{crop}.csv')
+    threshold = params.parser.getboolean(country, 'threshold')
+    region_name, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold)
+    path_outf = dir_out / Path(f'{region_name}_{region_id}_{year}_{var}_{crop}.csv')
 
     os.makedirs(dir_out, exist_ok=True)
 
@@ -324,20 +332,23 @@ def process(val):
     # 1. if output csv does not exist OR
     # 2. if processing current year OR
     # 3. if REDO flag is set to true
-    if not os.path.isfile(path_outf) or datetime.datetime.now().year == yr or params.redo:
+    file_exist = os.path.isfile(path_outf)
+    process_current_year = (datetime.datetime.now().year == year)
+
+    if not file_exist or process_current_year or params.redo:
         with MemoryFile(open(crop_mask, 'rb').read()) as memfile:
             with memfile.open() as hndl_crop_mask:
                 mask_crop_per = hndl_crop_mask.read(1).astype(float)
+                limit = crop_mask_limit(params, country, threshold)
 
-                if params.do_threshold:
-                    mask_crop_per[mask_crop_per < params.lower_threshold] = 0.0  # Create crop mask and mask pixel LT CP
+                if threshold:
+                    mask_crop_per[mask_crop_per < limit] = 0.0  # Create crop mask and mask pixel LT CP
                 else:
-                    # TODO # If no pixels then reduce threshold by half
-                    val_percentile = np.percentile(mask_crop_per[mask_crop_per > 0.], params.upper_percentile)
+                    val_percentile = np.percentile(mask_crop_per[mask_crop_per > 0.], limit)
                     mask_crop_per[mask_crop_per < val_percentile] = 0.0
 
                 if np.count_nonzero(mask_crop_per):  # if there are no pixels then skip
-                    tmp_str = compute_stats(adm0, adm1_name, adm1_num, yr, var, mask_crop_per, path_outf)
+                    tmp_str = compute_stats(params, country, region_name, region_id, year, var, mask_crop_per, path_outf)
 
                     # Append all strings together
                     data_out = '\n'.join(tmp_str)

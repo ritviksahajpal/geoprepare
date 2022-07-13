@@ -28,9 +28,9 @@ mask = cropland_v9.tif
 
 [DEFAULT]
 redo = False
-do_threshold = True
-lower_threshold = 20
-upper_percentile = 90
+threshold = True
+floor = 20
+ceil = 90
 countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
