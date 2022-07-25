@@ -44,7 +44,7 @@ def get_var_fname(params, var, year, doy):
     year_doy = f'{year}{str(doy).zfill(3)}'
 
     if var in ['ndvi', 'gcvi']:
-        fname = f'mod09.{var}.global_0.05_degree.year.{str(doy).zfill(3)}.c6.v1.tif'
+        fname = f'mod09.{var}.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif'
     elif var == 'esi_4wk':
         fname = f'esi_dfppm_4wk_{year_doy}.tif'
     elif var == 'esi_12wk':
@@ -203,7 +203,7 @@ def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_p
     """
     current_year = ar.utcnow().year
     end_jd = 367 if calendar.isleap(year) else 366  # Checking if year is leap year
-    breakpoint()
+
     stat_str = []
     nan_str = f'{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}'
     hndl_outf = None
