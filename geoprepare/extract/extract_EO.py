@@ -382,9 +382,6 @@ def run(params):
 
             if len(crop_masks):
                 for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
-                    # HACK alert: remove ndvi below before  production
-                    if var not in ['ndvi']:
-                        continue
                     all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
@@ -397,7 +394,7 @@ def run(params):
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
