@@ -15,7 +15,7 @@ def read_config(path_config_file):
 
     """
     from configparser import ConfigParser, ExtendedInterpolation
-
+    breakpoint()
     parser = ConfigParser(inline_comment_prefixes=(';',), interpolation=ExtendedInterpolation())
 
     try:
