@@ -379,14 +379,14 @@ def run(params):
             name_crop = 'cr' if use_cropland_mask else crop
             path_crop_masks = params.dir_crop_masks / country / name_crop
             list_crop_masks = path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif')
-
+            breakpoint()
             if len(list(list_crop_masks)):
                 for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
                     # HACK alert: remove ndvi below before  production
                     if var not in ['ndvi']:
                         continue
                     all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], list_yrs, list(list_crop_masks))))
-    breakpoint()
+
     all_comb = remove_duplicates(all_comb)
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
