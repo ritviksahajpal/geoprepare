@@ -334,7 +334,7 @@ def process(val):
     # 3. if REDO flag is set to true
     file_exist = os.path.isfile(path_outf)
     process_current_year = (datetime.datetime.now().year == year)
-
+    breakpoint()
     if not file_exist or process_current_year or params.redo:
         with MemoryFile(open(crop_mask, 'rb').read()) as memfile:
             with memfile.open() as hndl_crop_mask:
