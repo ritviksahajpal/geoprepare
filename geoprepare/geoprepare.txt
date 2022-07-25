@@ -1,6 +1,6 @@
 [DATASETS]
-datasets = ['NDVI', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
-
+; datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+datasets=['CPC']
 [PATHS]
 dir_base = D:\
 dir_input = ${dir_base}/input
@@ -15,6 +15,9 @@ start_year = 2022
 
 [AVHRR]
 data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
+
+[LOGGING]
+level = ERROR
 
 [CHIRPS]
 fill_value = -2147483648
@@ -49,7 +52,7 @@ data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
 
 [DEFAULT]
 logfile = log
-parallel_process = True
+parallel_process = False
 fraction_cpus = 0.5
 start_year = 2022
 end_year = 2022
