@@ -323,7 +323,8 @@ def process(val):
         return
 
     threshold = params.parser.getboolean(country, 'threshold')
-    region_name, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold)
+    limit = crop_mask_limit(params, country, threshold)
+    region_name, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold, limit)
     path_outf = dir_out / Path(f'{region_name}_{region_id}_{year}_{var}_{crop}.csv')
 
     os.makedirs(dir_out, exist_ok=True)
@@ -339,7 +340,6 @@ def process(val):
         with MemoryFile(open(crop_mask, 'rb').read()) as memfile:
             with memfile.open() as hndl_crop_mask:
                 mask_crop_per = hndl_crop_mask.read(1).astype(float)
-                limit = crop_mask_limit(params, country, threshold)
 
                 if threshold:
                     mask_crop_per[mask_crop_per < limit] = 0.0  # Create crop mask and mask pixel LT CP
