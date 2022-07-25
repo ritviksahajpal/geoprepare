@@ -379,7 +379,7 @@ def run(params):
             name_crop = 'cr' if use_cropland_mask else crop
             path_crop_masks = params.dir_crop_masks / country / name_crop
             list_crop_masks = path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif')
-
+            breakpoint()
             if len(list_crop_masks):
                 for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
                     if var in ['crop_stats', 'GDD']:
