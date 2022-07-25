@@ -369,7 +369,7 @@ def run(params):
 
     """
     all_comb = []
-    list_yrs = list(range(params.start_year, params.end_year + 1))
+    years = list(range(params.start_year, params.end_year + 1))
 
     for country in params.countries:
         # Check if we use a cropland mask or not
@@ -378,14 +378,14 @@ def run(params):
         for crop in ast.literal_eval(params.parser.get(country, 'crops')):
             name_crop = 'cr' if use_cropland_mask else crop
             path_crop_masks = params.dir_crop_masks / country / name_crop
-            list_crop_masks = list(path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif'))
-            breakpoint()
-            if len(list_crop_masks):
+            crop_masks = list(path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif'))
+
+            if len(crop_masks):
                 for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
                     # HACK alert: remove ndvi below before  production
                     if var not in ['ndvi']:
                         continue
-                    all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], list_yrs, list_crop_masks)))
+                    all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
 
@@ -397,7 +397,7 @@ def run(params):
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with Pool(params.fraction_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
