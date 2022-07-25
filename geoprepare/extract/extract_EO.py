@@ -382,13 +382,11 @@ def run(params):
 
             if len(list(list_crop_masks)):
                 for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
-                    if var in ['crop_stats', 'GDD']:
-                        continue
                     # HACK alert: remove ndvi below before  production
                     if var not in ['ndvi']:
                         continue
                     all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], list_yrs, list(list_crop_masks))))
-
+    breakpoint()
     all_comb = remove_duplicates(all_comb)
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
