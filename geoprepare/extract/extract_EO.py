@@ -369,7 +369,7 @@ def run(params):
 
     """
     all_comb = []
-    list_yrs = range(params.start_year, params.end_year)
+    list_yrs = range(params.start_year, params.end_year + 1)
 
     for country in params.countries:
         # Check if we use a cropland mask or not
