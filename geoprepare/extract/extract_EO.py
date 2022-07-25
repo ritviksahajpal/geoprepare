@@ -369,6 +369,7 @@ def run(params):
 
     """
     all_comb = []
+    num_cpus = int(params.fraction_cpus * cpu_count())
     years = list(range(params.start_year, params.end_year + 1))
 
     for country in params.countries:
@@ -390,15 +391,15 @@ def run(params):
     all_comb = remove_duplicates(all_comb)
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    params.logger.error(f'Number CPUs: {params.fraction_cpus}')
     params.logger.error(params.countries)
-    params.logger.error(f'{params.start_year} {params.end_year}')
+    params.logger.error(f'Years: {params.start_year} {params.end_year}')
+    params.logger.error(f'Number CPUs: {num_cpus}')
     params.logger.error(f'Total number of csvs to process: {len(all_comb)}')
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
     if params.parallel_process:
-        with Pool(params.fraction_cpus) as p:
+        with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
                     pbar.set_description('Processing ' + ' '.join(str(x) for x in all_comb[i][:4]) + ' ' + os.path.basename(all_comb[i][4]))
