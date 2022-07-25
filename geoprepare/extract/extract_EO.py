@@ -225,7 +225,7 @@ def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_p
         empty_str = f'{adm0},{adm1_name},{adm1_num},{forecast_date.year},{jd},{nan_str}'
 
         fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, 1))
-        breakpoint()
+
         if not os.path.isfile(fl_var):
             out_str = empty_str
         else:
@@ -240,7 +240,7 @@ def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_p
                 continue
 
             empty_str = f'{adm0},{adm1_name},{adm1_num},{year},{jd},{nan_str}'
-
+            breakpoint()
             fl_var = params.dir_interim / Path(get_var_fname(params, name_var, year, jd))
             if not os.path.isfile(fl_var):
                 out_str = empty_str
