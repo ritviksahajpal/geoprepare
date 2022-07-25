@@ -403,13 +403,13 @@ def run(params):
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
-                    pbar.set_description('Processing ' + ' '.join(str(x) for x in all_comb[i][:4]) + ' ' + os.path.basename(all_comb[i][4]))
+                    pbar.set_description(f'Processing {all_comb[i][0]} {all_comb[i][1]}')
                     pbar.update()
     else:
         # Use the code below if you want to test without parallelization or if you want to debug by using pdb
         pbar = tqdm(all_comb)
         for i, val in enumerate(pbar):
-            pbar.set_description('Processing ' + ' '.join(str(x) for x in all_comb[i][:4]) + ' ' + os.path.basename(all_comb[i][4]) + '\n')
+            pbar.set_description(f'Processing {all_comb[i][0]} {all_comb[i][1]}')
             pbar.update()
             process(val)
 
