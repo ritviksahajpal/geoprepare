@@ -203,7 +203,7 @@ def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_p
     """
     current_year = ar.utcnow().year
     end_jd = 367 if calendar.isleap(year) else 366  # Checking if year is leap year
-
+    breakpoint()
     stat_str = []
     nan_str = f'{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}'
     hndl_outf = None
@@ -334,7 +334,7 @@ def process(val):
     # 3. if REDO flag is set to true
     file_exist = os.path.isfile(path_outf)
     process_current_year = (datetime.datetime.now().year == year)
-    breakpoint()
+
     if not file_exist or process_current_year or params.redo:
         with MemoryFile(open(crop_mask, 'rb').read()) as memfile:
             with memfile.open() as hndl_crop_mask:
