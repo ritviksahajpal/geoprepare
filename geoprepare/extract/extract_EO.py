@@ -275,10 +275,7 @@ def setup(params, country, var, crop, crop_mask, threshold, limit):
     # Extract numeric admin identifier from crop mask file name
     region_id = re.findall(r'\d+', fname)[0]
 
-    if threshold:
-        dir_crop_inputs = Path(f'crop_t{int(limit / 100)}')
-    else:
-        dir_crop_inputs = Path(f'crop_p{limit}')
+    dir_crop_inputs = Path(f'crop_t{limit}') if threshold else Path(f'crop_p{limit}')
 
     dir_out = params.dir_input / dir_crop_inputs / var / country / crop
 
@@ -297,7 +294,7 @@ def crop_mask_limit(params, country, threshold):
 
     """
     limit_type = 'floor' if threshold else 'ceil'
-    breakpoint()
+
     limit = params.parser.getint(country, limit_type)
 
     return limit
