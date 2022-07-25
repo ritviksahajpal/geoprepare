@@ -268,6 +268,7 @@ def setup(params, country, var, crop, crop_mask, threshold, limit):
     # Extracting 'kansas' from 'kansas_188017000' and finding length to extract 9 digit number
     # the \d{9} bit matches exactly 9 digits. the bit of the regex that is in (?= ... ) is a lookahead,
     # which means it is not part of the actual match, but it only matches if that follows the match.
+    breakpoint()
     region_name = re.search(r'.+(?=_\d{9}_)', crop_mask).group(1)
 
     # Extract numeric admin identifier from crop mask file name
@@ -398,7 +399,7 @@ def run(params):
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
-    if params.parallel_process:
+    if False and params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
