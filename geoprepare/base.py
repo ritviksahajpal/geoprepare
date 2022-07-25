@@ -14,7 +14,7 @@ from . import log
 
 class BaseGeo:
     def __init__(self, path_config_file=['geoprepare.txt', 'geoextract.txt']):
-        breakpoint()
+        breakpoint() #
         self.parser = common.read_config(path_config_file)
         self.redo_last_year = True
 
