@@ -16,9 +16,6 @@ start_year = 2022
 [AVHRR]
 data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
 
-[LOGGING]
-level = ERROR
-
 [CHIRPS]
 fill_value = -2147483648
 prelim = /pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/
@@ -49,6 +46,9 @@ print_missing = False
 
 [SOIL-MOISTURE]
 data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
+
+[LOGGING]
+level = ERROR
 
 [DEFAULT]
 logfile = log
