@@ -67,6 +67,7 @@ class BaseGeo:
         self.dir_global_datasets = Path(self.parser.get('PATHS', 'dir_global_datasets'))
         self.logging_level= self.parser.get('LOGGING', 'level')
         self.parallel_process = self.parser.getboolean(section, 'parallel_process')
+        breakpoint()
         self.start_year = self.parser.getint(section, 'start_year')
         self.end_year = self.parser.getint(section, 'end_year')
         self.fraction_cpus = self.parser.getfloat(section, 'fraction_cpus')
