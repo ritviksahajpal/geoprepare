@@ -356,7 +356,7 @@ def process(val):
                     tmp_str = compute_stats(params, country, region, region_id, year, var, mask_crop_per, path_outf)
 
                     # Add a header and store as pandas dataframe
-                    tmp_str.insert(0, 'country,region,region_id,year,doy,weighted_average,num_pixels,average_crop_percentage,'
+                    tmp_str.insert(0, f'country,region,region_id,year,doy,{var},num_pixels,average_crop_percentage,'
                                       'median_crop_percentage,min_crop_percentage,max_crop_percentage')
 
                     df = pd.read_csv(io.StringIO('\n'.join(tmp_str)))
