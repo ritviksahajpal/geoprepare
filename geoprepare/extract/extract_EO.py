@@ -330,7 +330,7 @@ def process(val):
     threshold = params.parser.getboolean(country, 'threshold')
     limit = crop_mask_limit(params, country, threshold)
     region, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold, limit)
-    path_outf = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
+    path_output = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
 
     os.makedirs(dir_out, exist_ok=True)
 
@@ -338,10 +338,9 @@ def process(val):
     # 1. if output csv does not exist OR
     # 2. if processing current year OR
     # 3. if REDO flag is set to true
-    file_exist = os.path.isfile(path_outf)
     process_current_year = (datetime.datetime.now().year == year)
 
-    if not file_exist or process_current_year or params.redo:
+    if not os.path.isfile(path_output) or process_current_year or params.redo:
         with MemoryFile(open(crop_mask, 'rb').read()) as memfile:
             with memfile.open() as hndl_crop_mask:
                 mask_crop_per = hndl_crop_mask.read(1).astype(float)
@@ -353,14 +352,14 @@ def process(val):
                     mask_crop_per[mask_crop_per < val_percentile] = 0.0
 
                 if np.count_nonzero(mask_crop_per):  # if there are no pixels then skip
-                    tmp_str = compute_stats(params, country, region, region_id, year, var, mask_crop_per, path_outf)
+                    tmp_str = compute_stats(params, country, region, region_id, year, var, mask_crop_per, path_output)
 
                     # Add a header and store as pandas dataframe
                     tmp_str.insert(0, f'country,region,region_id,year,doy,{var},num_pixels,average_crop_percentage,'
                                       'median_crop_percentage,min_crop_percentage,max_crop_percentage')
 
                     df = pd.read_csv(io.StringIO('\n'.join(tmp_str)))
-                    df.to_csv(path_outf, index=False)
+                    df.to_csv(path_output, index=False)
 
 
 def remove_duplicates(lst):

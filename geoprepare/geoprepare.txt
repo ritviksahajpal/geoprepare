@@ -1,6 +1,6 @@
 [DATASETS]
-; datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
-datasets=['CPC']
+datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+
 [PATHS]
 dir_base = D:\
 dir_input = ${dir_base}/input
@@ -9,6 +9,10 @@ dir_interim = ${dir_input}/interim
 dir_download = ${dir_input}/download
 dir_output = ${dir_base}/output
 dir_global_datasets = ${dir_input}/global_datasets
+dir_masks = ${dir_global_datasets}/Masks
+dir_regions = ${dir_global_datasets}/Regions
+dir_regions_shp = ${dir_regions}/Shps
+dir_crop_masks = ${dir_input}/crop_masks
 
 [AGERA5]
 start_year = 2022
