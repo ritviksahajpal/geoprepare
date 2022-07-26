@@ -5,9 +5,7 @@
 ###############################################################################
 import os
 import ast
-import pdb
 import datetime
-import logging
 from . import base
 
 
@@ -27,9 +25,8 @@ class GeoPrepare(base.BaseGeo):
         super().parse_config(section='DEFAULT')
 
         # check if current date is on or after March 1st. If it is then set redo_last_year flag to False else True
-        # If redo_last_year is True then we redo the download, processing etc of last year's data
-        if datetime.datetime.today().month >= 3:
-            self.redo_last_year = False
+        # If redo_last_year is True then we redo the download, processing of last year's data
+        self.redo_last_year = False if datetime.datetime.today().month >= 3 else True
 
 
 def run(path_config_file=['geoprepare.txt']):

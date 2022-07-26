@@ -388,9 +388,9 @@ def run(params):
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     params.logger.error(params.countries)
-    params.logger.error(f'Years: {params.start_year} {params.end_year}')
-    params.logger.error(f'Number CPUs: {num_cpus}')
-    params.logger.error(f'Total number of csvs to process: {len(all_comb)}')
+    params.logger.error(f'Starting year {params.start_year}, Ending year {params.end_year}')
+    params.logger.error(f'Number of CPUs used {num_cpus}')
+    params.logger.error(f'Total number of csvs to process {len(all_comb)}')
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
