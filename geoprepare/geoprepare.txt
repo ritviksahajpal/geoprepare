@@ -58,5 +58,5 @@ level = ERROR
 logfile = log
 parallel_process = False
 fraction_cpus = 0.5
-start_year = 2022
+start_year = 2001
 end_year = 2022
