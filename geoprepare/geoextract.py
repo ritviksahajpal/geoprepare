@@ -31,10 +31,10 @@ class GeoExtract(base.BaseGeo):
         super().parse_config(section='DEFAULT')
 
         self.countries = ast.literal_eval(self.parser.get('DEFAULT', 'countries'))
-        self.dir_masks = self.parser.get('PATHS', 'dir_masks')
-        self.dir_regions = self.parser.get('PATHS', 'dir_regions')
-        self.dir_regions_shp = self.parser.get('PATHS', 'dir_regions_shp')
-        self.dir_crop_masks = self.parser.get('PATHS', 'dir_crop_masks')
+        self.dir_masks = Path(self.parser.get('PATHS', 'dir_masks'))
+        self.dir_regions = Path(self.parser.get('PATHS', 'dir_regions'))
+        self.dir_regions_shp = Path(self.parser.get('PATHS', 'dir_regions_shp'))
+        self.dir_crop_masks = Path(self.parser.get('PATHS', 'dir_crop_masks'))
         self.redo = self.parser.getboolean('DEFAULT', 'redo')
 
         # self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
