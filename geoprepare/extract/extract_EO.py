@@ -9,7 +9,6 @@
 #######################################################################################################################
 import os
 import re
-import pdb
 import ast
 
 import calendar
@@ -185,14 +184,14 @@ def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_n
     return out_str
 
 
-def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_per, path_outf):
+def compute_stats(params, country, region, region_id, year, name_var, mask_crop_per, path_outf):
     """
 
     Args:
         params ():
-        adm0 ():
-        adm1_name ():
-        adm1_num ():
+        country ():
+        region ():
+        region_id ():
         year ():
         name_var ():
         mask_crop_per ():
@@ -202,7 +201,7 @@ def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_p
 
     """
     current_year = ar.utcnow().year
-    end_jd = 367 if calendar.isleap(year) else 366  # Checking if year is leap year
+    end_doy = 367 if calendar.isleap(year) else 366
 
     stat_str = []
     nan_str = f'{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}'
@@ -219,33 +218,33 @@ def compute_stats(params, adm0, adm1_name, adm1_num, year, name_var, mask_crop_p
 
     if name_var == 'chirps_gefs':
         forecast_date = ar.utcnow().shift(days=+15).date()
-        jd = forecast_date.timetuple().tm_yday
+        doy = forecast_date.timetuple().tm_yday
 
         # Process a single date for chirps_gefs
-        empty_str = f'{adm0},{adm1_name},{adm1_num},{forecast_date.year},{jd},{nan_str}'
+        empty_str = f'{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}'
 
         fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, 1))
 
         if not os.path.isfile(fl_var):
             out_str = empty_str
         else:
-            out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_name, adm1_num, year, jd)
+            out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
 
         stat_str.append(out_str)
     else:
         stat_str = []
-        for jd in range(1, end_jd):
-            if keep_partial_file and hndl_outf and list_rows[jd - 1][5] != 'nan':
-                stat_str.append(','.join(list_rows[jd - 1]))
+        for doy in range(1, end_doy):
+            if keep_partial_file and hndl_outf and list_rows[doy - 1][5] != 'nan':
+                stat_str.append(','.join(list_rows[doy - 1]))
                 continue
 
-            empty_str = f'{adm0},{adm1_name},{adm1_num},{year},{jd},{nan_str}'
+            empty_str = f'{country},{region},{region_id},{year},{doy},{nan_str}'
 
-            fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, jd))
+            fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, doy))
             if not os.path.isfile(fl_var):
                 out_str = empty_str
             else:
-                out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_name, adm1_num, year, jd)
+                out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
 
             stat_str.append(out_str)
 
@@ -323,8 +322,8 @@ def process(val):
 
     threshold = params.parser.getboolean(country, 'threshold')
     limit = crop_mask_limit(params, country, threshold)
-    region_name, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold, limit)
-    path_outf = dir_out / Path(f'{region_name}_{region_id}_{year}_{var}_{crop}.csv')
+    region, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold, limit)
+    path_outf = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
 
     os.makedirs(dir_out, exist_ok=True)
 
@@ -347,9 +346,10 @@ def process(val):
                     mask_crop_per[mask_crop_per < val_percentile] = 0.0
 
                 if np.count_nonzero(mask_crop_per):  # if there are no pixels then skip
-                    tmp_str = compute_stats(params, country, region_name, region_id, year, var, mask_crop_per, path_outf)
+                    tmp_str = compute_stats(params, country, region, region_id, year, var, mask_crop_per, path_outf)
 
                     # Append all strings together
+                    breakpoint()
                     data_out = '\n'.join(tmp_str)
 
                     hndl_out = open(path_outf, 'w')
