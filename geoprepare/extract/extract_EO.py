@@ -10,26 +10,20 @@
 import os
 import re
 import ast
-
-import calendar
 import csv
+import glob
+import calendar
+import datetime
+import itertools
 import arrow as ar
 from tqdm import tqdm
 from pathlib import Path
-
-import datetime
-SEP = os.sep
-
-
-from rasterio.io import MemoryFile
-import itertools
-import glob
 import numpy as np
 import bottleneck as bn
+from rasterio.io import MemoryFile
 from multiprocessing import Pool, cpu_count
 
 np.seterr(invalid='ignore')  # HACK! Ignore 'RuntimeWarning: invalid value encountered in ...'.
-
 
 
 def get_var_fname(params, var, year, doy):
@@ -51,11 +45,11 @@ def get_var_fname(params, var, year, doy):
     elif var == 'ncep2_precip':
         fname = f'ncep2_{year_doy}_precip_global.tif'
     elif var == 'ncep2_mean':
-        fname = 'ncep2_temp' + SEP + 'mean' + SEP + 'ncep2_' + year_doy + '_mean_global.tif'
+        fname = 'ncep2_temp' + os.sep + 'mean' + os.sep + 'ncep2_' + year_doy + '_mean_global.tif'
     elif var == 'ncep2_min':
-        fname = 'ncep2_temp' + SEP + 'min' + SEP + 'ncep2_' + year_doy + '_min_global.tif'
+        fname = 'ncep2_temp' + os.sep + 'min' + os.sep + 'ncep2_' + year_doy + '_min_global.tif'
     elif var == 'ncep2_max':
-        fname = 'ncep2_temp' + SEP + 'max' + SEP + 'ncep2_' + year_doy + '_max_global.tif'
+        fname = 'ncep2_temp' + os.sep + 'max' + os.sep + 'ncep2_' + year_doy + '_max_global.tif'
     elif var == 'cpc_tmax':
         fname = f'cpc_{year_doy}_tmax_global.tif'
     elif var == 'cpc_tmin':
@@ -153,7 +147,23 @@ def nancount(var):
     return np.size(var[indices])
 
 
-def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_name, adm1_num, year, jd):
+def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy):
+    """
+
+    Args:
+        fl_var ():
+        name_var ():
+        mask_crop_per ():
+        empty_str ():
+        country ():
+        region ():
+        region_id ():
+        year ():
+        doy ():
+
+    Returns:
+
+    """
     with MemoryFile(open(fl_var, 'rb').read()) as memfile:
         with memfile.open() as fl_var:
             arr_var = get_var(name_var, fl_var)
@@ -166,20 +176,21 @@ def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, adm0, adm1_n
             else:
                 if name_var in ['esi_4wk', 'esi_12wk']:
                     wavg_unscaled = nanaverage(arr_crop_var, mask_crop_per)
-                    wavg = (wavg_unscaled / 10.0) - 4.0
+                    weighted_average = (wavg_unscaled / 10.0) - 4.0
                 else:
-                    wavg = nanaverage(arr_crop_var, mask_crop_per)
+                    weighted_average = nanaverage(arr_crop_var, mask_crop_per)
 
-                cpwe = mask_crop_per[~np.isnan(arr_crop_var)]  # Crop Mask Weighted Average
-                cpwe[cpwe <= 0.0] = np.NaN
+                crop_mask_weighted_average = mask_crop_per[~np.isnan(arr_crop_var)]  # Crop Mask Weighted Average
+                crop_mask_weighted_average[crop_mask_weighted_average <= 0.0] = np.NaN
                 arr_crop_var[arr_crop_var <= 0.0] = np.NaN
-                num = np.count_nonzero(~np.isnan(arr_crop_var))  # Total number of pixels (after threshold)
-                med = bn.nanmedian(cpwe)  # Median crop percentage of pixels (after threshold)
-                av = bn.nanmean(cpwe)  # Average crop percentage of the pixels (after threshold)
-                min_pix = bn.nanmin(cpwe)  # Min crop percentage of pixels (after threshold)
-                max_pix = bn.nanmax(cpwe)  # Max crop percentage of the pixels (after threshold)
+                num_pixels = np.count_nonzero(~np.isnan(arr_crop_var))  # Total number of pixels (after threshold is applied)
+                median_crop_percentage = bn.nanmedian(crop_mask_weighted_average)  # Median crop percentage of pixels (after threshold)
+                average_crop_percentage = bn.nanmean(crop_mask_weighted_average)  # Average crop percentage of the pixels (after threshold)
+                min_crop_percentage = bn.nanmin(crop_mask_weighted_average)  # Min crop percentage of pixels (after threshold)
+                max_crop_percentage = bn.nanmax(crop_mask_weighted_average)  # Max crop percentage of the pixels (after threshold)
 
-                out_str = f'{adm0},{adm1_name},{adm1_num},{year},{jd},{wavg},{num},{av},{med},{min_pix},{max_pix}'
+                out_str = f'{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},' \
+                          f'{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}'
 
     return out_str
 
@@ -216,37 +227,31 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
             reader = csv.reader(hndl_outf)
             list_rows = list(reader)
 
-    if name_var == 'chirps_gefs':
-        forecast_date = ar.utcnow().shift(days=+15).date()
-        doy = forecast_date.timetuple().tm_yday
+    stat_str = []
+    for doy in range(1, end_doy):
+        if name_var == 'chirps_gefs':
+            if doy > 1:
+                break
 
-        # Process a single date for chirps_gefs
-        empty_str = f'{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}'
+            forecast_date = ar.utcnow().shift(days=+15).date()
+            doy = forecast_date.timetuple().tm_yday
 
-        fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, 1))
-
-        if not os.path.isfile(fl_var):
-            out_str = empty_str
+            # Process a single date for chirps_gefs
+            empty_str = f'{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}'
         else:
-            out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
-
-        stat_str.append(out_str)
-    else:
-        stat_str = []
-        for doy in range(1, end_doy):
             if keep_partial_file and hndl_outf and list_rows[doy - 1][5] != 'nan':
                 stat_str.append(','.join(list_rows[doy - 1]))
                 continue
 
             empty_str = f'{country},{region},{region_id},{year},{doy},{nan_str}'
 
-            fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, doy))
-            if not os.path.isfile(fl_var):
-                out_str = empty_str
-            else:
-                out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
+        fl_var = params.dir_interim / name_var / Path(get_var_fname(params, name_var, year, doy))
+        if not os.path.isfile(fl_var):
+            out_str = empty_str
+        else:
+            out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
 
-            stat_str.append(out_str)
+        stat_str.append(out_str)
 
     return stat_str
 
