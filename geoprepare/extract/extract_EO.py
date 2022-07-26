@@ -368,7 +368,7 @@ def run(params):
 
     """
     all_comb = []
-    num_cpus = int(params.fraction_cpus * cpu_count())
+    num_cpus = int(params.fraction_cpus * cpu_count()) if params.parallel_process else 1
     years = list(range(params.start_year, params.end_year + 1))
 
     for country in params.countries:
@@ -393,18 +393,18 @@ def run(params):
     params.logger.error(f'Total number of csvs to process: {len(all_comb)}')
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-
-    if False and params.parallel_process:
+    breakpoint()
+    if params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
-                    pbar.set_description(f'Processing {all_comb[i][0]} {all_comb[i][1]}')
+                    pbar.set_description(f'Processing {all_comb[i][1]} {all_comb[i][2]}')
                     pbar.update()
     else:
         # Use the code below if you want to test without parallelization or if you want to debug by using pdb
         pbar = tqdm(all_comb)
         for i, val in enumerate(pbar):
-            pbar.set_description(f'Processing {all_comb[i][0]} {all_comb[i][1]}')
+            pbar.set_description(f'Processing {all_comb[i][1]} {all_comb[i][2]}')
             pbar.update()
             process(val)
 
