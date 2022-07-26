@@ -9,6 +9,7 @@
 #######################################################################################################################
 import os
 import re
+import io
 import ast
 import csv
 import glob
@@ -16,6 +17,7 @@ import calendar
 import datetime
 import itertools
 import arrow as ar
+import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 import numpy as np
@@ -346,20 +348,19 @@ def process(val):
 
                 if threshold:
                     mask_crop_per[mask_crop_per < limit] = 0.0  # Create crop mask and mask pixel LT CP
-                else:
+                else:  # percentile
                     val_percentile = np.percentile(mask_crop_per[mask_crop_per > 0.], limit)
                     mask_crop_per[mask_crop_per < val_percentile] = 0.0
 
                 if np.count_nonzero(mask_crop_per):  # if there are no pixels then skip
                     tmp_str = compute_stats(params, country, region, region_id, year, var, mask_crop_per, path_outf)
 
-                    # Append all strings together
-                    breakpoint()
-                    data_out = '\n'.join(tmp_str)
+                    # Add a header and store as pandas dataframe
+                    tmp_str.insert(0, 'country,region,region_id,year,doy,weighted_average,num_pixels,average_crop_percentage,'
+                                      'median_crop_percentage,min_crop_percentage,max_crop_percentage')
 
-                    hndl_out = open(path_outf, 'w')
-                    hndl_out.write(data_out)
-                    hndl_out.close()
+                    df = pd.read_csv(io.StringIO('\n'.join(tmp_str)))
+                    df.to_csv(path_outf, index=False)
 
 
 def remove_duplicates(lst):
