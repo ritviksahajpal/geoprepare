@@ -393,7 +393,7 @@ def run(params):
     params.logger.error(f'Total number of csvs to process: {len(all_comb)}')
     params.logger.error(f'Storing outputs at {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    breakpoint()
+
     if params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
