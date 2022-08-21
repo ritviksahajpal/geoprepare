@@ -115,12 +115,13 @@ def process_soil_moisture(all_params):
                                  ras_interim,
                                  format='GTiff',
                                  # outputType=gdal.GDT_Float32,
+                                 srcNodata=-999.0,
                                  dstNodata=9999.0,
                                  # srcSRS='EPSG:4326',
                                  # dstSRS='EPSG:4326',
-                                 resampleAlg=gdal.GRA_Bilinear,
-                                 xRes=7200,
-                                 yRes=3600)
+                                 resampleAlg=gdal.GRA_NearestNeighbour,
+                                 xRes=0.05,
+                                 yRes=0.05)
             final_ds = None
             breakpoint()
             # command = ['gdal_translate',
