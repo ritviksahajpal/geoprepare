@@ -84,6 +84,7 @@ def process_soil_moisture(all_params):
     fl_final = f'nasa_usda_soil_moisture_{year}{str(day_of_year).zfill(3)}_{product}_global.tif'
 
     if not os.path.exists(dir_final / fl_final):
+        breakpoint()
         file_search = dir_download.glob(f'{year}{str(month).zfill(2)}{str(day).zfill(2)}*{product}.grb2')
 
         assert(len(list(file_search)) <= 1)
