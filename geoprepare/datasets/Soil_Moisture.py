@@ -106,25 +106,21 @@ def process_soil_moisture(all_params):
             tmp_ds = gdal.Translate(ras_interim,
                                     ras_input,
                                     format='GTiff',
-                                    outputType=gdal.GDT_Float32,
-                                    resampleAlg=gdal.GRA_Bilinear,
-                                    xRes=7200,
-                                    yRes=3600)
+                                    outputType=gdal.GDT_Float32)
             tmp_ds = None
 
-            # ras_final = os.path.normpath(dir_final / fl_final)
-            # final_ds = gdal.Warp(ras_final,
-            #                      ras_interim,
-            #                      format='GTiff',
-            #                      # outputType=gdal.GDT_Float32,
-            #                      dstNodata=9999.0,
-            #                      # srcSRS='EPSG:4326',
-            #                      # dstSRS='EPSG:4326',
-            #                      resampleAlg=gdal.GRA_Bilinear,
-            #                      outputBounds=[-180.0, -90.0, 180.0, 90.0],
-            #                      xRes=7200,
-            #                      yRes=3600)
-            # final_ds = None
+            ras_final = os.path.normpath(dir_final / fl_final)
+            final_ds = gdal.Warp(ras_final,
+                                 ras_interim,
+                                 format='GTiff',
+                                 # outputType=gdal.GDT_Float32,
+                                 dstNodata=9999.0,
+                                 # srcSRS='EPSG:4326',
+                                 # dstSRS='EPSG:4326',
+                                 resampleAlg=gdal.GRA_Bilinear,
+                                 xRes=7200,
+                                 yRes=3600)
+            final_ds = None
 
             # command = ['gdal_translate',
             #            '-ot', 'Float32',
