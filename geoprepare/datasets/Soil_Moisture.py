@@ -122,11 +122,11 @@ def run(params):
 
     if False and params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
-            with tqdm(total=len(all_params)) as pbar:
+            with tqdm(total=len(all_params), desc='process soil moisture data') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_soil_moisture, all_params))):
                     pbar.update()
     else:
-        pbar = tqdm(all_params, total=len(all_params))
+        pbar = tqdm(all_params, total=len(all_params), desc='process soil moisture data')
         for val in pbar:
             pbar.set_description(str(val))
             process_soil_moisture(val)
