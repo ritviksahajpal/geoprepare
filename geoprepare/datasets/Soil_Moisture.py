@@ -122,7 +122,7 @@ def run(params):
                 for day in range(1, monthrange(year, month)[1] + 1):
                     all_params.extend(list(itertools.product([params], [product], [year], [month], [day])))
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params), desc='process soil moisture data') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_soil_moisture, all_params))):
