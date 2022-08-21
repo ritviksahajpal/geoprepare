@@ -102,33 +102,54 @@ def process_soil_moisture(all_params):
             # gdal_translate -a_srs EPSG:4326 -a_nodata -9999.0 -ot Float32 -of GTiff -a_ullr -179.9375, 89.9375, 180.0625, -60.0625
             # D:/Users/ritvik/projects/GEOGLAM/Input/crop_t20/20210121_20210123.as1.grb2
             # C:/Users/ritvik/AppData/Local/Temp/processing_weKHfd/2bfc4e98859f48d6b834b51629684b3b/OUTPUT.tif
-            command = ['gdal_translate',
-                       '-ot', 'Float32',
-                       '-of', 'GTiff',
-                       # '-a_ullr', '-179.9375','89.9375','180.0625','-60.0625',
-                       # '-a_srs', 'EPSG:4326',
-                       '-a_nodata', '9999.0',
-                       os.path.normpath(ras_input),
-                       ras_interim]
-            print(command)
+            from osgeo import osr, gdal
             breakpoint()
-            subprocess.call(command)
-
             ras_final = dir_final / fl_final
-            # logger.info('Changing to 0.05 degree global extent: ' + ras_interim + ' ' + ras_final)
-            command = ['gdalwarp',
-                       '-srcnodata', '-999.0',
-                       '-dstnodata', '9999.0',
-                       '-of', 'GTiff',
-                       '-r', 'bilinear',
-                       '-s_srs', 'EPSG:4326',
-                       '-t_srs', 'EPSG:4326',
-                       '-te', '-180', '-90', '180', '90',
-                       '-ts', '7200', '3600',
-                       ras_interim,
-                       str(ras_final)]
+            ds = gdal.Open(ras_input)
 
-            subprocess.call(command)
+            b = ds.GetRasterBand(1)
+            bArr = gdal.Band.ReadAsArray(b)
+            # outArr = np.empty([3600, 7200], dtype=int)
+            # outArr = bArr
+
+            otype = gdal.GDT_Float32
+            driver = gdal.GetDriverByName('GTiff')
+            dst_ds = driver.Create(str(ras_final), 7200, 3600, 1, otype)
+            outRasterSRS = osr.SpatialReference()
+            outRasterSRS.ImportFromEPSG(4326)
+            dst_ds.SetProjection(outRasterSRS.ExportToWkt())
+            dst_ds.SetGeoTransform((-180, 0.05, 0, 90, 0, -0.05))
+            dst_ds.GetRasterBand(1).WriteArray(bArr)
+
+            ds = None
+
+            # command = ['gdal_translate',
+            #            '-ot', 'Float32',
+            #            '-of', 'GTiff',
+            #            # '-a_ullr', '-179.9375','89.9375','180.0625','-60.0625',
+            #            # '-a_srs', 'EPSG:4326',
+            #            '-a_nodata', '9999.0',
+            #            os.path.normpath(ras_input),
+            #            ras_interim]
+            # print(command)
+            # breakpoint()
+            # subprocess.call(command)
+            #
+            # ras_final = dir_final / fl_final
+            # # logger.info('Changing to 0.05 degree global extent: ' + ras_interim + ' ' + ras_final)
+            # command = ['gdalwarp',
+            #            '-srcnodata', '-999.0',
+            #            '-dstnodata', '9999.0',
+            #            '-of', 'GTiff',
+            #            '-r', 'bilinear',
+            #            '-s_srs', 'EPSG:4326',
+            #            '-t_srs', 'EPSG:4326',
+            #            '-te', '-180', '-90', '180', '90',
+            #            '-ts', '7200', '3600',
+            #            ras_interim,
+            #            str(ras_final)]
+            #
+            # subprocess.call(command)
 
 
 def run(params):
