@@ -95,7 +95,7 @@ def process_soil_moisture(all_params):
 
             ras_input = os.path.normpath(dir_download / file)
             ras_interim = os.path.normpath(dir_tif / Path(file[:-4] + 'tif'))
-            breakpoint()
+
             # Due to the nature of the grb2 files, a projection and extent first have to be forced onto the newly
             # created tifs using gdal_translate
             # logger.info('Forcing correct projection and extent: ' + ras_input + ' ' + ras_interim)
@@ -106,6 +106,7 @@ def process_soil_moisture(all_params):
             tmp_ds = gdal.Translate(ras_interim,
                                     ras_input,
                                     format='GTiff',
+                                    outputSRS='EPSG:4326',
                                     outputType=gdal.GDT_Float32)
             tmp_ds = None
 
@@ -121,7 +122,7 @@ def process_soil_moisture(all_params):
                                  xRes=7200,
                                  yRes=3600)
             final_ds = None
-
+            breakpoint()
             # command = ['gdal_translate',
             #            '-ot', 'Float32',
             #            '-of', 'GTiff',
