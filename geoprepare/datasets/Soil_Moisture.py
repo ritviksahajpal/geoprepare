@@ -95,7 +95,7 @@ def process_soil_moisture(all_params):
 
             ras_input = os.path.normpath(dir_download / file)
             ras_interim = os.path.normpath(dir_tif / Path(file[:-4] + 'tif'))
-
+            breakpoint()
             # Due to the nature of the grb2 files, a projection and extent first have to be forced onto the newly
             # created tifs using gdal_translate
             # logger.info('Forcing correct projection and extent: ' + ras_input + ' ' + ras_interim)
@@ -103,25 +103,7 @@ def process_soil_moisture(all_params):
             # D:/Users/ritvik/projects/GEOGLAM/Input/crop_t20/20210121_20210123.as1.grb2
             # C:/Users/ritvik/AppData/Local/Temp/processing_weKHfd/2bfc4e98859f48d6b834b51629684b3b/OUTPUT.tif
             from osgeo import osr, gdal
-            breakpoint()
-            ras_final = dir_final / fl_final
-            ds = gdal.Open(ras_input)
-
-            b = ds.GetRasterBand(1)
-            bArr = gdal.Band.ReadAsArray(b)
-            # outArr = np.empty([3600, 7200], dtype=int)
-            # outArr = bArr
-
-            otype = gdal.GDT_Float32
-            driver = gdal.GetDriverByName('GTiff')
-            dst_ds = driver.Create(str(ras_final), 7200, 3600, 1, otype)
-            outRasterSRS = osr.SpatialReference()
-            outRasterSRS.ImportFromEPSG(4326)
-            dst_ds.SetProjection(outRasterSRS.ExportToWkt())
-            dst_ds.SetGeoTransform((-180, 0.05, 0, 90, 0, -0.05))
-            dst_ds.GetRasterBand(1).WriteArray(bArr)
-
-            ds = None
+            tmp_ds = gdal.Translate(ras_interim, ras_input, format='GTiff', outputType=gdal.GDT_Float32,)
 
             # command = ['gdal_translate',
             #            '-ot', 'Float32',
