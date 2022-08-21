@@ -103,27 +103,26 @@ def process_soil_moisture(all_params):
             # D:/Users/ritvik/projects/GEOGLAM/Input/crop_t20/20210121_20210123.as1.grb2
             # C:/Users/ritvik/AppData/Local/Temp/processing_weKHfd/2bfc4e98859f48d6b834b51629684b3b/OUTPUT.tif
             from osgeo import gdal
-            tmp_ds = gdal.Translate(ras_interim,
-                                    ras_input,
-                                    format='GTiff',
-                                    outputSRS='EPSG:4326',
-                                    outputType=gdal.GDT_Float32)
-            tmp_ds = None
+            # tmp_ds = gdal.Translate(ras_interim,
+            #                         ras_input,
+            #                         format='GTiff',
+            #                         outputSRS='EPSG:4326',
+            #                         outputType=gdal.GDT_Float32)
+            # tmp_ds = None
 
             ras_final = os.path.normpath(dir_final / fl_final)
             final_ds = gdal.Warp(ras_final,
-                                 ras_interim,
+                                 ras_input,
                                  format='GTiff',
-                                 # outputType=gdal.GDT_Float32,
+                                 outputType=gdal.GDT_Float32,
                                  srcNodata=-999.0,
                                  dstNodata=9999.0,
-                                 # srcSRS='EPSG:4326',
-                                 # dstSRS='EPSG:4326',
+                                 srcSRS='EPSG:4326',
+                                 dstSRS='EPSG:4326',
                                  resampleAlg=gdal.GRA_NearestNeighbour,
                                  xRes=0.05,
                                  yRes=0.05)
             final_ds = None
-            breakpoint()
             # command = ['gdal_translate',
             #            '-ot', 'Float32',
             #            '-of', 'GTiff',
