@@ -258,15 +258,17 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
     return stat_str
 
 
-def setup(params, country, var, crop, crop_mask, threshold, limit):
+def setup(params, country, crop, var, crop_mask, threshold, limit):
     """
 
     Args:
         params ():
         country ():
-        var ():
         crop ():
+        var ():
         crop_mask ():
+        threshold ():
+        limit ():
 
     Returns:
 
