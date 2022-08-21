@@ -85,12 +85,13 @@ def process_soil_moisture(all_params):
 
     if not os.path.exists(dir_final / fl_final):
         file_search = glob.glob(str(dir_download) + os.sep + str(year) + str(month).zfill(2) + str(day).zfill(2) + '*' + str(product) + '.grb2')
-
+        breakpoint()
         for fl in file_search:
             file = os.path.basename(fl)
 
             ras_input = os.path.normpath(dir_download / file)
             ras_final = os.path.normpath(dir_final / fl_final)
+
             final_ds = gdal.Warp(ras_final,
                                  ras_input,
                                  format='GTiff',
@@ -120,7 +121,7 @@ def run(params):
                 for day in range(1, monthrange(year, month)[1] + 1):
                     all_params.extend(list(itertools.product([params], [product], [year], [month], [day])))
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params), desc='process soil moisture data') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_soil_moisture, all_params))):
