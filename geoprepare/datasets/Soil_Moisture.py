@@ -23,11 +23,7 @@ from bs4 import BeautifulSoup as soup
 from tqdm import tqdm
 from calendar import monthrange
 from pathlib import Path
-
-start_jd = 1
-end_jd = 367
-
-list_products = ['as2', 'as1']
+from osgeo import gdal
 
 
 def download_soil_moisture(params):
@@ -94,22 +90,6 @@ def process_soil_moisture(all_params):
             file = os.path.basename(fl)
 
             ras_input = os.path.normpath(dir_download / file)
-            ras_interim = os.path.normpath(dir_tif / Path(file[:-4] + 'tif'))
-
-            # Due to the nature of the grb2 files, a projection and extent first have to be forced onto the newly
-            # created tifs using gdal_translate
-            # logger.info('Forcing correct projection and extent: ' + ras_input + ' ' + ras_interim)
-            # gdal_translate -a_srs EPSG:4326 -a_nodata -9999.0 -ot Float32 -of GTiff -a_ullr -179.9375, 89.9375, 180.0625, -60.0625
-            # D:/Users/ritvik/projects/GEOGLAM/Input/crop_t20/20210121_20210123.as1.grb2
-            # C:/Users/ritvik/AppData/Local/Temp/processing_weKHfd/2bfc4e98859f48d6b834b51629684b3b/OUTPUT.tif
-            from osgeo import gdal
-            # tmp_ds = gdal.Translate(ras_interim,
-            #                         ras_input,
-            #                         format='GTiff',
-            #                         outputSRS='EPSG:4326',
-            #                         outputType=gdal.GDT_Float32)
-            # tmp_ds = None
-
             ras_final = os.path.normpath(dir_final / fl_final)
             final_ds = gdal.Warp(ras_final,
                                  ras_input,
@@ -119,37 +99,10 @@ def process_soil_moisture(all_params):
                                  dstNodata=9999.0,
                                  srcSRS='EPSG:4326',
                                  dstSRS='EPSG:4326',
-                                 resampleAlg=gdal.GRA_NearestNeighbour,
+                                 resampleAlg=gdal.GRA_Bilinear,
                                  xRes=0.05,
                                  yRes=0.05)
             final_ds = None
-            # command = ['gdal_translate',
-            #            '-ot', 'Float32',
-            #            '-of', 'GTiff',
-            #            # '-a_ullr', '-179.9375','89.9375','180.0625','-60.0625',
-            #            # '-a_srs', 'EPSG:4326',
-            #            '-a_nodata', '9999.0',
-            #            os.path.normpath(ras_input),
-            #            ras_interim]
-            # print(command)
-            # breakpoint()
-            # subprocess.call(command)
-            #
-            # ras_final = dir_final / fl_final
-            # # logger.info('Changing to 0.05 degree global extent: ' + ras_interim + ' ' + ras_final)
-            # command = ['gdalwarp',
-            #            '-srcnodata', '-999.0',
-            #            '-dstnodata', '9999.0',
-            #            '-of', 'GTiff',
-            #            '-r', 'bilinear',
-            #            '-s_srs', 'EPSG:4326',
-            #            '-t_srs', 'EPSG:4326',
-            #            '-te', '-180', '-90', '180', '90',
-            #            '-ts', '7200', '3600',
-            #            ras_interim,
-            #            str(ras_final)]
-            #
-            # subprocess.call(command)
 
 
 def run(params):
@@ -158,10 +111,10 @@ def run(params):
     try:
         download_soil_moisture(params)
     except Exception as e:
-        params.logger.error('Download of soil moisture data failed')
+        params.logger.error(f'Download of soil moisture data failed {e}')
 
     all_params = []
-    for product in list_products:
+    for product in ['as1', 'as2']:
         for year in range(params.start_year, params.end_year + 1):
             for month in range(1, 13):
                 for day in range(1, monthrange(year, month)[1] + 1):
