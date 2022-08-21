@@ -130,7 +130,7 @@ def run(params):
     else:
         pbar = tqdm(all_params, total=len(all_params), desc='process soil moisture data')
         for val in pbar:
-            pbar.set_description(str(val))
+            pbar.set_description(f'{val[1]} {val[2]} {val[3]} {val[4]}')
             process_soil_moisture(val)
             pbar.update()
 
