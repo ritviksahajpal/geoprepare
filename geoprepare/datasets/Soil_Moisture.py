@@ -108,7 +108,6 @@ def process_soil_moisture(all_params):
                                     format='GTiff',
                                     outputType=gdal.GDT_Float32,
                                     resampleAlg=gdal.GRA_Bilinear,
-                                    outputBounds=[-180.0, -90.0, 180.0, 90.0],
                                     xRes=7200,
                                     yRes=3600)
             tmp_ds = None
