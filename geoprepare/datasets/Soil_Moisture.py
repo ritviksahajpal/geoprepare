@@ -85,14 +85,13 @@ def process_soil_moisture(all_params):
 
     if not os.path.exists(dir_final / fl_final):
         file_search = glob.glob(str(dir_download) + os.sep + str(year) + str(month).zfill(2) + str(day).zfill(2) + '*' + str(product) + '.grb2')
+        ras_final = os.path.normpath(dir_final / fl_final)
 
         assert(len(file_search) <= 1)
         for fl in file_search:
-            breakpoint()
             file = os.path.basename(fl)
 
             ras_input = os.path.normpath(dir_download / file)
-            ras_final = os.path.normpath(dir_final / fl_final)
 
             final_ds = gdal.Warp(ras_final,
                                  ras_input,
