@@ -195,6 +195,7 @@ def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, reg
                     out_str = f'{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},' \
                               f'{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}'
                 except Exception as e:
+                    print(e)
                     breakpoint()
 
     return out_str
@@ -257,6 +258,7 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
             try:
                 out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
             except Exception as e:
+                print(e)
                 breakpoint()
 
         stat_str.append(out_str)
