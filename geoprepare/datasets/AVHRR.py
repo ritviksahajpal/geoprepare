@@ -78,6 +78,7 @@ def process_AVHRR(all_params):
         fl_out = f'avhrr_v5_{year}_{str(doy).zfill(3)}.tif'
 
         hndl_nc = common.convert_to_nc_hndl(dir_nc / fl)
+        breakpoint()
         if not os.path.isfile(dir_output / fl_out):
             arr = hndl_nc.variables[var].values[0]
             common.arr_to_tif(arr, dir_output / fl_out, profile)
@@ -151,7 +152,7 @@ def parallel_process_AVHRR(params):
     for year in range(params.start_year, params.end_year + 1):
         all_params.extend(list(itertools.product([params], [year])))
 
-    if params.parallel_process:
+    if False and params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process_AVHRR, all_params))):
