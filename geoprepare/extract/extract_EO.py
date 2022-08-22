@@ -259,6 +259,7 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
                 out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
             except Exception as e:
                 print(e)
+                print(fl_var, name_var, country, region)
                 breakpoint()
 
         stat_str.append(out_str)
@@ -390,24 +391,26 @@ def run(params):
     for country in params.countries:
         # Check if we use a cropland mask or not
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
+        crops = ast.literal_eval(params.parser.get(country, 'crops'))
+        vars = ast.literal_eval(params.parser.get(country, 'eo_model'))
 
-        for crop in ast.literal_eval(params.parser.get(country, 'crops')):
+        for crop in crops:
             name_crop = 'cr' if use_cropland_mask else crop
             path_crop_masks = params.dir_crop_masks / country / name_crop
             crop_masks = list(path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif'))
 
             if len(crop_masks):
-                for var in ast.literal_eval(params.parser.get(country, 'eo_model')):
+                for var in vars:
                     all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     params.logger.error(params.countries)
-    params.logger.error(f'Starting year {params.start_year}, Ending year {params.end_year}')
-    params.logger.error(f'Number of CPUs used {num_cpus}')
-    params.logger.error(f'Total number of csvs to process {len(all_comb)}')
-    params.logger.error(f'Storing outputs at {params.dir_output}')
+    params.logger.error(f'Starting year: {params.start_year}, Ending year: {params.end_year}')
+    params.logger.error(f'EO vars to process: {vars}')
+    params.logger.error(f'Number of CPUs used: {num_cpus}')
+    params.logger.error(f'Output directory: {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
     if False and params.parallel_process:
