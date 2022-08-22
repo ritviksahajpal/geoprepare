@@ -407,7 +407,7 @@ def run(params):
     params.logger.error(f'Output directory: {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
