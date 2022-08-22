@@ -11,6 +11,11 @@
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
 
 ## Installation
+### Using PyPi (default)
+```python
+pip install --upgrade geoprepare
+```
+### Using Github repository (for development)
 ```python
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git
 ```
