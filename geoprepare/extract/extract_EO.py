@@ -191,12 +191,8 @@ def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, reg
                 min_crop_percentage = bn.nanmin(crop_mask_weighted_average)  # Min crop percentage of pixels (after threshold)
                 max_crop_percentage = bn.nanmax(crop_mask_weighted_average)  # Max crop percentage of the pixels (after threshold)
 
-                try:
-                    out_str = f'{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},' \
-                              f'{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}'
-                except Exception as e:
-                    print(e)
-                    breakpoint()
+                out_str = f'{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},' \
+                          f'{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}'
 
     return out_str
 
@@ -258,9 +254,7 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
             try:
                 out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
             except Exception as e:
-                print(e)
-                print(fl_var, name_var, country, region)
-                breakpoint()
+                params.logger.error(f'{e} {fl_var} {name_var} {country} {region}')
 
         stat_str.append(out_str)
 
