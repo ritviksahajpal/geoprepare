@@ -261,12 +261,13 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
     return stat_str
 
 
-def setup(params, country, crop, var, crop_mask, threshold, limit):
+def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
     """
 
     Args:
         params ():
         country ():
+        scale ():
         crop ():
         var ():
         crop_mask ():
@@ -288,7 +289,7 @@ def setup(params, country, crop, var, crop_mask, threshold, limit):
 
     dir_crop_inputs = Path(f'crop_t{limit}') if threshold else Path(f'crop_p{limit}')
 
-    dir_out = params.dir_input / dir_crop_inputs / var / country / crop
+    dir_out = params.dir_input / dir_crop_inputs / var / country / scale / crop
     os.makedirs(dir_out, exist_ok=True)
 
     return region_name, region_id, dir_out
@@ -327,7 +328,7 @@ def process(val):
     Returns:
 
     """
-    params, country, crop, var, year, crop_mask = val
+    params, country, crop, scale, var, year, crop_mask = val
 
     # Do not process CHIRPS forecast data if it is not for the current year
     if var == 'chirps_gefs' and year != ar.utcnow().year:
@@ -335,7 +336,7 @@ def process(val):
 
     threshold = params.parser.getboolean(country, 'threshold')
     limit = crop_mask_limit(params, country, threshold)
-    region, region_id, dir_out = setup(params, country, crop, var, crop_mask, threshold, limit)
+    region, region_id, dir_out = setup(params, country, crop, scale, var, crop_mask, threshold, limit)
     path_output = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
 
     os.makedirs(dir_out, exist_ok=True)
@@ -387,6 +388,10 @@ def run(params):
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
         crops = ast.literal_eval(params.parser.get(country, 'crops'))
         vars = ast.literal_eval(params.parser.get(country, 'eo_model'))
+        scale = params.parser.get(country, 'scale')
+
+        if scale not in ['admin1', 'admin2']:
+            raise ValueError(f'Scale {scale} is not valid, should be either admin1 or admin2')
 
         for crop in crops:
             name_crop = 'cr' if use_cropland_mask else crop
@@ -395,15 +400,16 @@ def run(params):
 
             if len(crop_masks):
                 for var in vars:
-                    all_comb.extend(list(itertools.product([params], [country], [name_crop], [var], years, crop_masks)))
+                    all_comb.extend(list(itertools.product([params], [country], [name_crop], [scale], [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     params.logger.error(params.countries)
+    params.logger.error(f'Spatial scale (admin1/state or admin2/county): {scale}')
     params.logger.error(f'Starting year: {params.start_year}, Ending year: {params.end_year}')
     params.logger.error(f'EO vars to process: {vars}')
-    params.logger.error(f'Number of CPUs used: {num_cpus}')
+    params.logger.error(f'Number of CPUs used: {num_cpus if params.parallel_process else 1}')
     params.logger.error(f'Output directory: {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
