@@ -166,6 +166,7 @@ def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, reg
     Returns:
 
     """
+    breakpoint()
     with MemoryFile(open(fl_var, 'rb').read()) as memfile:
         with memfile.open() as fl_var:
             arr_var = get_var(name_var, fl_var)
