@@ -191,8 +191,11 @@ def compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, reg
                 min_crop_percentage = bn.nanmin(crop_mask_weighted_average)  # Min crop percentage of pixels (after threshold)
                 max_crop_percentage = bn.nanmax(crop_mask_weighted_average)  # Max crop percentage of the pixels (after threshold)
 
-                out_str = f'{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},' \
-                          f'{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}'
+                try:
+                    out_str = f'{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},' \
+                              f'{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}'
+                except:
+                    breakpoint()
 
     return out_str
 
@@ -251,7 +254,10 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
         if not os.path.isfile(fl_var):
             out_str = empty_str
         else:
-            out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
+            try:
+                out_str = compute_single_stat(fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy)
+            except:
+                breakpoint()
 
         stat_str.append(out_str)
 
