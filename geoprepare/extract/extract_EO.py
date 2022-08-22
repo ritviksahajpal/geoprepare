@@ -282,7 +282,10 @@ def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
     # which means it is not part of the actual match, but it only matches if that follows the match.
     fname = os.path.basename(crop_mask)
 
-    region_name = re.search(r'.+(?=_\d{9}_)', fname).group(0)
+    if scale == 'admin1':
+        region_name = re.search(r'.+(?=_\d{9}_)', fname).group(0)
+    else:  # admin2
+        region_name = re.search(r'.+(?=_\d{12}_)', fname).group(0)
 
     # Extract numeric admin identifier from crop mask file name
     region_id = re.findall(r'\d+', fname)[0]
@@ -329,6 +332,9 @@ def process(val):
 
     """
     params, country, crop, scale, var, year, crop_mask = val
+
+    if scale not in ['admin1', 'admin2']:
+        raise ValueError(f'Scale {scale} is not valid, should be either admin1 or admin2')
 
     # Do not process CHIRPS forecast data if it is not for the current year
     if var == 'chirps_gefs' and year != ar.utcnow().year:
@@ -388,10 +394,7 @@ def run(params):
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
         crops = ast.literal_eval(params.parser.get(country, 'crops'))
         vars = ast.literal_eval(params.parser.get(country, 'eo_model'))
-        scale = params.parser.get(country, 'scale')
-
-        if scale not in ['admin1', 'admin2']:
-            raise ValueError(f'Scale {scale} is not valid, should be either admin1 or admin2')
+        scale = ast.literal_eval(params.parser.get(country, 'scale'))
 
         for crop in crops:
             name_crop = 'cr' if use_cropland_mask else crop
@@ -400,7 +403,7 @@ def run(params):
 
             if len(crop_masks):
                 for var in vars:
-                    all_comb.extend(list(itertools.product([params], [country], [name_crop], [scale], [var], years, crop_masks)))
+                    all_comb.extend(list(itertools.product([params], [country], [name_crop], scale, [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
 
