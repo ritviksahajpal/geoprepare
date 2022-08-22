@@ -9,9 +9,9 @@ dir_interim = ${dir_input}/interim
 dir_download = ${dir_input}/download
 dir_output = ${dir_base}/output
 dir_global_datasets = ${dir_input}/global_datasets
-dir_masks = ${dir_global_datasets}/Masks
-dir_regions = ${dir_global_datasets}/Regions
-dir_regions_shp = ${dir_regions}/Shps
+dir_masks = ${dir_global_datasets}/masks
+dir_regions = ${dir_global_datasets}/regions
+dir_regions_shp = ${dir_regions}/shps
 dir_crop_masks = ${dir_input}/crop_masks
 
 [AGERA5]
