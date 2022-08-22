@@ -115,7 +115,7 @@ def run(params):
     # Download ESI data
     if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
-            with tqdm(total=len(all_params)) as pbar:
+            with tqdm(total=len(all_params), desc='download ESI') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_ESI, all_params))):
                     pbar.update()
     else:
@@ -130,7 +130,7 @@ def run(params):
 
     if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
-            with tqdm(total=len(all_params)) as pbar:
+            with tqdm(total=len(all_params), desc='process ESI') as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
                     pbar.update()
     else:
