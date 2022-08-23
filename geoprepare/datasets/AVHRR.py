@@ -100,10 +100,12 @@ def mvc(file_list, path_out=None, use_temporary=False):
 
     # Read all data as a list of numpy arrays
     ls_arrays = [rasterio.open(x).read(1) for x in file_list]
-    # Perform MVC
 
+    # Perform MVC
     arr = np.nanmax(ls_arrays, axis=0)
     print(np.nanmax(arr))
+    if np.nanmax(arr) > 1.5:
+        breakpoint()
 
     # Get metadata from one of the input files
     with rasterio.open(file_list[0]) as src:
