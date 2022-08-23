@@ -1,6 +1,7 @@
 [kenya]
 category = EWCM
 scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
+season = [1]  ; 1 is primary/long season, 2 is secondary/short season
 calendar_file = EWCM_2021-6-17.xlsx
 shp_boundary = EWCM_Level_1.shp
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
@@ -33,6 +34,7 @@ threshold = True
 floor = 20
 ceil = 90
 scale = ['admin1']
+season = [1]
 countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif

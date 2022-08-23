@@ -292,7 +292,7 @@ def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
 
     dir_crop_inputs = Path(f'crop_t{limit}') if threshold else Path(f'crop_p{limit}')
 
-    dir_out = params.dir_input / dir_crop_inputs / var / country / scale / crop
+    dir_out = params.dir_input / dir_crop_inputs / country / scale / crop / var
     os.makedirs(dir_out, exist_ok=True)
 
     return region_name, region_id, dir_out
