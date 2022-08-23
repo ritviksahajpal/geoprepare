@@ -69,7 +69,7 @@ def process_AVHRR(all_params):
 
     nc_files = [f for f in os.listdir(dir_nc) if f.endswith('.nc')]
 
-    for fl in tqdm(nc_files, desc=f'--> {year}', leave=False):
+    for fl in tqdm(nc_files, desc=f'netCDF to tif {year}', leave=False):
         mon = fl.split('_')[-2][4:6]
         dom = fl.split('_')[-2][6:]
         dt = datetime.datetime.strptime(f'{year}-{mon}-{dom}', '%Y-%m-%d')
