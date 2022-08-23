@@ -18,6 +18,7 @@ dir_crop_masks = ${dir_input}/crop_masks
 start_year = 2022
 
 [AVHRR]
+start_year = 1985
 data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
 
 [CHIRPS]
