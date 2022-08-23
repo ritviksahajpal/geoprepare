@@ -103,9 +103,6 @@ def mvc(file_list, path_out=None, use_temporary=False):
 
     # Perform MVC
     arr = np.nanmax(ls_arrays, axis=0)
-    print(np.nanmax(arr))
-    if np.nanmax(arr) > 1.5:
-        breakpoint()
 
     # Get metadata from one of the input files
     with rasterio.open(file_list[0]) as src:
@@ -174,13 +171,12 @@ def run(params):
         all_params.extend(list(itertools.product([params], [year])))
 
     # Download AVHRR data
-    if False and params.parallel_process:
+    if params.parallel_process:
         with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
             for i, _ in enumerate(p.imap_unordered(download_AVHRR, all_params)):
                 pass
     else:
         for val in all_params:
-            print(val[1])
             download_AVHRR(val)
 
     # Process AVHRR files
