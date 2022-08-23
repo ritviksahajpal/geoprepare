@@ -134,9 +134,8 @@ def create_composite(params, suffix_out_dir, chunk_size=10):
     tif_files = glob.glob(f'{dir_input}/**/*.tif', recursive=True)
     tif_files = sorted(tif_files, key=lambda x: [x.split('_')[-2], x.split('_')[-1][:-4]])
 
-    # exclude any files where 'composite' is not in the path
-    breakpoint()
-
+    # exclude elements from tif_files which have composite
+    tif_files = [x for x in tif_files if 'composite' not in x]
 
     # Divide into chunks of approx size chunk_size
     chunks = np.array_split(np.array(tif_files), len(tif_files)//chunk_size)
