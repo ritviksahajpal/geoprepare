@@ -25,6 +25,8 @@ import bottleneck as bn
 from rasterio.io import MemoryFile
 from multiprocessing import Pool, cpu_count
 
+from . import common
+
 np.seterr(invalid='ignore')  # HACK! Ignore 'RuntimeWarning: invalid value encountered in ...'.
 
 
@@ -298,24 +300,6 @@ def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
     return region_name, region_id, dir_out
 
 
-def crop_mask_limit(params, country, threshold):
-    """
-
-    Args:
-        params ():
-        country ():
-        threshold ():
-
-    Returns:
-
-    """
-    limit_type = 'floor' if threshold else 'ceil'
-
-    limit = params.parser.getint(country, limit_type)
-
-    return limit
-
-
 def process(val):
     """
 
@@ -341,7 +325,7 @@ def process(val):
         return
 
     threshold = params.parser.getboolean(country, 'threshold')
-    limit = crop_mask_limit(params, country, threshold)
+    limit = common.crop_mask_limit(params, country, threshold)
     region, region_id, dir_out = setup(params, country, crop, scale, var, crop_mask, threshold, limit)
     path_output = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
 

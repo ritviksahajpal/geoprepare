@@ -60,3 +60,20 @@ def arr_to_tif(arr, path_tif, profile):
     with rasterio.open(path_tif, 'w', **profile) as dst:
         dst.write(arr, 1)
 
+
+def crop_mask_limit(params, country, threshold):
+    """
+
+    Args:
+        params ():
+        country ():
+        threshold ():
+
+    Returns:
+
+    """
+    limit_type = 'floor' if threshold else 'ceil'
+
+    limit = params.parser.getint(country, limit_type)
+
+    return limit
