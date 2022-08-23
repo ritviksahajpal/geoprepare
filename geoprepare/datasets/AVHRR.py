@@ -101,8 +101,9 @@ def mvc(file_list, path_out=None, use_temporary=False):
     # Read all data as a list of numpy arrays
     ls_arrays = [rasterio.open(x).read(1) for x in file_list]
     # Perform MVC
-    breakpoint()
+
     arr = np.nanmax(ls_arrays, axis=0)
+    print(np.nanmax(arr))
 
     # Get metadata from one of the input files
     with rasterio.open(file_list[0]) as src:
@@ -132,6 +133,10 @@ def create_composite(params, suffix_out_dir, chunk_size=10):
 
     tif_files = glob.glob(f'{dir_input}/**/*.tif', recursive=True)
     tif_files = sorted(tif_files, key=lambda x: [x.split('_')[-2], x.split('_')[-1][:-4]])
+
+    # exclude any files where 'composite' is not in the path
+    breakpoint()
+
 
     # Divide into chunks of approx size chunk_size
     chunks = np.array_split(np.array(tif_files), len(tif_files)//chunk_size)
