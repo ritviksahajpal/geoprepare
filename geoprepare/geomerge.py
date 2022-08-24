@@ -30,14 +30,9 @@ class GeoMerge(base.BaseGeo):
         """
         super().parse_config(section='DEFAULT')
 
-        self.countries = ast.literal_eval(self.parser.get('DEFAULT', 'countries'))
-        self.dir_masks = Path(self.parser.get('PATHS', 'dir_masks'))
-        self.dir_regions = Path(self.parser.get('PATHS', 'dir_regions'))
-        self.dir_regions_shp = Path(self.parser.get('PATHS', 'dir_regions_shp'))
-        self.dir_crop_masks = Path(self.parser.get('PATHS', 'dir_crop_masks'))
-        self.redo = self.parser.getboolean('DEFAULT', 'redo')
-
-        # self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
+        self.dir_models = Path(self.parser.get('PATHS', 'dir_models'))
+        self.dir_model_inputs = self.dir_models / 'inputs'
+        self.dir_model_outputs = self.dir_models / 'outputs'
 
 
 def run(path_config_file='geoextract.txt'):

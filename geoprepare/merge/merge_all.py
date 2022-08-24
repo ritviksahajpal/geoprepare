@@ -47,7 +47,7 @@ def merge_eo_files(params, country, crop, scale):
 
     # Merge files into dataframe
     df_result = None
-    for df in tqdm(frames, total=len(frames), desc='merging EO data', leave=False):
+    for df in tqdm(frames, total=len(frames), desc=f'merging EO data', leave=False):
         if df_result is None:
             df_result = df.set_index(cols)
         else:
@@ -57,21 +57,31 @@ def merge_eo_files(params, country, crop, scale):
 
 
 def run(params):
-    num_cpus = int(params.fraction_cpus * cpu_count()) if params.parallel_process else 1
-
     all_combinations = create_run_combinations(params)
 
     pbar = tqdm(all_combinations)
     for country, crop, scale in pbar:
+        pbar.set_description(f'{country} {crop} {scale}')
+        pbar.update()
+
         # create dataframe for country, crop and scale (ccs)
         df_ccs = merge_eo_files(params, country, crop, scale)
 
-        # Add crop calendar information
+        # Add scale information: admin1 (state level) or admin2 (county level)
+        df_ccs[:, 'scale'] = scale
 
-        # Add yield, area and production information
+        # Get season information
+        seasons = ast.literal_eval(params.parser.get(country, 'seasons'))
 
-        # Merge all csv files
-        breakpoint()
+        for season in seasons:
+            # Add crop calendar information
+
+            # Add yield, area and production information
+
+            # Output
+            dir_output = params.dir_model_outputs / country / scale
+            os.makedirs(dir_output, exist_ok=True)
+            df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{crop}_s{season}.csv')
 
 
 if __name__ == '__run__':
