@@ -68,7 +68,7 @@ def run(params):
         df_ccs = merge_eo_files(params, country, crop, scale)
 
         # Add scale information: admin1 (state level) or admin2 (county level)
-        df_ccs[:, 'scale'] = scale
+        df_ccs.loc[:, 'scale'] = scale
 
         # Get season information
         seasons = ast.literal_eval(params.parser.get(country, 'seasons'))
