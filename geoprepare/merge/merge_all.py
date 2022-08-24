@@ -48,8 +48,9 @@ def run(params):
                 frames.append(pd.read_csv(fl, usecols=cols + [var]))
 
         result = None
-        for ix, df in enumerate(frames):
-            print(ix, df.head(1))
+        for ix, df in tqdm(enumerate(frames), total=len(frames), desc='merging EO data'):
+            if ix >= 19:
+                breakpoint()
             if result is None:
                 result = df.set_index(cols)
             else:
