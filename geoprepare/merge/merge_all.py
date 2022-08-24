@@ -48,8 +48,8 @@ def run(params):
                 frames.append(pd.read_csv(fl, usecols=cols + [var]))
 
         result = None
-        breakpoint()
         for ix, df in enumerate(frames):
+            print(ix, df.head(1))
             if result is None:
                 result = df.set_index(cols)
             else:
