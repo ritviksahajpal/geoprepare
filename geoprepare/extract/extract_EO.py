@@ -224,12 +224,14 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
 
     # Check if we are processing current year or in case of a previous year the REDO flag is False
     # If so then only modify those lines where we do not have data currently
-    keep_partial_file = (current_year == year or (current_year > year and not params.redo))
+    use_partial_file = (current_year == year or (current_year > year and not params.redo))
 
-    if keep_partial_file and os.path.isfile(path_outf):
+    if use_partial_file and os.path.isfile(path_outf):
         with open(path_outf) as hndl_outf:
             reader = csv.reader(hndl_outf)
-            list_rows = list(reader)
+
+            # Exclude the header and store remaining rows into a list
+            list_rows = list(reader)[1:]
 
     stat_str = []
     for doy in range(1, end_doy):
@@ -243,7 +245,7 @@ def compute_stats(params, country, region, region_id, year, name_var, mask_crop_
             # Process a single date for chirps_gefs
             empty_str = f'{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}'
         else:
-            if keep_partial_file and hndl_outf and list_rows[doy - 1][5] != 'nan':
+            if use_partial_file and hndl_outf and list_rows[doy - 1][5] != 'nan':
                 stat_str.append(','.join(list_rows[doy - 1]))
                 continue
 
@@ -404,13 +406,13 @@ def run(params):
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
-                    pbar.set_description(f'Processing {all_comb[i][1]} {all_comb[i][2]}')
+                    pbar.set_description(f'Processing {all_comb[i][1]} {all_comb[i][2]} {all_comb[i][4}')
                     pbar.update()
     else:
         # Use the code below if you want to test without parallelization or if you want to debug by using pdb
         pbar = tqdm(all_comb)
         for i, val in enumerate(pbar):
-            pbar.set_description(f'Processing {all_comb[i][1]} {all_comb[i][2]}')
+            pbar.set_description(f'Processing {all_comb[i][1]} {all_comb[i][2]} {all_comb[i][4]}')
             pbar.update()
             process(val)
 
