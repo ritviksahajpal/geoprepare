@@ -1,17 +1,25 @@
 import os
 import ast
 
+from tqdm import tqdm
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 
-from . import common
+import pandas as pd
+
+from .. import common
 
 
 def run(params):
     num_cpus = int(params.fraction_cpus * cpu_count()) if params.parallel_process else 1
     years = list(range(params.start_year, params.end_year + 1))
+    cols = ['country', 'region', 'region_id', 'year', 'doy']
 
-    for country in params.countries:
+    pbar = tqdm(params.countries)
+    for country in pbar:
+        pbar.set_description(f'{country}')
+        pbar.update()
+
         # Check if we use a cropland mask or not
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
         crops = ast.literal_eval(params.parser.get(country, 'crops'))
@@ -25,9 +33,29 @@ def run(params):
             name_crop = 'cr' if use_cropland_mask else crop
 
         dir_crop_inputs = Path(f'crop_t{limit}') if threshold else Path(f'crop_p{limit}')
-        path_eo_files = params.dir_input / dir_crop_inputs / country / scale / crop
-        eo_files = list(path_eo_files.rglob('*.csv'))
 
+        # For each element in vars, create a list of files to be merged
+        frames = []
+        pb = tqdm(vars, leave=False)
+        for var in pb:
+            pb.set_description(f'Processing {var} for {country}')
+            pb.update()
+
+            path_var_files = params.dir_input / dir_crop_inputs / country / scale / 'cr' / var
+            var_files = list(path_var_files.rglob('*.csv'))
+
+            for fl in var_files:
+                frames.append(pd.read_csv(fl, columns=cols + [var]))
+
+        result = None
+        for ix, df in enumerate(frames):
+            if result is None:
+                result = df.set_index(cols)
+            else:
+                result = result.combine_first(df.set_index(cols))
+
+
+        # Merge all csv files
         breakpoint()
 
 
