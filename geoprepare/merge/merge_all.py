@@ -45,7 +45,7 @@ def run(params):
             var_files = list(path_var_files.rglob('*.csv'))
 
             for fl in var_files:
-                frames.append(pd.read_csv(fl, columns=cols + [var]))
+                frames.append(pd.read_csv(fl, usecols=cols + [var]))
 
         result = None
         for ix, df in enumerate(frames):
