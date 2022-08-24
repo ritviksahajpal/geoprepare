@@ -33,6 +33,7 @@ class GeoMerge(base.BaseGeo):
         self.dir_models = Path(self.parser.get('PATHS', 'dir_models'))
         self.dir_model_inputs = self.dir_models / 'inputs'
         self.dir_model_outputs = self.dir_models / 'outputs'
+        self.countries = ast.literal_eval(self.parser.get('DEFAULT', 'countries'))
 
 
 def run(path_config_file='geoextract.txt'):
