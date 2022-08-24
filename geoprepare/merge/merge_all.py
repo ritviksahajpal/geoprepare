@@ -41,7 +41,7 @@ def run(params):
             pb.set_description(f'Processing {var} for {country}')
             pb.update()
 
-            path_var_files = params.dir_input / dir_crop_inputs / country / scale / 'cr' / var
+            path_var_files = params.dir_input / dir_crop_inputs / country / scale[0] / 'cr' / var
             var_files = list(path_var_files.rglob('*.csv'))
 
             for fl in var_files:

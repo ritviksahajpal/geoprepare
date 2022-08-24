@@ -45,7 +45,6 @@ def run(path_config_file='geoextract.txt'):
     geomerge = GeoMerge(path_config_file)
     geomerge.parse_config('DEFAULT')
 
-    #
     # Merge EO data and crop calendars and yield information
     from .merge import merge_all as obj
     obj.run(geomerge)
