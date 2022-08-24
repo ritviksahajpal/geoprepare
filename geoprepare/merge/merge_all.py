@@ -71,7 +71,7 @@ def run(params):
         df_ccs.loc[:, 'scale'] = scale
 
         # Get season information
-        seasons = ast.literal_eval(params.parser.get(country, 'seasons'))
+        seasons = ast.literal_eval(params.parser.get(country, 'season'))
 
         for season in seasons:
             # Add crop calendar information
