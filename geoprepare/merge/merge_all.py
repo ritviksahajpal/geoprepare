@@ -15,8 +15,9 @@ def create_run_combinations(params):
     all_combinations = []
 
     for country in params.countries:
-        crops = ast.literal_eval(params.parser.get(country, 'crops'))
         scales = ast.literal_eval(params.parser.get(country, 'scale'))
+        use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
+        crops = ['cr'] if use_cropland_mask else ast.literal_eval(params.parser.get(country, 'crops'))
 
         for crop in crops:
             for scale in scales:
@@ -25,16 +26,25 @@ def create_run_combinations(params):
     return all_combinations
 
 
-def merge_eo_files(params, country, crop, scale):
+def merge_eo_files(params, country, name_crop, scale):
+    """
+
+    Args:
+        params ():
+        country ():
+        name_crop ():
+        scale ():
+
+    Returns:
+
+    """
     frames = []
     cols = ['country', 'region', 'region_id', 'year', 'doy']
 
-    use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
     threshold = params.parser.getboolean(country, 'threshold')
     vars = ast.literal_eval(params.parser.get(country, 'eo_model'))
     limit = common.crop_mask_limit(params, country, threshold)
 
-    name_crop = 'cr' if use_cropland_mask else crop
     dir_crop_inputs = Path(f'crop_t{limit}') if threshold else Path(f'crop_p{limit}')
 
     # For each element in vars, create a list of files to be merged
@@ -64,8 +74,11 @@ def run(params):
         pbar.set_description(f'{country} {crop} {scale}')
         pbar.update()
 
+        use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
+        name_crop = 'cr' if use_cropland_mask else crop
+
         # create dataframe for country, crop and scale (ccs)
-        df_ccs = merge_eo_files(params, country, crop, scale)
+        df_ccs = merge_eo_files(params, country, name_crop, scale)
 
         # Add scale information: admin1 (state level) or admin2 (county level)
         df_ccs.loc[:, 'scale'] = scale
@@ -79,9 +92,9 @@ def run(params):
             # Add yield, area and production information
 
             # Output
-            dir_output = params.dir_model_outputs / country / scale
+            dir_output = params.dir_model_inputs / country / scale
             os.makedirs(dir_output, exist_ok=True)
-            df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{crop}_s{season}.csv')
+            df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s{season}.csv')
 
 
 if __name__ == '__run__':
