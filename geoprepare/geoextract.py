@@ -10,8 +10,6 @@ import datetime
 
 from pathlib import Path
 
-from . import log
-from . import common
 from . import base
 
 
@@ -46,12 +44,12 @@ def run(path_config_file='geoextract.txt'):
     geoextract.parse_config('DEFAULT')
 
     # Create crop masks
-    from .extract import extract_crop_masks as obj
-    obj.run(geoextract)
+    from .extract import extract_crop_masks as ec
+    ec.run(geoextract)
 
     # Extract EO data
-    from .extract import extract_EO as obj
-    obj.run(geoextract)
+    from .extract import extract_EO as ee
+    ee.run(geoextract)
 
 
 if __name__ =='__main__':
