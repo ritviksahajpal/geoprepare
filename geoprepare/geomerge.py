@@ -100,7 +100,7 @@ class GeoMerge(base.BaseGeo):
         dir_crop_inputs = Path(f'crop_t{self.limit}') if self.threshold else Path(f'crop_p{self.limit}')
 
         # For each element in vars, create a list of files to be merged
-        for var in vars:
+        for var in self.eo_model:
             path_var_files = self.dir_input / dir_crop_inputs / country / scale / name_crop / var
             var_files = list(path_var_files.rglob('*.csv'))
 
