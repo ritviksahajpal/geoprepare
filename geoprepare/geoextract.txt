@@ -38,5 +38,5 @@ forecast_seasons = [2022]
 mask = cropland_v9.tif
 calendar_file = crop_calendar.xlsx
 shp_boundary = EWCM_Level_1.shp
-statistics_file = 'statistics.csv'
+statistics_file = statistics.csv
 eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'cpc_precip', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']

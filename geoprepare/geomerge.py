@@ -160,8 +160,6 @@ def run(path_config_file='geoextract.txt'):
         gm.df_ccs = gm.merge_eo_files(country, name_crop, scale)
         gm.df_ccs.loc[:, 'scale'] = scale
 
-        breakpoint()
-        gm.df_calendar.sheet_names
         for season in gm.seasons:
             dir_output = gm.dir_model_inputs / country / scale
             os.makedirs(dir_output, exist_ok=True)
