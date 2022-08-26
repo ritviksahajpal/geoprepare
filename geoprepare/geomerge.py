@@ -46,7 +46,7 @@ class GeoMerge(base.BaseGeo):
 
         """
         self.country = country
-
+        breakpoint()
         # Get crop calendar information
         self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get(country, 'calendar_file')
         self.df_calendar = pd.ExcelFile(self.path_calendar)
