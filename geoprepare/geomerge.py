@@ -45,6 +45,8 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
+        self.country = country
+
         # Get crop calendar information
         self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get(country, 'calendar_file')
         self.df_calendar = pd.ExcelFile(self.path_calendar)
@@ -62,6 +64,18 @@ class GeoMerge(base.BaseGeo):
 
         # dataset containing all data for a given country x crop x scale combination
         self.df_ccs = pd.DataFrame()
+
+    def pp_country_information(self):
+        self.logger.info('###################################################################')
+        self.logger.info(self.country)
+        self.logger.info(f'Path to crop calendar: {self.path_calendar}')
+        self.logger.info(f'Path to Ag statistics: {self.path_stats}')
+        self.logger.info(f'Threshold used for crop masking: {self.threshold}')
+        self.logger.info(f'Approach used for crop masking: {self.limit}')
+        self.logger.info(f'EO variables to be processed: {self.eo_model}')
+        self.logger.info(f'Seasons: {self.seasons}')
+        self.logger.info(f'Use cropland (True) or crop (False) mask: {self.use_cropland_mask}')
+        self.logger.info('####################################################################')
 
     def create_run_combinations(self):
         """
@@ -139,6 +153,7 @@ def run(path_config_file='geoextract.txt'):
         pbar.update()
 
         gm.get_country_information(country)
+        gm.pp_country_information()
         name_crop = 'cr' if gm.use_cropland_mask else crop
 
         # create dataframe for country, crop and scale (ccs)
