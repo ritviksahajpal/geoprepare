@@ -22,7 +22,7 @@ pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviks
 
 ## Usage
 ```python
-from geoprepare import geoprepare, geoextract
+from geoprepare import geoprepare, geoextract, geomerge
 
 # Provide full path to the configuration files
 # Download and preprocess data
@@ -30,6 +30,9 @@ geoprepare.run(['PATH_TO_geoprepare.txt'])
 
 # Extract crop masks and EO variables
 geoextract.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
+
+# Merge EO files into one, this is needed to create AgMet graphics and to run the crop yield model
+geomerge.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
 
 ```
 Before running the code above, we need to specify the two configuration files. `geoprepare.txt` contains configuration settings for downloading and processing the input data.
@@ -49,13 +52,18 @@ Before running the code above, we need to specify the two configuration files. `
 datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
 
 [PATHS]
-dir_base = D:\
+dir_base = /home/servir/GEOCIF
 dir_input = ${dir_base}/input
-dir_log = ${dir_input}/log
+dir_log = ${dir_base}/log
 dir_interim = ${dir_input}/interim
 dir_download = ${dir_input}/download
 dir_output = ${dir_base}/output
 dir_global_datasets = ${dir_input}/global_datasets
+dir_masks = ${dir_global_datasets}/masks
+dir_regions = ${dir_global_datasets}/regions
+dir_regions_shp = ${dir_regions}/shps
+dir_crop_masks = ${dir_input}/crop_masks
+dir_models = ${dir_input}/models
 
 [AGERA5]
 start_year = 2022
@@ -114,11 +122,13 @@ end_year = 2022
 `floor`: Value below which to set the mask to 0
 `ceil`: Value above which to set the mask to 1
 `eo_model`: List of datasets to extract from
+`calendar_file`: File with crop calendar information
+`statistics_file`: File with crop yield, production and area statistics
 ```python
 [kenya]
 category = EWCM
-calendar_file = EWCM_2021-6-17.xlsx
-shp_boundary = EWCM_Level_1.shp
+scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
+season = [1]  ; 1 is primary/long season, 2 is secondary/short season
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 use_cropland_mask = True
 
@@ -148,9 +158,14 @@ redo = False
 threshold = True
 floor = 20
 ceil = 90
+scale = ['admin1']
+season = [1]
 countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
+calendar_file = crop_calendar.xlsx
+shp_boundary = EWCM_Level_1.shp
+statistics_file = 'statistics.csv'
 eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'cpc_precip', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
 ```
 
