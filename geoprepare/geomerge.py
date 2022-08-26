@@ -52,8 +52,8 @@ class GeoMerge(base.BaseGeo):
         self.df_calendar = pd.ExcelFile(self.path_calendar)
 
         # Get yield, area and production information
-        # self.path_stats = self.dir_input / 'yield' / self.parser.get(country, 'yield_file')
-        # self.df_stats = pd.read_csv(self.path_yield)
+        self.path_stats = self.dir_input / 'statistics' / self.parser.get(country, 'statistics_file')
+        self.df_stats = pd.read_csv(self.path_stats)
 
         self.threshold = self.parser.getboolean(country, 'threshold')
         self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))
