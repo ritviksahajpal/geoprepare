@@ -123,7 +123,7 @@ end_year = 2022
 `ceil`: Value above which to set the mask to 1
 `eo_model`: List of datasets to extract from
 `calendar_file`: File with crop calendar information
-`statistics_file`: File with crop yield, production and area statistics
+`statistics_file`: File with crop yield, production, area statistics and other metadata
 ```python
 [kenya]
 category = EWCM
