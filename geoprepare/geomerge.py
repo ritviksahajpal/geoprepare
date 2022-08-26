@@ -46,13 +46,13 @@ class GeoMerge(base.BaseGeo):
 
         """
         self.country = country
-        breakpoint()
+
         # Get crop calendar information
-        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get(country, 'calendar_file')
+        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
         self.df_calendar = pd.ExcelFile(self.path_calendar)
 
         # Get yield, area and production information
-        self.path_stats = self.dir_input / 'statistics' / self.parser.get(country, 'statistics_file')
+        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
         self.df_stats = pd.read_csv(self.path_stats)
 
         self.threshold = self.parser.getboolean(country, 'threshold')
