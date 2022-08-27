@@ -152,6 +152,9 @@ def run(path_config_file='geoextract.txt'):
         pbar.set_description(f'Processing {country} {crop} {scale}')
         pbar.update()
 
+        dir_output = gm.dir_model_inputs / country / scale
+        os.makedirs(dir_output, exist_ok=True)
+
         gm.get_country_information(country)
         gm.pp_country_information()
         name_crop = 'cr' if gm.use_cropland_mask else crop
@@ -160,11 +163,12 @@ def run(path_config_file='geoextract.txt'):
         gm.df_ccs = gm.merge_eo_files(country, name_crop, scale)
         gm.df_ccs.loc[:, 'scale'] = scale
 
-        for season in gm.seasons:
-            dir_output = gm.dir_model_inputs / country / scale
-            os.makedirs(dir_output, exist_ok=True)
+        # for season in gm.seasons:
+        #     gm.df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s{season}.csv')
 
-            gm.df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s{season}.csv')
+        # Add crop statistics
+        breakpoint()
+        # Add crop calendar information
 
 
 if __name__ == '__main__':
