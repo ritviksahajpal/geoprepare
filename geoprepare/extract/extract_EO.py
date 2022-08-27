@@ -330,7 +330,7 @@ def process(val):
     limit = common.crop_mask_limit(params, country, threshold)
     region, region_id, dir_out = setup(params, country, crop, scale, var, crop_mask, threshold, limit)
     path_output = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
-    breakpoint()
+
     os.makedirs(dir_out, exist_ok=True)
 
     # Process variable:
@@ -402,7 +402,7 @@ def run(params):
     params.logger.error(f'Output directory: {params.dir_output}')
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(all_comb)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
