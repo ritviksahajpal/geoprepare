@@ -159,6 +159,8 @@ def run(path_config_file='geoextract.txt'):
         gm.pp_country_information()
         name_crop = 'cr' if gm.use_cropland_mask else crop
 
+        gm.df_ccs = pd.read_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s1.csv')
+        breakpoint()
         # create dataframe for country, crop and scale (ccs)
         gm.df_ccs = gm.merge_eo_files(country, name_crop, scale)
         gm.df_ccs.loc[:, 'scale'] = scale
