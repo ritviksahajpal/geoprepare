@@ -380,16 +380,17 @@ def run(params):
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
         crops = ast.literal_eval(params.parser.get(country, 'crops'))
         vars = ast.literal_eval(params.parser.get(country, 'eo_model'))
-        scale = ast.literal_eval(params.parser.get(country, 'scale'))
+        scales = ast.literal_eval(params.parser.get(country, 'scale'))
 
         for crop in crops:
-            name_crop = 'cr' if use_cropland_mask else crop
-            path_crop_masks = params.dir_crop_masks / country / name_crop
-            crop_masks = list(path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif'))
+            for scale in scales:
+                name_crop = 'cr' if use_cropland_mask else crop
+                path_crop_masks = params.dir_crop_masks / country / name_crop / scale
+                crop_masks = list(path_crop_masks.glob(f'*_{name_crop}_crop_mask.tif'))
 
-            if len(crop_masks):
-                for var in vars:
-                    all_comb.extend(list(itertools.product([params], [country], [name_crop], scale, [var], years, crop_masks)))
+                if len(crop_masks):
+                    for var in vars:
+                        all_comb.extend(list(itertools.product([params], [country], [name_crop], scale, [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
 
