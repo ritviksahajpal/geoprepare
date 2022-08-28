@@ -390,7 +390,7 @@ def run(params):
 
                 if len(crop_masks):
                     for var in vars:
-                        all_comb.extend(list(itertools.product([params], [country], [name_crop], scale, [var], years, crop_masks)))
+                        all_comb.extend(list(itertools.product([params], [country], [name_crop], [scale], [var], years, crop_masks)))
 
     all_comb = remove_duplicates(all_comb)
 
