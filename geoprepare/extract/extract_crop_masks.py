@@ -73,7 +73,7 @@ def mask(path_raster, shape):
     return out_image
 
 
-def create_crop_masks(params, path_crop_mask, country, df_cmask):
+def create_crop_masks(params, path_crop_mask, country, scale, df_cmask):
     """
 
     Args:
@@ -86,7 +86,7 @@ def create_crop_masks(params, path_crop_mask, country, df_cmask):
 
     """
     df_cmask = df_cmask[df_cmask['lcountry'] == country]
-    breakpoint()
+
     # Iterate though rows of dataframe, create crop masks for each region
     for row in df_cmask.iterrows():
         name_adm0 = get_adm_names(row[1], 'ADM0_NAME')
@@ -106,7 +106,7 @@ def create_crop_masks(params, path_crop_mask, country, df_cmask):
             continue
 
         # Create output directory
-        dir_out = params.dir_crop_masks / name_adm0 / crop_name
+        dir_out = params.dir_crop_masks / name_adm0 / crop_name / scale
         path_out_ras = dir_out / f'{name_adm1}_{str(str_ID).zfill(9)}_{crop_name}_crop_mask.tif'
 
         # If subset file exists, then do not recreate it
@@ -153,17 +153,22 @@ def run(params):
 
         # Check if we use a cropland mask or not
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
+        scales = ast.literal_eval(params.parser.get(country, 'scale'))
 
         # Create crop masks for region
         if use_cropland_mask:
             path_mask = params.dir_global_datasets / 'masks' / params.parser.get(country, 'mask')
-            create_crop_masks(params, path_mask, country, df_cmask)
+
+            for scale in scales:
+                create_crop_masks(params, path_mask, country, scale, df_cmask)
         else:
             crops = ast.literal_eval(params.parser.get(country, 'crops'))
 
             for crop in crops:
                 path_mask = params.dir_global_datasets / 'masks' / params.parser.get(crop, 'mask')
-                create_crop_masks(params, path_mask, country, df_cmask)
+
+                for scale in scales:
+                    create_crop_masks(params, path_mask, country, scale, df_cmask)
 
 
 if __name__ == '__main__':
