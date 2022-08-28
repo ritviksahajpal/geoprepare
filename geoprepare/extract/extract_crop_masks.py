@@ -86,7 +86,7 @@ def create_crop_masks(params, path_crop_mask, country, df_cmask):
 
     """
     df_cmask = df_cmask[df_cmask['lcountry'] == country]
-
+    breakpoint()
     # Iterate though rows of dataframe, create crop masks for each region
     for row in df_cmask.iterrows():
         name_adm0 = get_adm_names(row[1], 'ADM0_NAME')
@@ -167,4 +167,5 @@ def run(params):
 
 
 if __name__ == '__main__':
-    run()
+    pass
+
