@@ -1,6 +1,14 @@
 [kenya]
 category = EWCM
 scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
+shp_boundary = fewsnet_boundary_ke_210301.shp
+season = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[rwanda]
+category = EWCM
+scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
 season = [1]  ; 1 is primary/long season, 2 is secondary/short season
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 use_cropland_mask = True
@@ -33,7 +41,7 @@ floor = 20
 ceil = 90
 scale = ['admin1']
 season = [1]
-countries = ['kenya']
+countries = ['rwanda']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
 calendar_file = crop_calendar.xlsx
