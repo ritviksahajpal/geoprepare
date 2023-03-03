@@ -47,14 +47,6 @@ class GeoMerge(base.BaseGeo):
         """
         self.country = country
 
-        # Get crop calendar information
-        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
-        self.df_calendar = pd.ExcelFile(self.path_calendar)
-
-        # Get yield, area and production information
-        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
-        self.df_stats = pd.read_csv(self.path_stats)
-
         self.threshold = self.parser.getboolean(country, 'threshold')
         self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))
         limit_type = 'floor' if self.threshold else 'ceil'
@@ -65,16 +57,22 @@ class GeoMerge(base.BaseGeo):
         # dataset containing all data for a given country x crop x scale combination
         self.df_ccs = pd.DataFrame()
 
-    def pp_country_information(self):
+    def pretty_print(self, info='country_information'):
+        """
+        Args:
+            info ():
+
+        Returns:
+
+        """
         self.logger.info('###################################################################')
-        self.logger.info(self.country)
-        self.logger.info(f'Path to crop calendar: {self.path_calendar}')
-        self.logger.info(f'Path to Ag statistics: {self.path_stats}')
-        self.logger.info(f'Threshold used for crop masking: {self.threshold}')
-        self.logger.info(f'Approach used for crop masking: {self.limit}')
-        self.logger.info(f'EO variables to be processed: {self.eo_model}')
-        self.logger.info(f'Seasons: {self.seasons}')
-        self.logger.info(f'Use cropland (True) or crop (False) mask: {self.use_cropland_mask}')
+        if info == 'country_information':
+            self.logger.info(self.country)
+            self.logger.info(f'Threshold used for crop masking: {self.threshold}')
+            self.logger.info(f'Approach used for crop masking: {self.limit}')
+            self.logger.info(f'EO variables to be processed: {self.eo_model}')
+            self.logger.info(f'Seasons: {self.seasons}')
+            self.logger.info(f'Use cropland (True) or crop (False) mask: {self.use_cropland_mask}')
         self.logger.info('####################################################################')
 
     def create_run_combinations(self):
@@ -156,7 +154,7 @@ def run(path_config_file='geoextract.txt'):
         os.makedirs(dir_output, exist_ok=True)
 
         gm.get_country_information(country)
-        gm.pp_country_information()
+        gm.pretty_print(type='country_information')
         name_crop = 'cr' if gm.use_cropland_mask else crop
 
         gm.df_ccs = pd.read_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s1.csv')
@@ -174,4 +172,5 @@ def run(path_config_file='geoextract.txt'):
 
 
 if __name__ == '__main__':
-    run()
+    breakpoint()
+    run(Path('config' / 'geoextract.txt'))

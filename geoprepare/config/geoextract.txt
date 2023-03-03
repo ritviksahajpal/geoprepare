@@ -13,6 +13,27 @@ season = [1]  ; 1 is primary/long season, 2 is secondary/short season
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 use_cropland_mask = True
 
+[malawi]
+category = EWCM
+scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
+season = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[zambia]
+category = EWCM
+scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
+season = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[united_republic_of_tanzania]
+category = EWCM
+scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
+season = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
 [ww]
 mask = cropland_v9.tif
 
@@ -41,10 +62,8 @@ floor = 20
 ceil = 90
 scale = ['admin1']
 season = [1]
-countries = ['rwanda']
+countries = ['rwanda', 'united_republic_of_tanzania', 'malawi', 'zambia']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
-calendar_file = crop_calendar.xlsx
 shp_boundary = EWCM_Level_1.shp
-statistics_file = statistics.csv
 eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'cpc_precip', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
