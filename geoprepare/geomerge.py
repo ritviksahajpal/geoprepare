@@ -48,6 +48,7 @@ class GeoMerge(base.BaseGeo):
         self.crop = crop
         self.scale = scale
 
+        self.static_columns = ['country', 'region', 'region_id', 'year', 'doy']
         self.threshold = self.parser.getboolean(country, 'threshold')  # use threshold or percentile for crop masking
         limit_type = 'floor' if self.threshold else 'ceil'
         self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))  # list of EO variables to use in the model
@@ -105,7 +106,6 @@ class GeoMerge(base.BaseGeo):
 
         """
         frames = []
-        cols = ['country', 'region', 'region_id', 'year', 'doy']
 
         # For each element in vars, create a list of files to be merged
         for var in self.eo_model:
@@ -113,15 +113,15 @@ class GeoMerge(base.BaseGeo):
             var_files = list(path_var_files.rglob('*.csv'))
 
             for fl in var_files:
-                frames.append(pd.read_csv(fl, usecols=cols + [var]))
+                frames.append(pd.read_csv(fl, usecols=self.static_columns + [var]))
 
         # Merge files into dataframe
         df_result = None
         for df in tqdm(frames, total=len(frames), desc=f'Merging EO data', leave=False):
             if df_result is None:
-                df_result = df.set_index(cols)
+                df_result = df.set_index(self.static_columns)
             else:
-                df_result = df_result.combine_first(df.set_index(cols))
+                df_result = df_result.combine_first(df.set_index(self.static_columns))
 
         # Reset index to get the right format
         df_result = df_result.reset_index()
@@ -136,18 +136,19 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
+        pos = len(self.static_columns)
+
         # Add static information
-        self.df_ccs.loc[:, 'country'] = self.country
-        self.df_ccs.loc[:, 'crop'] = self.crop
-        self.df_ccs.loc[:, 'scale'] = self.scale
+        self.df_ccs.insert(pos, 'crop', self.crop)
+        self.df_ccs.insert(pos + 1, 'scale', self.scale)
 
         # Add datetime based on year and day of year
-        self.df_ccs.loc[:, 'datetime'] = self.df_ccs.apply(lambda x: datetime.datetime.strptime(f'{x.year} {x.doy}', '%Y %j'), axis=1)
+        self.df_ccs.insert(pos + 2, 'datetime', self.df_ccs.apply(lambda x: datetime.datetime.strptime(f'{x.year} {x.doy}', '%Y %j'), axis=1))
 
         # Add name of month, both abbreviated and full as well month number
-        self.df_ccs.loc[:, 'abbr_month'] = self.df_ccs.apply(lambda x: x.datetime.strftime('%b'), axis=1)
-        self.df_ccs.loc[:, 'name_month'] = self.df_ccs.apply(lambda x: x.datetime.strftime('%B'), axis=1)
-        self.df_ccs.loc[:, 'Month'] = self.df_ccs.apply(lambda x: x.datetime.strftime('%-m'), axis=1)
+        self.df_ccs.insert(pos + 3, 'abbr_month', self.df_ccs.apply(lambda x: x.datetime.strftime('%b'), axis=1))
+        self.df_ccs.insert(pos + 4, 'name_month', self.df_ccs.apply(lambda x: x.datetime.strftime('%B'), axis=1))
+        self.df_ccs.insert(pos + 5, 'Month', self.df_ccs.apply(lambda x: x.datetime.strftime('%m'), axis=1))
 
 
 def run(path_config_file='geoextract.txt'):
@@ -178,8 +179,9 @@ def run(path_config_file='geoextract.txt'):
         dir_output = gm.dir_input / gm.dir_threshold / country / scale
         os.makedirs(dir_output, exist_ok=True)
 
-        # create dataframe for country, crop and scale (ccs)
+        # create dataframe for country, crop and scale (ccs) by merging all EO files
         gm.df_ccs = gm.merge_eo_files()
+        # and then adding static information like country, crop, scale, datetime, month, etc.
         gm.add_static_information()
 
         for season in gm.seasons:
