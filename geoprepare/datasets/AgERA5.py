@@ -22,7 +22,7 @@ from affine import Affine
 from datetime import datetime
 from pathlib import Path
 
-from geoprepare import common
+from geoprepare import utils
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

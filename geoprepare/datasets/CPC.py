@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 import multiprocessing
 
-from geoprepare import common
+from geoprepare import utils
 
 path_template = 'template.nc'
 

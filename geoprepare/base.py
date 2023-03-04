@@ -13,13 +13,13 @@ import ast
 
 from pathlib import Path
 
-from . import common
+from . import utils
 from . import log
 from logging import CRITICAL, ERROR, WARNING, WARN, INFO, DEBUG, NOTSET
 
 class BaseGeo:
     def __init__(self, path_config_file=['geoprepare.txt', 'geoextract.txt']):
-        self.parser = common.read_config(path_config_file)
+        self.parser = utils.read_config(path_config_file)
         self.redo_last_year = True
 
     def pp_config(self, section='DEFAULT'):

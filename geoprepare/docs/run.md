@@ -1,3 +1,7 @@
+### Installing geoprepapre locally
+1. Go to directory containing `setup.py`
+2. Run `python setup.py install` to install the package locally
+
 ### Publish package to PyPI
 The steps below follow the instructions [here](https://www.youtube.com/watch?v=7FcX9uWDuIQ)
 1. Go to directory containing `setup.py`
@@ -7,3 +11,6 @@ The file name will contain the version number you updated in step 2 e.g. `geopre
 4. Run `twine upload dist/<NAME_OF_TAR_FILE>` to upload the tar file to PyPI.
 5. Running step 4 will require the PyPI username and password. If you don't have an account, create one at https://pypi.org/account/register/.
 6. Once the upload is complete, go to https://pypi.org/project/geoprepare/ to check that the new version is available.
+
+### Running geoprepare
+Whether the package is installed locally or via PyPI, refer to instructions in [README.md](..%2F..%2FREADME.md) for running it.

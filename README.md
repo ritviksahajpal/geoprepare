@@ -122,8 +122,6 @@ end_year = 2022
 `floor`: Value below which to set the mask to 0
 `ceil`: Value above which to set the mask to 1
 `eo_model`: List of datasets to extract from
-`calendar_file`: File with crop calendar information
-`statistics_file`: File with crop yield, production, area statistics and other metadata
 ```python
 [kenya]
 category = EWCM
@@ -163,9 +161,7 @@ season = [1]
 countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
-calendar_file = crop_calendar.xlsx
 shp_boundary = EWCM_Level_1.shp
-statistics_file = 'statistics.csv'
 eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'cpc_precip', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
 ```
 

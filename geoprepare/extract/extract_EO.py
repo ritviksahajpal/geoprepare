@@ -25,7 +25,7 @@ import bottleneck as bn
 from rasterio.io import MemoryFile
 from multiprocessing import Pool, cpu_count
 
-from .. import common
+from .. import utils
 
 np.seterr(invalid='ignore')  # HACK! Ignore 'RuntimeWarning: invalid value encountered in ...'.
 

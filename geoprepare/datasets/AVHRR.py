@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from affine import Affine
 
-from geoprepare import common
+from geoprepare import utils
 
 path_template = 'template.nc'
 

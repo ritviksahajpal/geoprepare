@@ -31,9 +31,6 @@ class GeoMerge(base.BaseGeo):
         """
         super().parse_config(section='DEFAULT')
 
-        self.dir_models = Path(self.parser.get('PATHS', 'dir_models'))
-        self.dir_model_inputs = self.dir_models / 'inputs'
-        self.dir_model_outputs = self.dir_models / 'outputs'
         self.countries = ast.literal_eval(self.parser.get('DEFAULT', 'countries'))
 
     def get_country_information(self, country):
@@ -51,6 +48,7 @@ class GeoMerge(base.BaseGeo):
         self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))
         limit_type = 'floor' if self.threshold else 'ceil'
         self.limit = self.parser.getint(country, limit_type)
+        self.dir_threshold = f'crop_t{self.limit}' if self.threshold else f'crop_p{self.limit}'
         self.use_cropland_mask = self.parser.get(country, 'use_cropland_mask')
         self.seasons = ast.literal_eval(self.parser.get(country, 'season'))
 
@@ -109,11 +107,9 @@ class GeoMerge(base.BaseGeo):
         frames = []
         cols = ['country', 'region', 'region_id', 'year', 'doy']
 
-        dir_crop_inputs = Path(f'crop_t{self.limit}') if self.threshold else Path(f'crop_p{self.limit}')
-
         # For each element in vars, create a list of files to be merged
         for var in self.eo_model:
-            path_var_files = self.dir_input / dir_crop_inputs / country / scale / name_crop / var
+            path_var_files = self.dir_input / self.dir_threshold / country / scale / name_crop / var
             var_files = list(path_var_files.rglob('*.csv'))
 
             for fl in var_files:
@@ -121,7 +117,7 @@ class GeoMerge(base.BaseGeo):
 
         # Merge files into dataframe
         df_result = None
-        for df in tqdm(frames, total=len(frames), desc=f'merging EO data', leave=False):
+        for df in tqdm(frames, total=len(frames), desc=f'Merging EO data', leave=False):
             if df_result is None:
                 df_result = df.set_index(cols)
             else:
@@ -145,32 +141,33 @@ def run(path_config_file='geoextract.txt'):
 
     all_combinations = gm.create_run_combinations()
 
-    pbar = tqdm(all_combinations)
-    for country, crop, scale in pbar:
+    pbar = tqdm(all_combinations, total=len(all_combinations))
+    for country, crop, scale in pbar:  # e.g. rwanda, cr, admin1
         pbar.set_description(f'Processing {country} {crop} {scale}')
         pbar.update()
 
-        dir_output = gm.dir_model_inputs / country / scale
-        os.makedirs(dir_output, exist_ok=True)
-
         gm.get_country_information(country)
-        gm.pretty_print(type='country_information')
+        gm.pretty_print(info='country_information')
         name_crop = 'cr' if gm.use_cropland_mask else crop
 
-        gm.df_ccs = pd.read_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s1.csv')
-        breakpoint()
+        dir_output = gm.dir_input / gm.dir_threshold / country / scale
+        os.makedirs(dir_output, exist_ok=True)
+
+        # gm.df_ccs = pd.read_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s1.csv')
+        # breakpoint()
         # create dataframe for country, crop and scale (ccs)
         gm.df_ccs = gm.merge_eo_files(country, name_crop, scale)
         gm.df_ccs.loc[:, 'scale'] = scale
 
-        # for season in gm.seasons:
-        #     gm.df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s{season}.csv')
-
-        # Add crop statistics
-        breakpoint()
-        # Add crop calendar information
+        for season in gm.seasons:
+            gm.logger.info(f'Storing output in {dir_output / f"eo_{country}_{scale}_{name_crop}_s{season}.csv"}')
+            gm.df_ccs.to_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s{season}.csv', index=False)
 
 
 if __name__ == '__main__':
-    breakpoint()
-    run(Path('config' / 'geoextract.txt'))
+    run()
+    # D:\inputs\crop_t10\<COUNTRY>\<SCALE>\<CROP>\
+    # D:\inputs\crop_t10\<COUNTRY>\<SCALE>\combined_crop.csv
+
+    # D:\crop_t10\inputs\<COUNTRY>\<SCALE>
+    # D:\inputs\processed\crop_t10\<COUNTRY>\
