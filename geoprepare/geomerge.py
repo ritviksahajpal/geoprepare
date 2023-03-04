@@ -33,24 +33,28 @@ class GeoMerge(base.BaseGeo):
 
         self.countries = ast.literal_eval(self.parser.get('DEFAULT', 'countries'))
 
-    def get_country_information(self, country):
+    def country_information(self, country, crop, scale):
         """
-        Get country information.
+        Get country specific information.
         Args:
             country ():
+            crop ():
+            scale ():
 
         Returns:
 
         """
         self.country = country
+        self.crop = crop
+        self.scale = scale
 
-        self.threshold = self.parser.getboolean(country, 'threshold')
-        self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))
+        self.threshold = self.parser.getboolean(country, 'threshold')  # use threshold or percentile for crop masking
         limit_type = 'floor' if self.threshold else 'ceil'
+        self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))  # list of EO variables to use in the model
         self.limit = self.parser.getint(country, limit_type)
         self.dir_threshold = f'crop_t{self.limit}' if self.threshold else f'crop_p{self.limit}'
         self.use_cropland_mask = self.parser.get(country, 'use_cropland_mask')
-        self.seasons = ast.literal_eval(self.parser.get(country, 'season'))
+        self.seasons = ast.literal_eval(self.parser.get(country, 'seasons'))
 
         # dataset containing all data for a given country x crop x scale combination
         self.df_ccs = pd.DataFrame()
@@ -92,14 +96,10 @@ class GeoMerge(base.BaseGeo):
 
         return all_combinations
 
-    def merge_eo_files(self, country, name_crop, scale):
+    def merge_eo_files(self):
         """
 
         Args:
-            params ():
-            country ():
-            name_crop ():
-            scale ():
 
         Returns:
 
@@ -109,7 +109,7 @@ class GeoMerge(base.BaseGeo):
 
         # For each element in vars, create a list of files to be merged
         for var in self.eo_model:
-            path_var_files = self.dir_input / self.dir_threshold / country / scale / name_crop / var
+            path_var_files = self.dir_input / self.dir_threshold / self.country / self.scale / self.crop / var
             var_files = list(path_var_files.rglob('*.csv'))
 
             for fl in var_files:
@@ -123,7 +123,31 @@ class GeoMerge(base.BaseGeo):
             else:
                 df_result = df_result.combine_first(df.set_index(cols))
 
+        # Reset index to get the right format
+        df_result = df_result.reset_index()
+
         return df_result
+
+    def add_static_information(self):
+        """
+
+        Args:
+
+        Returns:
+
+        """
+        # Add static information
+        self.df_ccs.loc[:, 'country'] = self.country
+        self.df_ccs.loc[:, 'crop'] = self.crop
+        self.df_ccs.loc[:, 'scale'] = self.scale
+
+        # Add datetime based on year and day of year
+        self.df_ccs.loc[:, 'datetime'] = self.df_ccs.apply(lambda x: datetime.datetime.strptime(f'{x.year} {x.doy}', '%Y %j'), axis=1)
+
+        # Add name of month, both abbreviated and full as well month number
+        self.df_ccs.loc[:, 'abbr_month'] = self.df_ccs.apply(lambda x: x.datetime.strftime('%b'), axis=1)
+        self.df_ccs.loc[:, 'name_month'] = self.df_ccs.apply(lambda x: x.datetime.strftime('%B'), axis=1)
+        self.df_ccs.loc[:, 'Month'] = self.df_ccs.apply(lambda x: x.datetime.strftime('%-m'), axis=1)
 
 
 def run(path_config_file='geoextract.txt'):
@@ -139,6 +163,7 @@ def run(path_config_file='geoextract.txt'):
     gm = GeoMerge(path_config_file)
     gm.parse_config('DEFAULT')
 
+    # Get all combinations of country, crop, scale to produce GEOCIF/AgMET inputs for
     all_combinations = gm.create_run_combinations()
 
     pbar = tqdm(all_combinations, total=len(all_combinations))
@@ -146,18 +171,16 @@ def run(path_config_file='geoextract.txt'):
         pbar.set_description(f'Processing {country} {crop} {scale}')
         pbar.update()
 
-        gm.get_country_information(country)
+        gm.country_information(country, crop, scale)
         gm.pretty_print(info='country_information')
         name_crop = 'cr' if gm.use_cropland_mask else crop
 
         dir_output = gm.dir_input / gm.dir_threshold / country / scale
         os.makedirs(dir_output, exist_ok=True)
 
-        # gm.df_ccs = pd.read_csv(dir_output / f'eo_{country}_{scale}_{name_crop}_s1.csv')
-        # breakpoint()
         # create dataframe for country, crop and scale (ccs)
-        gm.df_ccs = gm.merge_eo_files(country, name_crop, scale)
-        gm.df_ccs.loc[:, 'scale'] = scale
+        gm.df_ccs = gm.merge_eo_files()
+        gm.add_static_information()
 
         for season in gm.seasons:
             gm.logger.info(f'Storing output in {dir_output / f"eo_{country}_{scale}_{name_crop}_s{season}.csv"}')
@@ -165,9 +188,8 @@ def run(path_config_file='geoextract.txt'):
 
 
 if __name__ == '__main__':
+    # Folder structure is as follows:
+    # <base_dir>\input\crop_t10\<COUNTRY>\<SCALE>\<CROP>\
+    # <base_dir>\input\crop_t10\<COUNTRY>\<SCALE>\<EO_DATA_FILE.csv>
     run()
-    # D:\inputs\crop_t10\<COUNTRY>\<SCALE>\<CROP>\
-    # D:\inputs\crop_t10\<COUNTRY>\<SCALE>\combined_crop.csv
 
-    # D:\crop_t10\inputs\<COUNTRY>\<SCALE>
-    # D:\inputs\processed\crop_t10\<COUNTRY>\
