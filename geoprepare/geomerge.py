@@ -161,6 +161,16 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs.insert(pos + 5, 'scale', self.scale)
 
     def fillna(self, group, df_combination, df_stats):
+        """
+        Fill missing values in the dataframe with the unique values in that column
+        Args:
+            group (): Groups defined by Region (admin_1/admin_2), year combination
+            df_combination (): Unique combination of scale, calendar_region, category, growing_season
+            df_stats (): Yield, area and production statistics
+
+        Returns:
+
+        """
         df_sub = df_stats[['country', self.scale, 'year', 'crop', 'yield', 'area', 'production']]
 
         group = pd.merge(group, df_combination, left_on=['region'], right_on=[self.scale], how='inner')
@@ -182,7 +192,7 @@ class GeoMerge(base.BaseGeo):
 
     def read_statistics(self):
         """
-
+        Read the crop calendar and yield, area and production statistics from csv files
         Args:
 
         Returns:
@@ -200,7 +210,7 @@ class GeoMerge(base.BaseGeo):
 
     def add_statistics(self):
         """
-
+        Add yield, area and production statistics to the dataframe
         Returns:
 
         """
@@ -230,6 +240,15 @@ class GeoMerge(base.BaseGeo):
         return df
 
     def read_calendar(self, group, year):
+        """
+        Read the crop calendar for the current group and year
+        Args:
+            group (): Groups defined by Region (admin_1/admin_2), year combination
+            year (): Year for which
+
+        Returns:
+
+        """
         # Get the calendar region for the current group
         calendar_region = group['calendar_region'].unique()[0]
 
@@ -287,7 +306,7 @@ def run(path_config_file='geoextract.txt'):
 
     pbar = tqdm(all_combinations, total=len(all_combinations))
     for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1
-        pbar.set_description(f'{country} Scale: {scale} Crop: {crop} Growing season: {growing_season}')
+        pbar.set_description(f'Crop: {crop} \nGrowing season: {growing_season} \nScale: {scale} \n{country.title()}')
         pbar.update()
 
         # 1. Initialize GeoMerge object with country, scale, crop, growing_season
@@ -300,9 +319,9 @@ def run(path_config_file='geoextract.txt'):
         output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
         # 3a. Check if crop calendar information exists for country, crop and scale, if not then bail
-        df_cal = gm.df_calendar[(gm.df_calendar['country'] == gm.country) &
-                                (gm.df_calendar['crop'] == gm.crop) &
-                                (gm.df_calendar['scale'] == gm.scale)]
+        df_cal = gm.df_calendar[(gm.df_calendar['country'] == country) &
+                                (gm.df_calendar['crop'] == crop) &
+                                (gm.df_calendar['growing_season'] == growing_season)]
 
         if not df_cal.empty:
             # 3b. Merge all EO data for country, crop and scale (ccs) into a dataframe
