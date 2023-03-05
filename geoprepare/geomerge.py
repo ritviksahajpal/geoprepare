@@ -7,10 +7,8 @@ import os
 import ast
 import datetime
 import itertools
-import time
 import pandas as pd
 
-from pathlib import Path
 from tqdm import tqdm
 
 from . import base
@@ -162,24 +160,6 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs.insert(pos + 4, 'crop', self.crop)
         self.df_ccs.insert(pos + 5, 'scale', self.scale)
 
-    def read_statistics(self):
-        """
-
-        Args:
-
-        Returns:
-
-        """
-        # Get crop calendar information
-        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
-        self.df_calendar = pd.read_csv(self.path_calendar) if os.path.isfile(self.path_calendar) else pd.DataFrame()
-        self.df_calendar = utils.harmonize_df(self.df_calendar)
-
-        # Get yield, area and production information
-        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
-        self.df_stats = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
-        self.df_stats = utils.harmonize_df(self.df_stats)
-
     def fillna(self, group, df_combination, df_stats):
         df_sub = df_stats[['country', self.scale, 'year', 'crop', 'yield', 'area', 'production']]
 
@@ -200,7 +180,30 @@ class GeoMerge(base.BaseGeo):
 
         return group
 
-    def add_stats(self):
+    def read_statistics(self):
+        """
+
+        Args:
+
+        Returns:
+
+        """
+        # Get crop calendar information
+        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
+        self.df_calendar = pd.read_csv(self.path_calendar) if os.path.isfile(self.path_calendar) else pd.DataFrame()
+        self.df_calendar = utils.harmonize_df(self.df_calendar)
+
+        # Get yield, area and production information
+        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
+        self.df_stats = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
+        self.df_stats = utils.harmonize_df(self.df_stats)
+
+    def add_statistics(self):
+        """
+
+        Returns:
+
+        """
         # Subset statstics dataframe for current growing_season and crop
         df_stats = self.df_stats[(self.df_stats['country'] == self.country) &
                                  (self.df_stats['crop'] == self.crop) &
@@ -216,9 +219,9 @@ class GeoMerge(base.BaseGeo):
         df_combination = df_stats[[self.scale, 'calendar_region', 'category', 'growing_season']]
         df_combination = df_combination.drop_duplicates()
 
-        grps = self.df_ccs.groupby(['region', 'year'])
+        groups = self.df_ccs.groupby(['region', 'year'])
         frames = []
-        for name, group in grps:
+        for name, group in groups:
             df_group = self.fillna(group, df_combination, df_stats)
             frames.append(df_group)
 
@@ -226,7 +229,7 @@ class GeoMerge(base.BaseGeo):
 
         return df
 
-    def get_calendar(self, group, year):
+    def read_calendar(self, group, year):
         # Get the calendar region for the current group
         calendar_region = group['calendar_region'].unique()[0]
 
@@ -244,14 +247,18 @@ class GeoMerge(base.BaseGeo):
         return group
 
     def add_calendar(self):
+        """
+
+        Returns:
+
+        """
         frames = []
 
         # Loop through each calendar_region and year combination
-        grps = self.df_ccs.groupby(['region', 'year'])
-
-        for name, group in tqdm(grps, desc=f'Adding calendar information to {self.scale}'):
+        groups = self.df_ccs.groupby(['region', 'year'])
+        for name, group in tqdm(groups, desc=f'Adding calendar information to {self.scale}', leave=False):
             _, year = name
-            df_group = self.get_calendar(group, year)
+            df_group = self.read_calendar(group, year)
             frames.append(df_group)
 
         df = pd.concat(frames)
@@ -280,7 +287,7 @@ def run(path_config_file='geoextract.txt'):
 
     pbar = tqdm(all_combinations, total=len(all_combinations))
     for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1
-        pbar.set_description(f'Processing {country} Scale: {scale} Crop: {crop} Growing season: {growing_season}')
+        pbar.set_description(f'{country} Scale: {scale} Crop: {crop} Growing season: {growing_season}')
         pbar.update()
 
         # 1. Initialize GeoMerge object with country, scale, crop, growing_season
@@ -292,21 +299,28 @@ def run(path_config_file='geoextract.txt'):
         os.makedirs(dir_output, exist_ok=True)
         output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
-        # 3. Create dataframe for country, crop and scale (ccs) by merging all EO files
-        gm.df_ccs = gm.merge_eo_files()
+        # 3a. Check if crop calendar information exists for country, crop and scale, if not then bail
+        df_cal = gm.df_calendar[(gm.df_calendar['country'] == gm.country) &
+                                (gm.df_calendar['crop'] == gm.crop) &
+                                (gm.df_calendar['scale'] == gm.scale)]
 
-        # 4. Add static data: country, crop, scale, datetime, month, etc.
-        gm.add_static_information()
+        if not df_cal.empty:
+            # 3b. Merge all EO data for country, crop and scale (ccs) into a dataframe
+            gm.df_ccs = gm.merge_eo_files()
 
-        # 5. Add yield, area, production information
-        gm.df_ccs = gm.add_stats()
+            # 4. Add static data: country, crop, scale, datetime, month, etc.
+            gm.add_static_information()
 
-        # 6. Add crop calendar information
-        gm.df_ccs = gm.add_calendar()
+            # 5. Add yield, area, production information
+            gm.df_ccs = gm.add_statistics()
 
-        # 7. Store output to disk
-        gm.logger.info(f'Storing output in {output_file}')
-        gm.df_ccs.to_csv(output_file, index=False)
+            # 6. Add crop calendar information
+            gm.df_ccs = gm.add_calendar()
+
+            # 7. Store output to disk
+            if not gm.df_ccs.empty:
+                gm.logger.info(f'Storing output in {output_file}')
+                gm.df_ccs.to_csv(output_file, index=False)
 
 
 if __name__ == '__main__':
