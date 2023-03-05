@@ -8,7 +8,7 @@ import ast
 import datetime
 import itertools
 import pandas as pd
-
+import numpy as np
 from tqdm import tqdm
 
 from . import base
@@ -183,11 +183,6 @@ class GeoMerge(base.BaseGeo):
         # Remove self.scale column from group
         group = group.drop(columns=[self.scale])
 
-        # Move the columns: calendar_region  category  growing_season  yield  area  production to len(self.static_columns) + 3
-        cols = group.columns.tolist()
-        cols = cols[:len(self.static_columns) + 3] + cols[-3:] + cols[len(self.static_columns) + 3:-3]
-        group = group[cols]
-
         return group
 
     def read_statistics(self):
@@ -207,6 +202,10 @@ class GeoMerge(base.BaseGeo):
         self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
         self.df_stats = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
         self.df_stats = utils.harmonize_df(self.df_stats)
+
+        # Get hemisphere and temperate/tropical zone information
+        self.path_countries = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'zone_file')
+        self.df_countries = pd.read_csv(self.path_countries) if os.path.isfile(self.path_countries) else pd.DataFrame()
 
     def add_statistics(self):
         """
@@ -284,6 +283,63 @@ class GeoMerge(base.BaseGeo):
 
         return df
 
+    def assign_season(self, group):
+        START_CROP_STAGE = 1
+        END_CROP_STAGE = 3
+
+        # replace 4 by 0 in crop calendar
+        group_calendar = group['crop_calendar'].values
+        group_calendar[group_calendar == 4] = 0
+
+        # If 0 at start or end then season = year
+        if (group_calendar[0] == 0) or (group_calendar[-1] == 0):
+            # Find first occurence of 1
+            idx_start = np.where(group_calendar == START_CROP_STAGE)[0][0]
+            # Find last occurence of 3
+            idx_end = np.where(group_calendar == END_CROP_STAGE)[0][-1] + 1
+
+            group.loc[idx_start:idx_end, 'season'] = int(group['year'].unique()[0])
+        else:
+            # Find last occurence of 0
+            idx_start = np.where(group_calendar == 0)[0][-1] + 1
+            # Find first occ of 0
+            idx_end = np.where(group_calendar == 0)[0][0] - 1
+
+            group.loc[0:idx_end, 'season'] = int(group['year'].unique()[0])
+
+            if group['hemisphere'].unique()[0] == 'N' and self.crop == 'ww':
+                group.loc[idx_start:365, 'season'] = np.nan
+            else:
+                group.loc[idx_start:365, 'season'] = int(group['year'].unique()[0] + 1)
+
+        return group
+
+    def post_process(self):
+        # 1. Scale NDVI
+        self.df_ccs.loc[:, 'ndvi'] = (self.df_ccs['ndvi'] - 50.) / 200.
+
+        # 2. Assign hemisphere and temperate/tropical zones
+        self.df_ccs = pd.merge(self.df_ccs, self.df_countries, on='country', how='left')
+
+        # 3. Add season
+        groups = self.df_ccs.groupby(['region', 'year'])
+
+        frames = []
+        for name, group in groups:
+            df_group = self.assign_season(group)
+            frames.append(df_group)
+
+        self.df_ccs = pd.concat(frames)
+
+        # 4. Move EO columns to the end of the dataframe, to make it more readable
+        self.move_columns_to_end(columns=self.eo_model)
+
+    def move_columns_to_end(self, columns=None):
+        # Exclude elements from columns that are not in the dataframe
+        columns = [x for x in columns if x in self.df_ccs.columns]
+
+        # Move the columns to the end of the dataframe
+        self.df_ccs = self.df_ccs[[x for x in self.df_ccs.columns if not x in columns] + columns]
 
 def run(path_config_file='geoextract.txt'):
     """
@@ -306,7 +362,7 @@ def run(path_config_file='geoextract.txt'):
 
     pbar = tqdm(all_combinations, total=len(all_combinations))
     for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1
-        pbar.set_description(f'Crop: {crop} \nGrowing season: {growing_season} \nScale: {scale} \n{country.title()}')
+        pbar.set_description(f'Crop: {crop} Growing season: {growing_season} Scale: {scale} {country.title()}')
         pbar.update()
 
         # 1. Initialize GeoMerge object with country, scale, crop, growing_season
@@ -318,7 +374,7 @@ def run(path_config_file='geoextract.txt'):
         os.makedirs(dir_output, exist_ok=True)
         output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
-        # 3a. Check if crop calendar information exists for country, crop and scale, if not then bail
+        # 3a. Check if crop calendar information exists for country, crop and scale, if empty then skip
         df_cal = gm.df_calendar[(gm.df_calendar['country'] == country) &
                                 (gm.df_calendar['crop'] == crop) &
                                 (gm.df_calendar['growing_season'] == growing_season)]
@@ -336,7 +392,11 @@ def run(path_config_file='geoextract.txt'):
             # 6. Add crop calendar information
             gm.df_ccs = gm.add_calendar()
 
-            # 7. Store output to disk
+            # 7. Post process data
+            # gm.df_ccs = pd.read_csv(output_file)
+            gm.post_process()
+
+            # 8. Store output to disk
             if not gm.df_ccs.empty:
                 gm.logger.info(f'Storing output in {output_file}')
                 gm.df_ccs.to_csv(output_file, index=False)
