@@ -1,21 +1,14 @@
 ###############################################################################
-# Ritvik Sahajpal
+# Ritvik Sahajpal, Tarun Murali
 # email: ritvik@umd.edu
 # July 4, 2022
-
-# Tarun Murali
-# email: tarunmurali02@gmail.com
-# July 21, 2022
 ###############################################################################
 import os
-import pdb
-import ast
 
 from pathlib import Path
 
 from . import utils
 from . import log
-from logging import CRITICAL, ERROR, WARNING, WARN, INFO, DEBUG, NOTSET
 
 class BaseGeo:
     def __init__(self, path_config_file=['geoprepare.txt', 'geoextract.txt']):
