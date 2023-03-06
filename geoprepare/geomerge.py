@@ -185,28 +185,6 @@ class GeoMerge(base.BaseGeo):
 
         return group
 
-    def read_statistics(self):
-        """
-        Read the crop calendar and yield, area and production statistics from csv files
-        Args:
-
-        Returns:
-
-        """
-        # Get crop calendar information
-        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
-        self.df_calendar = pd.read_csv(self.path_calendar) if os.path.isfile(self.path_calendar) else pd.DataFrame()
-        self.df_calendar = utils.harmonize_df(self.df_calendar)
-
-        # Get yield, area and production information
-        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
-        self.df_stats = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
-        self.df_stats = utils.harmonize_df(self.df_stats)
-
-        # Get hemisphere and temperate/tropical zone information
-        self.path_countries = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'zone_file')
-        self.df_countries = pd.read_csv(self.path_countries) if os.path.isfile(self.path_countries) else pd.DataFrame()
-
     def add_statistics(self):
         """
         Add yield, area and production statistics to the dataframe
@@ -214,9 +192,9 @@ class GeoMerge(base.BaseGeo):
 
         """
         # Subset statstics dataframe for current growing_season and crop
-        df_stats = self.df_stats[(self.df_stats['country'] == self.country) &
-                                 (self.df_stats['crop'] == self.crop) &
-                                 (self.df_stats['growing_season'] == self.growing_season)]
+        df_stats = self.df_statistics[(self.df_statistics['country'] == self.country) &
+                                      (self.df_statistics['crop'] == self.crop) &
+                                      (self.df_statistics['growing_season'] == self.growing_season)]
 
         # select appropriate region column based on scale
         if self.scale == 'admin_1':
@@ -228,6 +206,7 @@ class GeoMerge(base.BaseGeo):
         df_combination = df_stats[[self.scale, 'calendar_region', 'category', 'growing_season']]
         df_combination = df_combination.drop_duplicates()
 
+        # Fill in missing values
         groups = self.df_ccs.groupby(['region', 'year'])
         frames = []
         for name, group in groups:

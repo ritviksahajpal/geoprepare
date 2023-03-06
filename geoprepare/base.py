@@ -5,6 +5,7 @@
 ###############################################################################
 import os
 
+import pandas as pd
 from pathlib import Path
 
 from . import utils
@@ -79,3 +80,25 @@ class BaseGeo:
         self.logger = log.Logger(dir_log=self.dir_log,
                                  name_fl=self.parser.get('DEFAULT', 'logfile'),
                                  level=level)
+
+    def read_statistics(self):
+        """
+        Read the crop calendar and yield, area and production statistics from csv files
+        Args:
+
+        Returns:
+
+        """
+        # Get crop calendar information
+        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
+        self.df_calendar = pd.read_csv(self.path_calendar) if os.path.isfile(self.path_calendar) else pd.DataFrame()
+        self.df_calendar = utils.harmonize_df(self.df_calendar)
+
+        # Get yield, area and production information
+        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
+        self.df_statistics = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
+        self.df_statistics = utils.harmonize_df(self.df_statistics)
+
+        # Get hemisphere and temperate/tropical zone information
+        self.path_countries = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'zone_file')
+        self.df_countries = pd.read_csv(self.path_countries) if os.path.isfile(self.path_countries) else pd.DataFrame()
