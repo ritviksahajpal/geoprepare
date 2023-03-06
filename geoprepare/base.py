@@ -22,6 +22,15 @@ class BaseGeo:
         self.parser = utils.read_config(path_config_file)
         self.redo_last_year = True
 
+        # Dictionary of crop growth stages
+        self.dict_growth_stages = {1: 'Planting - Early Vegetative', 2: 'Vegetative - Reproductive', 3: 'Ripening through Harvest'}
+
+        # Dictionary of crop conditions
+        self.dict_crop_conditions = {1: 'Poor', 2: 'Watch', 3: 'Favourable', 4: 'Exceptional'}
+
+        # Dictionary of crop condition trends
+        self.dict_trends = {1: 'Declining', 2: 'Stable', 3: 'Improving'}
+
     def pp_config(self, section='DEFAULT'):
         from pprint import pformat
 

@@ -283,11 +283,11 @@ class GeoMerge(base.BaseGeo):
 
         return df
 
-    def assign_season(self, group):
+    def assign_harvest_season(self, group):
         START_CROP_STAGE = 1
         END_CROP_STAGE = 3
 
-        # replace 4 by 0 in crop calendar
+        # replace 4 by 0 in crop calendar, 4 represents out of season values
         group_calendar = group['crop_calendar'].values
         group_calendar[group_calendar == 4] = 0
 
@@ -298,19 +298,19 @@ class GeoMerge(base.BaseGeo):
             # Find last occurence of 3
             idx_end = np.where(group_calendar == END_CROP_STAGE)[0][-1] + 1
 
-            group.loc[idx_start:idx_end, 'season'] = int(group['year'].unique()[0])
+            group.loc[idx_start:idx_end, 'harvest_season'] = int(group['year'].unique()[0])
         else:
             # Find last occurence of 0
             idx_start = np.where(group_calendar == 0)[0][-1] + 1
             # Find first occ of 0
             idx_end = np.where(group_calendar == 0)[0][0] - 1
 
-            group.loc[0:idx_end, 'season'] = int(group['year'].unique()[0])
+            group.loc[0:idx_end, 'harvest_season'] = int(group['year'].unique()[0])
 
             if group['hemisphere'].unique()[0] == 'N' and self.crop == 'ww':
-                group.loc[idx_start:365, 'season'] = np.nan
+                group.loc[idx_start:365, 'harvest_season'] = np.nan
             else:
-                group.loc[idx_start:365, 'season'] = int(group['year'].unique()[0] + 1)
+                group.loc[idx_start:365, 'harvest_season'] = int(group['year'].unique()[0] + 1)
 
         return group
 
@@ -321,15 +321,19 @@ class GeoMerge(base.BaseGeo):
         # 2. Assign hemisphere and temperate/tropical zones
         self.df_ccs = pd.merge(self.df_ccs, self.df_countries, on='country', how='left')
 
-        # 3. Add season
+        # 3. Add harvest season information
         groups = self.df_ccs.groupby(['region', 'year'])
 
         frames = []
         for name, group in groups:
-            df_group = self.assign_season(group)
+            df_group = self.assign_harvest_season(group)
             frames.append(df_group)
 
         self.df_ccs = pd.concat(frames)
+
+        # TODO: Add a dictionary for the growing season so that we can accomodate multiple types of growth stages
+        # 4. Set growing_season to np.NaN when crop_calendar is 1, 2 or 3
+        self.df_ccs.loc[~self.df_ccs['crop_calendar'].isin([1, 2, 3]), 'growing_season'] = np.nan
 
         # 4. Move EO columns to the end of the dataframe, to make it more readable
         self.move_columns_to_end(columns=self.eo_model)
@@ -374,7 +378,8 @@ def run(path_config_file='geoextract.txt'):
         os.makedirs(dir_output, exist_ok=True)
         output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
-        # 3a. Check if crop calendar information exists for country, crop and scale, if empty then skip
+        # 3a. Check if crop calendar information exists for country, crop and growing_season
+        # if empty then skip
         df_cal = gm.df_calendar[(gm.df_calendar['country'] == country) &
                                 (gm.df_calendar['crop'] == crop) &
                                 (gm.df_calendar['growing_season'] == growing_season)]
