@@ -81,6 +81,22 @@ class BaseGeo:
                                  name_fl=self.parser.get('DEFAULT', 'logfile'),
                                  level=level)
 
+    def get_dirname(self, country):
+        """
+
+        Args:
+            country ():
+
+        Returns:
+
+        """
+        self.threshold = self.parser.getboolean(country, 'threshold')
+
+        limit_type = 'floor' if self.threshold else 'ceil'
+        self.limit = self.parser.getint(country, limit_type)
+
+        self.dir_threshold = f'crop_t{self.limit}' if self.threshold else f'crop_p{self.limit}'
+
     def read_statistics(self):
         """
         Read the crop calendar and yield, area and production statistics from csv files

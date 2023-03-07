@@ -50,15 +50,9 @@ class GeoMerge(base.BaseGeo):
         self.growing_season = growing_season
 
         self.static_columns = ['country', 'region', 'region_id', 'year', 'doy']
-        self.threshold = self.parser.getboolean(country, 'threshold')  # use threshold or percentile for crop masking
-        limit_type = 'floor' if self.threshold else 'ceil'
         self.eo_model = ast.literal_eval(self.parser.get(country, 'eo_model'))  # list of EO variables to use in the model
-        self.limit = self.parser.getint(country, limit_type)
-        self.dir_threshold = f'crop_t{self.limit}' if self.threshold else f'crop_p{self.limit}'
         self.use_cropland_mask = self.parser.get(country, 'use_cropland_mask')
-
-        # dataframe containing all data for a given country x crop x scale (ccs) combination
-        self.df_ccs = pd.DataFrame()
+        self.get_dirname(country)
 
     def pretty_print(self, info='country_information'):
         """
@@ -266,6 +260,9 @@ class GeoMerge(base.BaseGeo):
         START_CROP_STAGE = 1
         END_CROP_STAGE = 3
 
+        # reset index
+        group = group.reset_index(drop=True)
+
         # replace 4 by 0 in crop calendar, 4 represents out of season values
         group_calendar = group['crop_calendar'].values
         group_calendar[group_calendar == 4] = 0
@@ -309,12 +306,13 @@ class GeoMerge(base.BaseGeo):
             frames.append(df_group)
 
         self.df_ccs = pd.concat(frames)
+        self.df_ccs = self.df_ccs.reset_index(drop=True)
 
         # TODO: Add a dictionary for the growing season so that we can accomodate multiple types of growth stages
         # 4. Set growing_season to np.NaN when crop_calendar is 1, 2 or 3
         self.df_ccs.loc[~self.df_ccs['crop_calendar'].isin([1, 2, 3]), 'growing_season'] = np.nan
 
-        # 4. Move EO columns to the end of the dataframe, to make it more readable
+        # 5. Move EO columns to the end of the dataframe, to make it more readable
         self.move_columns_to_end(columns=self.eo_model)
 
     def move_columns_to_end(self, columns=None):
