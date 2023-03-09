@@ -118,7 +118,11 @@ class GeoMerge(base.BaseGeo):
 
         # Merge files into dataframe
         df_result = None
-        for df in tqdm(frames, total=len(frames), desc=f'Merging EO data', leave=False):
+        pbar = tqdm(frames, total=len(frames), leave=False)
+        for df in pbar:
+            pbar.set_description(f'Merging {var} files')
+            pbar.update()
+
             if df_result is None:
                 df_result = df.set_index(self.static_columns)
             else:
@@ -145,14 +149,15 @@ class GeoMerge(base.BaseGeo):
         # Add datetime based on year and day of year, make this the first column
         self.df_ccs.insert(0, 'datetime', self.df_ccs.apply(lambda x: datetime.datetime.strptime(f'{x.year} {x.doy}', '%Y %j'), axis=1))
 
-        # Add name of month, both abbreviated and full as well month number
-        self.df_ccs.insert(pos + 1, 'abbr_month', self.df_ccs.apply(lambda x: x.datetime.strftime('%b'), axis=1))
-        self.df_ccs.insert(pos + 2, 'name_month', self.df_ccs.apply(lambda x: x.datetime.strftime('%B'), axis=1))
-        self.df_ccs.insert(pos + 3, 'Month', self.df_ccs.apply(lambda x: x.datetime.strftime('%m'), axis=1))
+        # Add day of month, name of month, both abbreviated and full as well month number
+        self.df_ccs.insert(pos + 1, 'day', self.df_ccs.apply(lambda x: x.datetime.strftime('%d'), axis=1))
+        self.df_ccs.insert(pos + 2, 'abbr_month', self.df_ccs.apply(lambda x: x.datetime.strftime('%b'), axis=1))
+        self.df_ccs.insert(pos + 3, 'name_month', self.df_ccs.apply(lambda x: x.datetime.strftime('%B'), axis=1))
+        self.df_ccs.insert(pos + 4, 'month', self.df_ccs.apply(lambda x: x.datetime.strftime('%m'), axis=1))
 
         # Add static information
-        self.df_ccs.insert(pos + 4, 'crop', self.crop)
-        self.df_ccs.insert(pos + 5, 'scale', self.scale)
+        self.df_ccs.insert(pos + 5, 'crop', self.crop)
+        self.df_ccs.insert(pos + 6, 'scale', self.scale)
 
     def fillna(self, group, df_combination, df_stats):
         """
@@ -368,14 +373,19 @@ def run(path_config_file='geoextract.txt'):
             # 4. Add static data: country, crop, scale, datetime, month, etc.
             gm.add_static_information()
 
+            # 5. Fill in missing values, append additional blank year
+            gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm.eo_model)
+
             # 5. Add yield, area, production information
             gm.df_ccs = gm.add_statistics()
+
+            # Remove leap year day (Feb 29th) to make assigning calendar information easier
+            # gm.df_ccs = utils.remove_leap_doy(gm.df_ccs)
 
             # 6. Add crop calendar information
             gm.df_ccs = gm.add_calendar()
 
             # 7. Post process data
-            # gm.df_ccs = pd.read_csv(output_file)
             gm.post_process()
 
             # 8. Store output to disk
