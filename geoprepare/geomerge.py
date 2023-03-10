@@ -302,7 +302,10 @@ class GeoMerge(base.BaseGeo):
         # 2. Assign hemisphere and temperate/tropical zones
         self.df_ccs = pd.merge(self.df_ccs, self.df_countries, on='country', how='left')
 
-        # 3. Add harvest season information
+        # 3. Add average_temperature
+        self.df_ccs['average_temperature'] = (self.df_ccs['cpc_tmax'] + self.df_ccs['cpc_tmin']) / 2.
+
+        # 4. Add harvest season information
         groups = self.df_ccs.groupby(['region', 'year'])
 
         frames = []
@@ -314,10 +317,10 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs = self.df_ccs.reset_index(drop=True)
 
         # TODO: Add a dictionary for the growing season so that we can accomodate multiple types of growth stages
-        # 4. Set growing_season to np.NaN when crop_calendar is 1, 2 or 3
+        # 5. Set growing_season to np.NaN when crop_calendar is 1, 2 or 3
         self.df_ccs.loc[~self.df_ccs['crop_calendar'].isin([1, 2, 3]), 'growing_season'] = np.nan
 
-        # 5. Move EO columns to the end of the dataframe, to make it more readable
+        # 6. Move EO columns to the end of the dataframe, to make it more readable
         self.move_columns_to_end(columns=self.eo_model)
 
     def move_columns_to_end(self, columns=None):
