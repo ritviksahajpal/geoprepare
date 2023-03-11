@@ -1,10 +1,10 @@
 # README ##############################################################################################################
 # 1. Read in files for EO variables (NDVI, soil moisture, precipitation, etc.) from /cmongp1/GEOGLAM/Input/intermed
-# 2. For each admin1 produce a single csv file per year, by multiplying the variable value in each grid cell by the
+# 2. For each admin_1 produce a single csv file per year, by multiplying the variable value in each grid cell by the
 # percentage of crop area in that grid cell
 # 3. Apply a threshold based on either floor or ceil flags
-#    3.a floor: select all grid cells in admin1 with crop area above this precentage
-#    3.b ceil: select all grid cells in admin1 with crop area above this percentile
+#    3.a floor: select all grid cells in admin_1 with crop area above this precentage
+#    3.b ceil: select all grid cells in admin_1 with crop area above this percentile
 # 4. Output csv file to constants_base.dir_all_inputs + os.sep + always.dir_crop_inputs (/cmongp1/GEOGLAM/Input/crop_*)
 #######################################################################################################################
 import os
@@ -286,9 +286,9 @@ def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
     # which means it is not part of the actual match, but it only matches if that follows the match.
     fname = os.path.basename(crop_mask)
 
-    if scale == 'admin1':
+    if scale == 'admin_1':
         region_name = re.search(r'.+(?=_\d{9}_)', fname).group(0)
-    else:  # admin2
+    else:  # admin_2
         region_name = re.search(r'.+(?=_\d{12}_)', fname).group(0)
 
     # Extract numeric admin identifier from crop mask file name
@@ -296,10 +296,10 @@ def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
 
     dir_crop_inputs = Path(f'crop_t{limit}') if threshold else Path(f'crop_p{limit}')
 
-    dir_out = params.dir_input / dir_crop_inputs / country / scale / crop / var
-    os.makedirs(dir_out, exist_ok=True)
+    dir_output = params.dir_input / dir_crop_inputs / country / scale / crop / var
+    os.makedirs(dir_output, exist_ok=True)
 
-    return region_name, region_id, dir_out
+    return region_name, region_id, dir_output
 
 
 def process(val):
@@ -319,8 +319,8 @@ def process(val):
     """
     params, country, crop, scale, var, year, crop_mask = val
 
-    if scale not in ['admin1', 'admin2']:
-        raise ValueError(f'Scale {scale} is not valid, should be either admin1 or admin2')
+    if scale not in ['admin_1', 'admin_2']:
+        raise ValueError(f'Scale {scale} is not valid, should be either admin_1 or admin_2')
 
     # Do not process CHIRPS forecast data if it is not for the current year
     if var == 'chirps_gefs' and year != ar.utcnow().year:
@@ -328,10 +328,10 @@ def process(val):
 
     threshold = params.parser.getboolean(country, 'threshold')
     limit = utils.crop_mask_limit(params, country, threshold)
-    region, region_id, dir_out = setup(params, country, crop, scale, var, crop_mask, threshold, limit)
-    path_output = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
+    region, region_id, dir_output = setup(params, country, crop, scale, var, crop_mask, threshold, limit)
+    path_output = dir_output / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
 
-    os.makedirs(dir_out, exist_ok=True)
+    os.makedirs(dir_output, exist_ok=True)
 
     # Process variable:
     # 1. if output csv does not exist OR
@@ -380,7 +380,7 @@ def run(params):
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
         crops = ast.literal_eval(params.parser.get(country, 'crops'))
         vars = ast.literal_eval(params.parser.get(country, 'eo_model'))
-        scales = ast.literal_eval(params.parser.get(country, 'scale'))
+        scales = ast.literal_eval(params.parser.get(country, 'scales'))
 
         for crop in crops:
             for scale in scales:
@@ -396,7 +396,7 @@ def run(params):
 
     params.logger.error('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     params.logger.error(params.countries)
-    params.logger.error(f'Spatial scale (admin1/state or admin2/county): {scale}')
+    params.logger.error(f'Spatial scale (admin_1/state or admin_2/county): {scales}, REDO flag: {params.redo}')
     params.logger.error(f'Starting year: {params.start_year}, Ending year: {params.end_year}')
     params.logger.error(f'EO vars to process: {vars}')
     params.logger.error(f'Number of CPUs used: {num_cpus if params.parallel_process else 1}')

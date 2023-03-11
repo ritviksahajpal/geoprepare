@@ -153,7 +153,7 @@ def run(params):
 
         # Check if we use a cropland mask or not
         use_cropland_mask = params.parser.get(country, 'use_cropland_mask')
-        scales = ast.literal_eval(params.parser.get(country, 'scale'))
+        scales = ast.literal_eval(params.parser.get(country, 'scales'))
 
         # Create crop masks for region
         if use_cropland_mask:
