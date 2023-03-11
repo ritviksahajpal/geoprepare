@@ -77,10 +77,10 @@ def process_AVHRR(all_params):
 
         fl_out = f'avhrr_v5_{year}_{str(doy).zfill(3)}.tif'
 
-        hndl_nc = common.convert_to_nc_hndl(dir_nc / fl)
+        hndl_nc = utils.convert_to_nc_hndl(dir_nc / fl)
         if not os.path.isfile(dir_output / fl_out):
             arr = hndl_nc.variables[var].values[0]
-            common.arr_to_tif(arr, dir_output / fl_out, profile)
+            utils.arr_to_tif(arr, dir_output / fl_out, profile)
 
 
 def mvc(file_list, path_out=None, use_temporary=False):

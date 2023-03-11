@@ -12,7 +12,6 @@ import pyresample
 import rasterio
 import multiprocessing
 import zipfile
-import xarray as xr
 import pandas as pd
 import numpy as np
 from datetime import timedelta
@@ -99,8 +98,8 @@ def remap_like(original_nc, target_nc, name_var, index=0):
     Returns:
 
     """
-    hndl_original = common.convert_to_nc_hndl(original_nc)
-    hndl_target = common.convert_to_nc_hndl(target_nc)
+    hndl_original = utils.convert_to_nc_hndl(original_nc)
+    hndl_target = utils.convert_to_nc_hndl(target_nc)
 
     lat = hndl_original.variables['lat'].values
     lon = hndl_original.variables['lon'].values
@@ -138,7 +137,7 @@ def process_agERA5(all_params):
         arr = remap_like(nc_input, pathlib.Path(__file__).parent.resolve() / path_template, name_var=var)
         # arr = np.roll(arr.data, int(arr.data.shape[1] / 2.))
 
-        common.arr_to_tif(arr, dir_output / fl_out, profile)
+        utils.arr_to_tif(arr, dir_output / fl_out, profile)
 
 
 def parallel_process_agERA5(params):

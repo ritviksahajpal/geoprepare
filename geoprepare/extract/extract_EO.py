@@ -327,7 +327,7 @@ def process(val):
         return
 
     threshold = params.parser.getboolean(country, 'threshold')
-    limit = common.crop_mask_limit(params, country, threshold)
+    limit = utils.crop_mask_limit(params, country, threshold)
     region, region_id, dir_out = setup(params, country, crop, scale, var, crop_mask, threshold, limit)
     path_output = dir_out / Path(f'{region}_{region_id}_{year}_{var}_{crop}.csv')
 

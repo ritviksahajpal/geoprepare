@@ -75,4 +75,4 @@ shp_boundary = EWCM_Level_1.shp
 statistics_file = statistics.csv
 zone_file = countries.csv
 calendar_file = crop_calendar.csv
-eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
+eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
