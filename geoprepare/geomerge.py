@@ -347,7 +347,7 @@ def run(path_config_file='geoextract.txt'):
     all_combinations = gm.create_run_combinations()
 
     # Read calendar and crop statistics
-    gm.read_statistics()
+    gm.read_statistics(read_all=True)
 
     pbar = tqdm(all_combinations, total=len(all_combinations))
     for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1

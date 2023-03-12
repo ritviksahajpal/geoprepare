@@ -146,25 +146,39 @@ def get_cal_list(df_cal, yr_cal):
     return idf_cal
 
 
-def fill_till_last_valid(grp, fill_zero=False):
+def fill_till_valid(group, fill_zero=False, interpolate=False):
     """
     Gap fill, till current date
     If use_zero is True then fill with 0 instead of median values (default behavior)
     Args:
-        grp:
+        group:
         fill_zero:
+        interpolate:
 
     Returns:
 
     """
+    # Assert that both fill_zero and interpolate are not True at the same time
+    assert not (fill_zero and interpolate), 'fill_zero and interpolate cannot be True at the same time'
+    # Assert that both fill_zero and interpolate are not False at the same time
+    assert not (not fill_zero and not interpolate), 'fill_zero and interpolate cannot be False at the same time'
+
+    # The last date for which we can have valid data is today's date
     idx = pd.Timestamp(datetime.datetime.now())
 
     if fill_zero:
-        grp.loc[:idx] = grp.loc[:idx].astype(float).fillna(0.)
+        group.loc[:idx] = group.loc[:idx].astype(float).fillna(0.)
+    elif not fill_zero and not interpolate:
+        group.loc[:idx] = group.loc[:idx].astype(float).fillna(group.astype(float).median())
+    elif not fill_zero and interpolate:
+        group.loc[:idx] = group.loc[:idx].astype(float).interpolate(method='linear',
+                                                                    limit_direction='backward',
+                                                                    limit_area='inside',
+                                                                    limit=30)
     else:
-        grp.loc[:idx] = grp.loc[:idx].astype(float).fillna(grp.astype(float).median())
+        raise NotImplementedError(f'fill_zero: {fill_zero} and interpolate: {interpolate} not implemented')
 
-    return grp
+    return group
 
 
 def extended_dataframe(df, eo_vars):
@@ -179,7 +193,8 @@ def extended_dataframe(df, eo_vars):
     """
     import calendar
 
-    select_year = 2017 if not calendar.isleap(df['year'].max() + 1) else 2018
+    select_year = 2017 if not calendar.isleap(df['year'].max() + 1) else 2016
+
     columns = df.columns.values.tolist()
     # Exclude eo_vars from columns
     columns = [x for x in columns if x not in eo_vars]
@@ -202,7 +217,7 @@ def extended_dataframe(df, eo_vars):
     return df
 
 
-def fill_missing_values(df_missing, eo_vars):
+def fill_missing_values(df, eo_vars):
     """
     Fill in missing values for variable using following logic:
     1. Fill in missing values by linearly interpolating between existing values
@@ -212,50 +227,34 @@ def fill_missing_values(df_missing, eo_vars):
 
     Does not fill missing values for yield, crop_condition_class
     Args:
-        df_missing:
+        df:
         eo_vars:
 
     Returns:
 
     """
-    df_missing.reset_index(inplace=True)  # change from datetime index to range to allow interpolation to happen
+    precip_var = 'chirps' if 'chirps' in eo_vars else 'cpc_precip'
+
+    # Append empty year to dataframe to account for seasons that span across years
+    df = extended_dataframe(df, eo_vars)
 
     # First pass at filling in missing values
     for var in eo_vars:
         # Bail if any of the following conditions are met:
-        # 1. var is not in df_missing
+        # 1. var is not in df
         # 2. Column is completely empty (i.e. all years) then bail since we cannot use climatology data to fill it
-        if (var not in df_missing.columns) or (df_missing[var].isnull().all()):
+        if var not in df.columns:
             continue
 
-        # Fill in missing values by linearly interpolating between existing values for non CHIRPS datasets
-        if var != 'chirps':
-            df_missing.loc[:, var] = df_missing.loc[:, var].interpolate(method='linear', limit_direction='backward', limit=10).values
+        if var == precip_var:
+            df[var] = df.groupby(df['region'])[var].transform(fill_till_valid, fill_zero=True)
+        else:
+            df[var] = df.groupby(df['region'])[var].transform(fill_till_valid, fill_zero=False, interpolate=True)
 
-    # Append empty year to dataframe to account for seasons that span across years
-    df_missing = extended_dataframe(df_missing, eo_vars)
-
-    # Second pass at filling in missing values
-    for var in eo_vars:
-        # TODO Hack: Replace nan values with 0 for CHIRPS and CPC_PRECIP
-        if var in ['chirps', 'cpc_precip']:
-            continue
-
-        # If column is completely empty (i.e. all years) then bail since we cannot use climatology data to fill it
-        if df_missing[var].isnull().all():
-            continue
-
-        # Fill in any remaining missing values by forward/backward fill for 30 days
-        if df_missing[var].isnull().any():
-            df_missing[var].interpolate(method='linear', limit=30, inplace=True, limit_direction='backward', limit_area='inside')
-
-    precip_var = 'chirps' if 'chirps' in eo_vars else 'cpc_precip'
-    df_missing[precip_var] = df_missing.groupby(df_missing['region'])[precip_var].transform(fill_till_last_valid, fill_zero=True)
-
-    if not isinstance(df_missing.index, pd.DatetimeIndex):
+    if not isinstance(df.index, pd.DatetimeIndex):
         raise ValueError('dataframe index is incorrect')
 
-    return df_missing
+    return df
 
 
 def remove_leap_doy(df):

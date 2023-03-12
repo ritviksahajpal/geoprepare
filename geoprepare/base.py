@@ -98,7 +98,7 @@ class BaseGeo:
 
         self.dir_threshold = f'crop_t{self.limit}' if self.threshold else f'crop_p{self.limit}'
 
-    def read_statistics(self):
+    def read_statistics(self, read_calendar=False, read_statistics=False, read_countries=False, read_all=False):
         """
         Read the crop calendar and yield, area and production statistics from csv files
         Args:
@@ -107,15 +107,18 @@ class BaseGeo:
 
         """
         # Get crop calendar information
-        self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
-        self.df_calendar = pd.read_csv(self.path_calendar) if os.path.isfile(self.path_calendar) else pd.DataFrame()
-        self.df_calendar = utils.harmonize_df(self.df_calendar)
+        if read_calendar or read_all:
+            self.path_calendar = self.dir_input / 'crop_calendars' / self.parser.get('DEFAULT', 'calendar_file')
+            self.df_calendar = pd.read_csv(self.path_calendar) if os.path.isfile(self.path_calendar) else pd.DataFrame()
+            self.df_calendar = utils.harmonize_df(self.df_calendar)
 
         # Get yield, area and production information
-        self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
-        self.df_statistics = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
-        self.df_statistics = utils.harmonize_df(self.df_statistics)
+        if read_statistics or read_all:
+            self.path_stats = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'statistics_file')
+            self.df_statistics = pd.read_csv(self.path_stats) if os.path.isfile(self.path_stats) else pd.DataFrame()
+            self.df_statistics = utils.harmonize_df(self.df_statistics)
 
         # Get hemisphere and temperate/tropical zone information
-        self.path_countries = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'zone_file')
-        self.df_countries = pd.read_csv(self.path_countries) if os.path.isfile(self.path_countries) else pd.DataFrame()
+        if read_countries or read_all:
+            self.path_countries = self.dir_input / 'statistics' / self.parser.get('DEFAULT', 'zone_file')
+            self.df_countries = pd.read_csv(self.path_countries) if os.path.isfile(self.path_countries) else pd.DataFrame()
