@@ -75,6 +75,8 @@ def run(path_config_file=['geoprepare.txt']):
             from .datasets import Soil_Moisture as obj
 
             geoprep.data_dir = geoprep.parser.get('SOIL-MOISTURE', 'data_dir')
+        elif dataset == 'NSIDC':
+            from .datasets import NSIDC as obj
         elif dataset == 'AVHRR':
             from .datasets import AVHRR as obj
 

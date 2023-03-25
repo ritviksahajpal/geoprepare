@@ -11,6 +11,11 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
+import geopandas as gp
+
+dg = gp.read_file(r'C:\Users\ritvik\Downloads\MERRA\WoSIS-OrganicCarbon.shp')
+breakpoint()
+
 from . import base
 from . import utils
 
@@ -320,7 +325,10 @@ class GeoMerge(base.BaseGeo):
         # 5. Set growing_season to np.NaN when crop_calendar is 1, 2 or 3
         self.df_ccs.loc[~self.df_ccs['crop_calendar'].isin([1, 2, 3]), 'growing_season'] = np.nan
 
-        # 6. Move EO columns to the end of the dataframe, to make it more readable
+        # 6. Add dekad information
+        self.df_ccs['dekad'] = self.df_ccs['datetime'].dt.dayofyear//10 + 1
+
+        # 7. Move EO columns to the end of the dataframe, to make it more readable
         self.move_columns_to_end(columns=self.eo_model)
 
     def move_columns_to_end(self, columns=None):
@@ -398,6 +406,7 @@ def run(path_config_file='geoextract.txt'):
 
 
 if __name__ == '__main__':
+
     # Folder structure is as follows:
     # <base_dir>\input\crop_t10\<COUNTRY>\<SCALE>\<CROP>\
     # <base_dir>\input\crop_t10\<COUNTRY>\<SCALE>\<EO_DATA_FILE.csv>

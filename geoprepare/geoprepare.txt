@@ -41,6 +41,8 @@ data_dir = https://gis1.servirglobal.net//data//esi//
 
 [FLDAS]
 
+[NSIDC]
+
 [LST]
 num_update_days = 7
 
