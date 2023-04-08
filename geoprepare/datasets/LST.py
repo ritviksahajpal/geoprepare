@@ -35,7 +35,6 @@ def download_LST(params):
                                             url="https://e4ftl01.cr.usgs.gov", tiles=None, path="MOLT",
                                             product="MOD11C1.006", delta=params.num_update_days)
     modisDown.connect()
-    count = len(modisDown.getListDays())
 
     pbar = tqdm(range(0, params.num_update_days, 1))
     for n in pbar:
