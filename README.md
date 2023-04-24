@@ -125,8 +125,36 @@ end_year = 2022
 ```python
 [kenya]
 category = EWCM
-scale = ['admin1']  ; can be admin1 (state level) or admin2 (county level)
-season = [1]  ; 1 is primary/long season, 2 is secondary/short season
+scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[rwanda]
+category = EWCM
+scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[malawi]
+category = EWCM
+scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[zambia]
+category = EWCM
+scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+use_cropland_mask = True
+
+[united_republic_of_tanzania]
+category = EWCM
+scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 use_cropland_mask = True
 
@@ -151,18 +179,27 @@ mask = cropland_v9.tif
 [ml]
 mask = cropland_v9.tif
 
+[EWCM]
+calendar_file = EWCM_2021-6-17.xlsx
+
+[AMIS]
+calendar_file = AMISCM_2021-6-17.xlsx
+
 [DEFAULT]
 redo = False
 threshold = True
 floor = 20
 ceil = 90
-scale = ['admin1']
-season = [1]
+scales = ['admin_1']
+growing_seasons = [1]
 countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
 shp_boundary = EWCM_Level_1.shp
-eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'cpc_precip', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
+statistics_file = statistics.csv
+zone_file = countries.csv
+calendar_file = crop_calendar.csv
+eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
 ```
 
 ## Credits
