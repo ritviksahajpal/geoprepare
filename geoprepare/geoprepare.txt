@@ -1,15 +1,14 @@
 [DATASETS]
-datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'CHIRPS', 'CHIRPS-GEFS']  ; 'AVHRR', 'AGERA5'
 
 [PATHS]
-dir_base = D:\
+dir_base = /home/servir/GEOCIF
 dir_input = ${dir_base}/input
 dir_log = ${dir_base}/log
 dir_interim = ${dir_input}/interim
 dir_download = ${dir_input}/download
 dir_output = ${dir_base}/output
 dir_global_datasets = ${dir_input}/global_datasets
-dir_metadata = ${dir_input}/metadata
 dir_masks = ${dir_global_datasets}/masks
 dir_regions = ${dir_global_datasets}/regions
 dir_regions_shp = ${dir_regions}/shps
