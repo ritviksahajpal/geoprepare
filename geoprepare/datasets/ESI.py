@@ -16,7 +16,7 @@ from osgeo.gdalnumeric import *
 start_jd = 8
 end_jd = 366
 
-list_products = ['4wk', '12wk']
+list_products = ["4wk", "12wk"]
 
 
 def download_ESI(all_params):
@@ -30,20 +30,25 @@ def download_ESI(all_params):
     """
     params, product, year = all_params
 
-    dir_download = params.dir_download / 'esi' / product / str(year)
+    dir_download = params.dir_download / "esi" / product / str(year)
     os.makedirs(dir_download, exist_ok=True)
 
     for jd in range(start_jd, end_jd, 7):
         # It is possible that the file is present as a tgz archive, in which case downloand and unzip it
-        fl_download = f'DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif'
+        fl_download = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
 
         # Download .tgz file if it has not been downloaded already or if we are updating data within the last year
         if not os.path.isfile(dir_download / fl_download):
-            request = requests.head(f'{params.data_dir}{product.upper()}//{year}//{fl_download}')
+            request = requests.head(
+                f"{params.data_dir}{product.upper()}//{year}//{fl_download}"
+            )
 
             if request.status_code == 200:
                 # params.logger.info('Downloading ' + fl_download)
-                wget.download(f'{params.data_dir}{product.upper()}//{year}//{fl_download}', f'{dir_download}/{fl_download}')
+                wget.download(
+                    f"{params.data_dir}{product.upper()}//{year}//{fl_download}",
+                    f"{dir_download}/{fl_download}",
+                )
 
 
 def to_global(all_params):
@@ -59,19 +64,19 @@ def to_global(all_params):
 
     params, product, year = all_params
 
-    inpath = Path(os.path.normpath(params.dir_download / 'esi' / product / str(year)))
-    outpath = Path(os.path.normpath(params.dir_interim / f'esi_{product}'))
+    inpath = Path(os.path.normpath(params.dir_download / "esi" / product / str(year)))
+    outpath = Path(os.path.normpath(params.dir_interim / f"esi_{product}"))
 
     os.makedirs(outpath, exist_ok=True)
 
     for jd in range(start_jd, end_jd, 7):
-        format = 'GTiff'
-        name_in = f'DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif'
-        name_out = f'esi_dfppm_{product}_{year}{str(jd).zfill(3)}.tif'
+        format = "GTiff"
+        name_in = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
+        name_out = f"esi_dfppm_{product}_{year}{str(jd).zfill(3)}.tif"
 
         # check if output file does not exist but input file does
         if not os.path.exists(outpath / name_out) and os.path.isfile(inpath / name_in):
-            params.logger.info(f'Creating {outpath} / {name_out}')
+            params.logger.info(f"Creating {outpath} / {name_out}")
 
             ds = gdal.Open(str(inpath / name_in))
 
@@ -81,7 +86,7 @@ def to_global(all_params):
             outArr[3000:3600, :] = -9999.0
             outArr[0:3000, :] = bArr
 
-            out = outpath / f'esi_dfppm_{product}_{year}{str(jd).zfill(3)}.tif'
+            out = outpath / f"esi_dfppm_{product}_{year}{str(jd).zfill(3)}.tif"
 
             otype = gdal.GDT_Float32
             driver = gdal.GetDriverByName(format)
@@ -114,8 +119,10 @@ def run(params):
 
     # Download ESI data
     if params.parallel_process:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
-            with tqdm(total=len(all_params), desc='download ESI') as pbar:
+        with multiprocessing.Pool(
+            int(multiprocessing.cpu_count() * params.fraction_cpus)
+        ) as p:
+            with tqdm(total=len(all_params), desc="download ESI") as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(download_ESI, all_params))):
                     pbar.update()
     else:
@@ -129,8 +136,10 @@ def run(params):
             all_params.extend(list(itertools.product([params], [product], [year])))
 
     if params.parallel_process:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
-            with tqdm(total=len(all_params), desc='process ESI') as pbar:
+        with multiprocessing.Pool(
+            int(multiprocessing.cpu_count() * params.fraction_cpus)
+        ) as p:
+            with tqdm(total=len(all_params), desc="process ESI") as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
                     pbar.update()
     else:
@@ -138,5 +147,5 @@ def run(params):
             to_global(val)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

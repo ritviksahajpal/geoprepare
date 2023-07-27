@@ -35,27 +35,33 @@ def download_soil_moisture(params):
     Returns:
 
     """
-    dir_download = params.dir_download / 'soil_moisture_nasa_usda' / 'grib'
+    dir_download = params.dir_download / "soil_moisture_nasa_usda" / "grib"
     os.makedirs(dir_download, exist_ok=True)
 
-    data_html = soup(requests.get(params.data_dir).text, 'lxml')
+    data_html = soup(requests.get(params.data_dir).text, "lxml")
 
     # Find all grb2 files on page
     list_links = data_html.findAll(href=re.compile("/*.grb2$"))
 
-    for idx, link in tqdm(enumerate(list_links), desc='download soil moisture data', total=len(list_links)):
+    for idx, link in tqdm(
+        enumerate(list_links), desc="download soil moisture data", total=len(list_links)
+    ):
         # If file has not been downloaded already, then download it
-        name_fl = list_links[idx].get('href')
+        name_fl = list_links[idx].get("href")
 
         if not os.path.isfile(dir_download / name_fl):
-            download_link = params.data_dir + data_html.findAll(href=re.compile("/*.grb2$"))[idx].get('href')
+            download_link = params.data_dir + data_html.findAll(
+                href=re.compile("/*.grb2$")
+            )[idx].get("href")
 
             request = requests.head(download_link)
 
             if request.status_code == 200:
                 # params.logger.info('Downloading: ' + name_fl)
-                r = requests.get(download_link, os.path.normpath(dir_download / name_fl))
-                with open(dir_download / name_fl, 'wb') as f:
+                r = requests.get(
+                    download_link, os.path.normpath(dir_download / name_fl)
+                )
+                with open(dir_download / name_fl, "wb") as f:
                     f.write(r.content)
 
 
@@ -70,40 +76,51 @@ def process_soil_moisture(all_params):
     """
     params, product, year, month, day = all_params
 
-    dir_download = params.dir_download / 'soil_moisture_nasa_usda' / 'grib'
-    dir_tif = params.dir_download / 'soil_moisture_nasa_usda' / 'tif'
+    dir_download = params.dir_download / "soil_moisture_nasa_usda" / "grib"
+    dir_tif = params.dir_download / "soil_moisture_nasa_usda" / "tif"
     os.makedirs(dir_download, exist_ok=True)
     os.makedirs(dir_tif, exist_ok=True)
 
     # change to JD
     day_of_year = datetime.date(year, month, day).timetuple().tm_yday
 
-    dir_final = params.dir_interim / f'soil_moisture_{product}'
+    dir_final = params.dir_interim / f"soil_moisture_{product}"
     os.makedirs(dir_final, exist_ok=True)
 
-    fl_final = f'nasa_usda_soil_moisture_{year}{str(day_of_year).zfill(3)}_{product}_global.tif'
+    fl_final = f"nasa_usda_soil_moisture_{year}{str(day_of_year).zfill(3)}_{product}_global.tif"
 
     if not os.path.exists(dir_final / fl_final):
-        file_search = glob.glob(str(dir_download) + os.sep + str(year) + str(month).zfill(2) + str(day).zfill(2) + '*' + str(product) + '.grb2')
+        file_search = glob.glob(
+            str(dir_download)
+            + os.sep
+            + str(year)
+            + str(month).zfill(2)
+            + str(day).zfill(2)
+            + "*"
+            + str(product)
+            + ".grb2"
+        )
         ras_final = os.path.normpath(dir_final / fl_final)
 
-        assert(len(file_search) <= 1)
+        assert len(file_search) <= 1
         for fl in file_search:
             file = os.path.basename(fl)
 
             ras_input = os.path.normpath(dir_download / file)
 
-            final_ds = gdal.Warp(ras_final,
-                                 ras_input,
-                                 format='GTiff',
-                                 outputType=gdal.GDT_Float32,
-                                 srcNodata=-999.0,
-                                 dstNodata=9999.0,
-                                 srcSRS='EPSG:4326',
-                                 dstSRS='EPSG:4326',
-                                 resampleAlg=gdal.GRA_Bilinear,
-                                 xRes=0.05,
-                                 yRes=0.05)
+            final_ds = gdal.Warp(
+                ras_final,
+                ras_input,
+                format="GTiff",
+                outputType=gdal.GDT_Float32,
+                srcNodata=-999.0,
+                dstNodata=9999.0,
+                srcSRS="EPSG:4326",
+                dstSRS="EPSG:4326",
+                resampleAlg=gdal.GRA_Bilinear,
+                xRes=0.05,
+                yRes=0.05,
+            )
             final_ds = None
 
 
@@ -113,29 +130,41 @@ def run(params):
     try:
         download_soil_moisture(params)
     except Exception as e:
-        params.logger.error(f'Download of soil moisture data failed {e}')
+        params.logger.error(f"Download of soil moisture data failed {e}")
 
     all_params = []
-    for product in ['as1', 'as2']:
+    for product in ["as1", "as2"]:
         for year in range(params.start_year, params.end_year + 1):
             for month in range(1, 13):
                 for day in range(1, monthrange(year, month)[1] + 1):
-                    all_params.extend(list(itertools.product([params], [product], [year], [month], [day])))
+                    all_params.extend(
+                        list(
+                            itertools.product(
+                                [params], [product], [year], [month], [day]
+                            )
+                        )
+                    )
 
     if params.parallel_process:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
-            with tqdm(total=len(all_params), desc='process soil moisture data') as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(process_soil_moisture, all_params))):
+        with multiprocessing.Pool(
+            int(multiprocessing.cpu_count() * params.fraction_cpus)
+        ) as p:
+            with tqdm(total=len(all_params), desc="process soil moisture data") as pbar:
+                for i, _ in tqdm(
+                    enumerate(p.imap_unordered(process_soil_moisture, all_params))
+                ):
                     pbar.update()
     else:
-        pbar = tqdm(all_params, total=len(all_params), desc='process soil moisture data')
+        pbar = tqdm(
+            all_params, total=len(all_params), desc="process soil moisture data"
+        )
         for val in pbar:
-            pbar.set_description(f'{val[1]} {val[2]} {val[3]} {val[4]}')
+            pbar.set_description(f"{val[1]} {val[2]} {val[3]} {val[4]}")
             process_soil_moisture(val)
             pbar.update()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Surface and Subsurface soil moisture:
     # https://gimms.gsfc.nasa.gov/SMOS/jbolten/FAS/L03/
 

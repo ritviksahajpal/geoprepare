@@ -1,5 +1,10 @@
 [DATASETS]
-datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'CHIRPS', 'CHIRPS-GEFS']  ; 'AVHRR', 'AGERA5'
+datasets = ['CPC', 'SOIL-MOISTURE', 'CPC', 'CHIRPS', 'CHIRPS-GEFS', 'NSIDC']  ; 'AVHRR', 'AGERA5', 'LST'
+; SOIL-MOISTURE: https://developers.google.com/earth-engine/datasets/catalog/NASA_SMAP_SPL4SMGP_007
+; CPC: https://developers.google.com/earth-engine/datasets/catalog/NCEP_RE_surface_temp
+; CHIRPS: https://developers.google.com/earth-engine/datasets/catalog/UCSB-CHG_CHIRPS_DAILY  (but prelim is not available)
+; CHIRPS-GEFS: Not present on GEE
+; NDVI: Need to find out
 
 [PATHS]
 dir_base = /home/servir/GEOCIF

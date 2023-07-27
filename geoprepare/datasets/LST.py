@@ -28,18 +28,23 @@ end_jd = 367
 
 def download_LST(params):
     # destination folder
-    dir_download = params.dir_download / 'modis_lst'
+    dir_download = params.dir_download / "modis_lst"
     os.makedirs(dir_download, exist_ok=True)
 
-    modisDown = pymodis.downmodis.downModis(destinationFolder=dir_download,
-                                            url="https://e4ftl01.cr.usgs.gov", tiles=None, path="MOLT",
-                                            product="MOD11C1.006", delta=params.num_update_days)
+    modisDown = pymodis.downmodis.downModis(
+        destinationFolder=dir_download,
+        url="https://e4ftl01.cr.usgs.gov",
+        tiles=None,
+        path="MOLT",
+        product="MOD11C1.006",
+        delta=params.num_update_days,
+    )
     modisDown.connect()
 
     pbar = tqdm(range(0, params.num_update_days, 1))
     for n in pbar:
         day = modisDown.getListDays()[n]
-        pbar.set_description(f'Download MODIS LST for {day}')
+        pbar.set_description(f"Download MODIS LST for {day}")
 
         # get the list of data files for specific day
         list_new_file = modisDown.getFilesList(day)
@@ -73,7 +78,7 @@ def qa_extraction(qa_infile):
     qa_array = qa_ds.ReadAsArray().astype(np.uint8)
 
     # read qa bit info, get the 2 least significant bits for quality check ('00' means good LST quality)
-    mask = ((qa_array & 3) == 0)
+    mask = (qa_array & 3) == 0
 
     # mask pixels without good LST quality as NaN
     mask[mask == 0.0] = np.NaN
@@ -112,11 +117,11 @@ def lst_tiff_qa(all_params):
     """
     params, year, jd = all_params
 
-    dir_download = params.dir_download / 'modis_lst'
+    dir_download = params.dir_download / "modis_lst"
     os.makedirs(params.dir_interim, exist_ok=True)
 
     # Get the reference info (e.g., dimension, projection) for output images from the first hdf file
-    hdf_files = list(dir_download.glob('*.hdf'))
+    hdf_files = list(dir_download.glob("*.hdf"))
     sample_file = hdf_files[0]
     sample_hdf_ds = gdal.Open(str(sample_file), gdal.GA_ReadOnly)
     sample_band_ds = gdal.Open(sample_hdf_ds.GetSubDatasets()[0][0], gdal.GA_ReadOnly)
@@ -126,12 +131,13 @@ def lst_tiff_qa(all_params):
     GeoTransform = sample_band_ds.GetGeoTransform()
     Projection = sample_band_ds.GetProjection()
 
-    name_file = f'MOD11C1.A{year}{str(jd).zfill(3)}_global.tif'
+    name_file = f"MOD11C1.A{year}{str(jd).zfill(3)}_global.tif"
     path_out = params.dir_interim / name_file
 
     if not os.path.isfile(path_out):
-
-        fileList = glob.glob(str(dir_download) + os.sep + f'MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf')
+        fileList = glob.glob(
+            str(dir_download) + os.sep + f"MOD11C1.A{year}{str(jd).zfill(3)}*.006.*.hdf"
+        )
 
         pbar = tqdm(fileList)
         for f in pbar:
@@ -141,11 +147,9 @@ def lst_tiff_qa(all_params):
             outfile = hdf_subdataset_extraction(f)
             outdata = np.multiply(outfile, qa_mask)
 
-            out_ds = gdal.GetDriverByName('GTiff').Create(str(path_out),
-                                                          XSize,
-                                                          YSize,
-                                                          1,  # Number of bands
-                                                          gdal.GDT_UInt16)
+            out_ds = gdal.GetDriverByName("GTiff").Create(
+                str(path_out), XSize, YSize, 1, gdal.GDT_UInt16  # Number of bands
+            )
             out_ds.SetGeoTransform(GeoTransform)
             out_ds.SetProjection(Projection)
             out_ds.GetRasterBand(1).WriteArray(outdata)
@@ -172,7 +176,9 @@ def run(params):
             all_params.extend(list(itertools.product([params], [year], [jd])))
 
     if False and params.parallel_process:
-        with multiprocessing.Pool(int(multiprocessing.cpu_count() * params.fraction_cpus)) as p:
+        with multiprocessing.Pool(
+            int(multiprocessing.cpu_count() * params.fraction_cpus)
+        ) as p:
             with tqdm(total=len(all_params)) as pbar:
                 for i, _ in tqdm(enumerate(p.imap_unordered(lst_tiff_qa, all_params))):
                     pbar.update()
@@ -181,5 +187,5 @@ def run(params):
             lst_tiff_qa(val)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
