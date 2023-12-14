@@ -323,3 +323,46 @@ def is_leap(s):
         )
     else:
         raise ValueError("Index should be a datetime object")
+
+
+def mosaic(tif_files, output_file):
+    """
+
+    Args:
+        tif_files:
+        output_file:
+
+    Returns:
+
+    """
+    from rasterio.merge import merge
+
+    # Read the tif files
+    src_files_to_mosaic = []
+    for fp in tif_files:
+        src = rasterio.open(fp)
+        src_files_to_mosaic.append(src)
+
+    # Mosaic the files
+    mosaic, out_trans = merge(src_files_to_mosaic)
+
+    # Copy the metadata
+    out_meta = src.meta.copy()
+
+    # Update the metadata
+    out_meta.update(
+        {
+            "driver": "GTiff",
+            "height": mosaic.shape[1],
+            "width": mosaic.shape[2],
+            "transform": out_trans,
+        }
+    )
+
+    # Write the mosaic raster to disk
+    with rasterio.open(output_file, "w", **out_meta) as dest:
+        dest.write(mosaic)
+
+    # Close the files
+    for src in src_files_to_mosaic:
+        src.close()

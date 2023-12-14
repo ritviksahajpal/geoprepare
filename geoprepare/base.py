@@ -90,7 +90,7 @@ class BaseGeo:
         # Set up logger
         self.logger = log.Logger(
             dir_log=self.dir_log,
-            name_fl=self.parser.get("DEFAULT", "logfile"),
+            file=self.parser.get("DEFAULT", "logfile"),
             level=level,
         )
 

@@ -236,7 +236,7 @@ for index, row in tqdm(dg.iterrows(), desc="Iterating over shapefile", total=len
 
     obj.search_data()
     if obj.results:
-        obj.download()
+        obj.download_parallel()
 
 obj = eoaccess.EarthAccessProcessor(
     dataset=["HLSL30", "HLSS30"],

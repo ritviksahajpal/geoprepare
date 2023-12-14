@@ -1,15 +1,17 @@
 import os
 import logging
-import rasterio
+import rasterio as rio
+import rioxarray as rxr
 from pathlib import Path
 import earthaccess as ea
 import geopandas as gpd
 from tqdm import tqdm
 from dataclasses import dataclass
 from collections import defaultdict
-from rasterio.merge import merge
+from multiprocessing import Pool, cpu_count
 
 from .. import log
+from .. import utils
 
 
 @dataclass
@@ -50,8 +52,8 @@ class NASAEarthAccess:
         # Create logging directory if it does not exist
         self.logger = log.Logger(
             dir_log=self.output_dir / "logs",
-            name_project=self.logging_project,
-            name_fl=self.logging_file,
+            project=self.logging_project,
+            file=self.logging_file,
             level=self.logging_level,
         )
 
@@ -77,11 +79,19 @@ class NASAEarthAccess:
         except Exception as e:
             raise RuntimeError(f"Search failed for {self.dataset}, error: {e}")
 
-    def download(self):
-        files = ea.download(self.results, self.output_dir)
+    @staticmethod
+    def download(item):
+        result, output_dir = item
+        ea.download([result], str(output_dir))
 
-        self.logger.info(f"Downloading {len(files)} files")
+    def download_parallel(self):
+        # Create a list of tuples containing result and output_dir
+        combinations = [(result, self.output_dir) for result in self.results]
 
+        num_cpu = int(cpu_count() * 0.6)
+        with Pool(num_cpu) as p:
+            for i, _ in enumerate(p.imap_unordered(self.download, combinations)):
+                pass
 
 @dataclass
 class EarthAccessProcessor:
@@ -107,6 +117,13 @@ class EarthAccessProcessor:
         # Create mosaic directory within output directory
         self.mosaic_dir = Path(os.path.join(self.input_dir, "mosaic"))
         os.makedirs(self.mosaic_dir, exist_ok=True)
+
+    def get_ts(self):
+        # Loop over shapefile
+        dg = gpd.read_file(self.shapefile)
+        for index, row in tqdm(dg.iterrows(), desc="Getting time-series"):
+            breakpoint()
+            pass
 
     def mosaic(self):
         # Check if self.dataset contains either HLSS30 or HLSL30
@@ -141,67 +158,4 @@ class EarthAccessProcessor:
                     continue
 
                 tif_files = [Path(self.input_dir) / filename for filename in files]
-
-                # Read the tif files
-                src_files_to_mosaic = []
-                for fp in tif_files:
-                    src = rasterio.open(fp)
-                    src_files_to_mosaic.append(src)
-
-                # Mosaic the files
-                mosaic, out_trans = merge(src_files_to_mosaic)
-
-                # Copy the metadata
-                out_meta = src.meta.copy()
-
-                # Update the metadata
-                out_meta.update(
-                    {
-                        "driver": "GTiff",
-                        "height": mosaic.shape[1],
-                        "width": mosaic.shape[2],
-                        "transform": out_trans,
-                    }
-                )
-
-                # Write the mosaic raster to disk
-                with rasterio.open(mosaic_file, "w", **out_meta) as dest:
-                    dest.write(mosaic)
-
-                # Close the files
-                for src in src_files_to_mosaic:
-                    src.close()
-
-
-def main():
-    dg = gpd.read_file(r"D:\Users\ritvik\projects\GEOGLAM\Input\SARA\field_bound_shp\compiled.shp", engine="pyogrio")
-
-    # Convert to CRS 4326 if not already
-    if dg.crs != "EPSG:4326":
-        dg = dg.to_crs("EPSG:4326")
-
-    # Iterate over each row of the shapefile
-    for index, row in tqdm(dg.iterrows(), desc="Iterating over shapefile", total=len(dg)):
-        # Get bbox from geometry of the row
-        bbox = row.geometry.bounds
-
-        obj = NASAEarthAccess(
-            dataset=["HLSL30", "HLSS30"],
-            bbox=bbox,
-            temporal=(f"{row['year']}-01-01", f"{row['year']}-12-31"),
-            output_dir=r"D:\Users\ritvik\projects\GEOGLAM\Input\HLS\SARA",
-        )
-
-        obj.search_data()
-        if obj.results:
-            obj.download()
-
-    obj = EarthAccessProcessor(
-        dataset=["HLSL30", "HLSS30"],
-        input_dir=r"D:\Users\ritvik\projects\GEOGLAM\Input\HLS",
-        shapefile=Path(
-            r"D:\Users\ritvik\projects\GEOGLAM\Input\SARA\field_bound_shp\compiled.shp"
-        ),
-    )
-    obj.mosaic()
-
+                utils.mosaic(tif_files, mosaic_file)
