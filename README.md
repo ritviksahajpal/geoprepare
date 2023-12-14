@@ -20,6 +20,12 @@ pip install --upgrade geoprepare
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git
 ```
 
+### Local installation
+Navigate to the directory containing `setup.py` and run the following command:
+```python
+pip install .
+```
+
 ## Usage
 ```python
 from geoprepare import geoprepare, geoextract, geomerge
@@ -200,6 +206,54 @@ statistics_file = statistics.csv
 zone_file = countries.csv
 calendar_file = crop_calendar.csv
 eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
+```
+
+## Accessing EO data using the earthaccess library
+```python
+import geopandas as gpd
+from tqdm import tqdm
+from pathlib import Path
+
+from geoprepare.eoaccess import eoaccess
+
+dg = gpd.read_file(PATH_TO_SHAPEFILE, engine="pyogrio")
+
+# Convert to CRS 4326 if not already
+if dg.crs != "EPSG:4326":
+    dg = dg.to_crs("EPSG:4326")
+
+# Iterate over each row of the shapefile
+for index, row in tqdm(dg.iterrows(), desc="Iterating over shapefile", total=len(dg)):
+    # Get bbox from geometry of the row
+    bbox = row.geometry.bounds
+
+    obj = eoaccess.NASAEarthAccess(
+        dataset=["HLSL30", "HLSS30"],
+        bbox=bbox,
+        temporal=(f"{row['year']}-01-01", f"{row['year']}-12-31"),
+        output_dir=".",
+    )
+
+    obj.search_data()
+    if obj.results:
+        obj.download()
+
+obj = eoaccess.EarthAccessProcessor(
+    dataset=["HLSL30", "HLSS30"],
+    input_dir=".",
+    shapefile=Path(PATH_TO_SHAPEFILE),
+)
+obj.mosaic()
+```
+
+### Upload package to pypi
+1. Update requirements.txt
+2. Update version="A.B.C" in setup.py
+3. Navigate to the directory containing `setup.py` and run the following command:
+```python
+pip freeze > requirements.txt
+python setup.py sdist
+twine upload dist/geoprepare-A.B.C.tar.gz
 ```
 
 ## Credits
