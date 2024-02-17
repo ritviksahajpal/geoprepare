@@ -18,16 +18,48 @@
 ########################################################################################################################
 import os
 import pdb
+import requests
 import rasterio
 import itertools
 import multiprocessing
 import numpy as np
 from tqdm import tqdm
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 from datetime import datetime
 from pathlib import Path
 
 list_products = ["prelim", "final"]
 
+
+def download_CHIRPS(all_params):
+    base_url = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/"
+    type_data, year, params, dir_prelim, dir_final = all_params
+
+    # prelim data should only be downloaded for current and previous year at most
+    if type_data == 'prelim' and (params.redo_last_year and year < datetime.today().year - 1):
+        return
+
+    if type_data == 'prelim':
+        dir_out = dir_prelim
+        download_url = base_url + "prelim/global_daily/tifs/p05/" + str(year)
+    elif type_data == 'final':
+        dir_out = dir_final
+        download_url = base_url + "global_daily/tifs/p05/" + str(year)
+
+    os.makedirs(dir_out, exist_ok=True)
+    print(f'Downloading to {dir_out}')
+
+    response = requests.get(download_url)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    for link in tqdm(soup.select("a[href$='.tif.gz']"), desc=f'CHIRPS {type_data} {year}'):
+        # Name the pdf files using the last portion of each link which are unique in this case
+        filename = os.path.join(dir_out, link['href'].split('/')[-1])
+
+        if not os.path.isfile(filename):
+            with open(filename, 'wb') as f:
+                f.write(requests.get(urljoin(download_url + "/", link['href'])).content)
 
 def download(all_params):
     """
