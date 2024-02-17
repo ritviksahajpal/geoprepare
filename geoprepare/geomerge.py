@@ -13,9 +13,6 @@ from tqdm import tqdm
 
 import geopandas as gp
 
-dg = gp.read_file(r"C:\Users\ritvik\Downloads\MERRA\WoSIS-OrganicCarbon.shp")
-breakpoint()
-
 from . import base
 from . import utils
 

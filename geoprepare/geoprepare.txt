@@ -48,6 +48,11 @@ data_dir = https://gis1.servirglobal.net//data//esi//
 
 [NSIDC]
 
+[VHI]
+start_year = 1985
+data_historic = https://www.star.nesdis.noaa.gov/data/pub0018/VHPdata4users/VHP_4km_GeoTiff/
+data_current = https://www.star.nesdis.noaa.gov/pub/corp/scsb/wguo/data/Blended_VH_4km/geo_TIFF/
+
 [LST]
 num_update_days = 7
 

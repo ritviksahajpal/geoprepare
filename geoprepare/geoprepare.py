@@ -87,6 +87,11 @@ def run(path_config_file=["geoprepare.txt"]):
             from .datasets import AVHRR as obj
 
             geoprep.data_dir = geoprep.parser.get("AVHRR", "data_dir")
+        elif dataset == "VHI":
+            from .datasets import VHI as obj
+
+            geoprep.data_historic = geoprep.parser.get("VHI", "data_historic")
+            geoprep.data_current = geoprep.parser.get("VHI", "data_current")
         elif dataset == "FLDAS":
             raise NotImplementedError(f"{dataset} not implemented")
         else:

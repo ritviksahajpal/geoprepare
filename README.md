@@ -15,6 +15,14 @@
 ```python
 pip install --upgrade geoprepare
 ```
+
+Install the octvi package to download MODIS data
+```python
+pip install git+https://github.com/ritviksahajpal/octvi.git
+```
+After installing the octvi package:
+
+Downloading from the NASA distributed archives (DAACs) requires a personal app key. This key was previously provided as part of the octvi distribution, but this is no longer the case as of Version 2.0.0. Instead, users must configure the module using a new console script, octviconfig. After installation, run octviconfig to prompt the input of your personal app key. Information on obtaining app keys can be found at https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#tokens.
 ### Using Github repository (for development)
 ```python
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git
@@ -27,21 +35,36 @@ pip install .
 ```
 
 ## Usage
+* Execute the following code to download the data
 ```python
-from geoprepare import geoprepare, geoextract, geomerge
+from geoprepare import geoprepare
 
 # Provide full path to the configuration files
 # Download and preprocess data
 geoprepare.run(['PATH_TO_geoprepare.txt'])
+```
+
+* Execute the following code to extract crop masks and EO data
+```python
+from geoprepare import geoextract
 
 # Extract crop masks and EO variables
 geoextract.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
 
-# Merge EO files into one, this is needed to create AgMet graphics and to run the crop yield model
-geomerge.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
 
 ```
-Before running the code above, we need to specify the two configuration files. `geoprepare.txt` contains configuration settings for downloading and processing the input data.
+
+* Execute the following code to prepare the data for the crop yield ML model and AgMet graphics
+```python
+from geoprepare import geomerge
+
+# Merge EO files into one, this is needed to create AgMet graphics and to run the crop yield model
+geomerge.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
+```
+
+
+Before running the code above, we need to specify the two configuration files.
+`geoprepare.txt` contains configuration settings for downloading and processing the input data.
 `geoextract.txt` contains configuration settings for extracting crop masks and EO variables.
 
 ## Configuration files
