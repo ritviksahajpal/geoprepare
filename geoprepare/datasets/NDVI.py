@@ -43,7 +43,6 @@ Flags
 
 """
 
-
 ## set up logging
 import logging, os
 
@@ -51,15 +50,11 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 log = logging.getLogger(__name__)
 
 ## import modules
-import argparse
-import gdal
-import glob
-import octvi
-import shutil
-import sys
+import argparse, glob, octvi, shutil, sys
+from osgeo import gdal
+from osgeo.gdal_array import *
 import numpy as np
 from datetime import datetime, timedelta
-from gdalnumeric import *
 
 
 def generateFileName(
@@ -74,13 +69,13 @@ def generateFileName(
     Parameters
     ----------
     product:str
-            Name of imagery product (e.g. "MOD09CMG")
+        Name of imagery product (e.g. "MOD09CMG")
     year:int
-            Year of image
+        Year of image
     doy:int
-            Day of year (doy) of image
+        Day of year (doy) of image
     date:str
-            %Y-%m-%d
+        %Y-%m-%d
     """
     if year is None or doy is None:
         try:
@@ -104,9 +99,9 @@ def check8DayValidity(product: str, date: str) -> bool:
     Parameters
     ---------
     product:str
-            e.g. "MOD09CMG"
+        e.g. "MOD09CMG"
     date:str
-            %Y-%m-%d
+        %Y-%m-%d
     """
     for i in range(0, 9):
         compDate = (datetime.strptime(date, "%Y-%m-%d") + timedelta(days=i)).strftime(
@@ -128,7 +123,7 @@ def scaleConversion_glamToMark(in_file: str) -> None:
     Parameters
     ----------
     in_file:str
-            Path to the image file to be converted
+        Path to the image file to be converted
 
     """
     ## define intermediate filename
@@ -151,15 +146,13 @@ def scaleConversion_glamToMark(in_file: str) -> None:
     ds = ds_band = None
 
     ## convert array values
-    arr = (arr * 0.02) + 50
+    arr = ((arr * .02) + 50)
     arr[arr == -10] = 255
     arr = np.uint8(arr)
 
     ## write to file
-    driver = gdal.GetDriverByName("GTiff")
-    dataset = driver.Create(
-        in_file, rasterXSize, rasterYSize, 1, gdal.GDT_Byte, ["COMPRESS=LZW"]
-    )
+    driver = gdal.GetDriverByName('GTiff')
+    dataset = driver.Create(in_file, rasterXSize, rasterYSize, 1, gdal.GDT_Byte, ['COMPRESS=LZW'])
     dataset.GetRasterBand(1).WriteArray(arr)
     dataset.GetRasterBand(1).SetNoDataValue(255)
     dataset.SetGeoTransform(gt)
