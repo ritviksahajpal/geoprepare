@@ -1,9 +1,12 @@
 import os
 import tarfile
 import requests
+import rioxarray
+import xarray as xr
 from tqdm import tqdm
 import multiprocessing
 from osgeo import gdal, osr
+from pathlib import Path
 from osgeo.gdalnumeric import *
 from bs4 import BeautifulSoup
 
@@ -66,45 +69,16 @@ def download_and_extract_files(links, base_url, download_folder, interim_folder=
                     tar.extractall(path=interim_folder)
 
 
-def convert_to_global(params, input_vhi_file, output_global_file):
-
-    # Then rematch tif file to correct resolution
-    if not os.path.isfile(final_fl):
-        xds = xr.open_dataarray(prelim_fl)
-        xds_match = xr.open_dataarray(template_fl)
+def convert_to_global(input_vhi_file, output_global_file):
+    # Rematch tif file to correct resolution
+    if not os.path.isfile(output_global_file):
+        xds = xr.open_dataarray(input_vhi_file)
+        # Get directory for code
+        dir_code = Path(os.path.dirname(os.path.realpath(__file__)))
+        xds_match = xr.open_dataarray(dir_code / "template.tif")
 
         xds_repr_match = xds.rio.reproject_match(xds_match)
-        xds_repr_match.rio.to_raster(final_fl)
-
-    # Define the spatial resolution (degrees per pixel) - for example, 1 degree.
-    # This means each pixel represents 1 degree of latitude/longitude.
-    x_res = 0.05
-    y_res = 0.05
-
-    # Calculate the dimensions based on the global extent and resolution
-    x_size = int(360 / x_res)
-    y_size = int(180 / y_res)
-    breakpoint()
-    # Create the raster dataset
-    driver = gdal.GetDriverByName('GTiff')
-    dataset = driver.Create(input_vhi_file, x_size, y_size, 1, gdal.GDT_Float32)
-
-    # Set the geo-transform (maps pixel coordinates to geographic coordinates)
-    # GeoTransform parameters are: top left x, w-e pixel resolution, rotation (0 if North is up),
-    # top left y, rotation (0 if North is up), and n-s pixel resolution (negative since coordinates decrease from North to South).
-    dataset.SetGeoTransform([-180, x_res, 0, 90, 0, -y_res])
-
-    # Define the spatial reference (WGS84)
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(4326)  # EPSG for WGS84
-    dataset.SetProjection(srs.ExportToWkt())
-
-    # Get the raster band and fill it with zeros
-    band = dataset.GetRasterBand(1)
-    band.Fill(0)
-
-    # Close the dataset to flush changes
-    dataset = None
+        xds_repr_match.rio.to_raster(output_global_file)
 
 
 def process(all_params):
@@ -139,12 +113,14 @@ def process(all_params):
     filelist = list(interim_folder.glob("*VCI.tif"))
     pbar = tqdm(filelist, total=len(filelist))
     for f in pbar:
-        output_global_file = params.dir_interim / "vhi" / "global" / f.name
+        dir_global = params.dir_interim / "vhi" / "global"
+        os.makedirs(dir_global, exist_ok=True)
+        output_global_file = dir_global / f.name
         pbar.set_description(f"Converting to global: {f.name}")
         pbar.update()
 
         if not os.path.isfile(output_global_file):
-            convert_to_global(params, f, output_global_file)
+            convert_to_global(f, output_global_file)
 
 
 def run(params):
