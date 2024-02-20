@@ -40,17 +40,19 @@ profile = {
     "interleave": "band",
 }
 
-variable_names = {  #'Temperature_Air_2m_Mean_24h': ['2m_temperature', '24_hour_mean'],
-    #'Temperature_Air_2m_Mean_Day_Time': ['2m_temperature', 'day_time_mean'],
-    #'Temperature_Air_2m_Mean_Night_Time': ['2m_temperature', 'night_time_mean'],
-    #'Dew_Point_Temperature_2m_Mean': ['2m_dewpoint_temperature', '24_hour_mean'],
+variable_names = {
+    "Temperature_Air_2m_Mean_24h": ["2m_temperature", "24_hour_mean"],
+    "Temperature_Air_2m_Mean_Day_Time": ["2m_temperature", "day_time_mean"],
+    "Temperature_Air_2m_Mean_Night_Time": ["2m_temperature", "night_time_mean"],
+    "Dew_Point_Temperature_2m_Mean": ["2m_dewpoint_temperature", "24_hour_mean"],
     "Temperature_Air_2m_Max_24h": ["2m_temperature", "24_hour_maximum"],
     "Temperature_Air_2m_Min_24h": ["2m_temperature", "24_hour_minimum"],
-    #'Temperature_Air_2m_Max_Day_Time': ['2m_temperature', 'day_time_maximum'],
-    #'Temperature_Air_2m_Min_Night_Time': ['2m_temperature', 'night_time_minimum'],
+    "Temperature_Air_2m_Max_Day_Time": ["2m_temperature", "day_time_maximum"],
+    "Temperature_Air_2m_Min_Night_Time": ["2m_temperature", "night_time_minimum"],
     "Precipitation_Flux": ["precipitation_flux", None],
+    "Snow_Thickness_Mean": ["snow_thickness", "24_hour_mean"],
     "Solar_Radiation_Flux": ["solar_radiation_flux", None],
-    #'Vapour_Pressure_Mean': ['vapour_pressure', '24_hour_mean'],
+    "Vapour_Pressure_Mean": ["vapour_pressure", "24_hour_mean"],
 }
 
 
@@ -236,6 +238,7 @@ def download_nc(inputs, version="1.0"):
                     c.retrieve(
                         "sis-agrometeorological-indicators",
                         {
+                            'version': '1_1',
                             "variable": variable,
                             "statistic": statistic,
                             "year": str(year),
@@ -249,6 +252,7 @@ def download_nc(inputs, version="1.0"):
                     c.retrieve(
                         "sis-agrometeorological-indicators",
                         {
+                            'version': '1_1',
                             "variable": variable,
                             "year": str(year),
                             "month": str(mon).zfill(2),
@@ -331,7 +335,8 @@ def run(params):
         exit(1)
 
     for variable in variable_names.keys():
-        download_parallel_nc(c, params, path_download, path_nc, variable)
+        if variable in params.variables:
+            download_parallel_nc(c, params, path_download, path_nc, variable)
 
     parallel_process_agERA5(params)
 

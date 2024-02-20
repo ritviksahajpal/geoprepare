@@ -146,13 +146,15 @@ def scaleConversion_glamToMark(in_file: str) -> None:
     ds = ds_band = None
 
     ## convert array values
-    arr = ((arr * .02) + 50)
+    arr = (arr * 0.02) + 50
     arr[arr == -10] = 255
     arr = np.uint8(arr)
 
     ## write to file
-    driver = gdal.GetDriverByName('GTiff')
-    dataset = driver.Create(in_file, rasterXSize, rasterYSize, 1, gdal.GDT_Byte, ['COMPRESS=LZW'])
+    driver = gdal.GetDriverByName("GTiff")
+    dataset = driver.Create(
+        in_file, rasterXSize, rasterYSize, 1, gdal.GDT_Byte, ["COMPRESS=LZW"]
+    )
     dataset.GetRasterBand(1).WriteArray(arr)
     dataset.GetRasterBand(1).SetNoDataValue(255)
     dataset.SetGeoTransform(gt)

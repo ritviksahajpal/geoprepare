@@ -42,24 +42,29 @@ def run(path_config_file=["geoprepare.txt"]):
             geoprep.fill_value = geoprep.parser.getint("CHIRPS", "fill_value")
             geoprep.prelim = geoprep.parser.get("CHIRPS", "prelim")
             geoprep.final = geoprep.parser.get("CHIRPS", "final")
-        elif dataset == "NDVI":
+        elif dataset in ["NDVI", "VIIRS"]:
             from .datasets import NDVI as obj
 
             # product vi start_year scale_glam scale_mark print_missing
-            geoprep.product = geoprep.parser.get("NDVI", "product")
-            geoprep.vi = geoprep.parser.get("NDVI", "vi")
-            geoprep.start_year = geoprep.parser.getint("NDVI", "start_year")
+            geoprep.product = geoprep.parser.get(dataset, "product")
+            geoprep.vi = geoprep.parser.get(dataset, "vi")
+            geoprep.start_year = geoprep.parser.getint(dataset, "start_year")
+            # Use GLAM scaling NDVI * 10000
             geoprep.scale_glam = geoprep.parser.getboolean(
-                "NDVI", "scale_glam"
-            )  # Use GLAM scaling NDVI * 10000
+                dataset, "scale_glam"
+            )
+            # Use Mark's scaling (NDVI * 200) + 50
             geoprep.scale_mark = geoprep.parser.getboolean(
-                "NDVI", "scale_mark"
-            )  # Use Mark's scaling (NDVI * 200) + 50
+                dataset, "scale_mark"
+            )
+            # Print missing dates (+status) and exit
             geoprep.print_missing = geoprep.parser.getboolean(
-                "NDVI", "print_missing"
-            )  # Print missing dates (+status) and exit
+                dataset, "print_missing"
+            )
         elif dataset == "AGERA5":
             from .datasets import AgERA5 as obj
+
+            geoprep.variables = ast.literal_eval(geoprep.parser.get("AGERA5", "variables"))
         elif dataset == "CHIRPS-GEFS":
             from .datasets import CHIRPS_GEFS as obj
 
@@ -90,8 +95,8 @@ def run(path_config_file=["geoprepare.txt"]):
         elif dataset == "VHI":
             from .datasets import VHI as obj
 
-            geoprep.data_historic = geoprep.parser.get("VHI", "data_historic")
-            geoprep.data_current = geoprep.parser.get("VHI", "data_current")
+            geoprep.url_historic = geoprep.parser.get("VHI", "data_historic")
+            geoprep.url_current = geoprep.parser.get("VHI", "data_current")
         elif dataset == "FLDAS":
             raise NotImplementedError(f"{dataset} not implemented")
         else:
