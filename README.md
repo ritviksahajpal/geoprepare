@@ -11,6 +11,36 @@
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
 
 ## Installation
+### Install Anaconda
+We recommend that you use the conda package manager to install the `geoprepare` library and all its
+dependencies. If you do not have it installed already, you can get it from the [Anaconda distribution](https://www.anaconda.com/distribution)
+
+### Using the CDS API
+If you intend to download AgERA5 data, you will need to install the CDS API.
+You can do this by following the instructions [here](https://cds.climate.copernicus.eu/api-how-to)
+
+### Create a new conda environment (optional but highly recommended)
+`geoprepare` requires multiple Python GIS packages including `gdal` and `rasterio`. These packages are not always easy
+to install, especially on Windows. To make the process easier, you can optionally create a new environment using the
+following commands, specify the python version you have on your machine (python >= 3.9 is recommended). we use the `pygis` library
+to install multiple Python GIS packages including `gdal` and `rasterio`.
+
+```python
+conda create --name <name_of_environment> python=3.x
+conda activate <name_of_environment>
+conda install -c conda-forge mamba
+mamba install -c conda-forge gdal
+mamba install -c conda-forge rasterio
+mamba install -c conda-forge xarray
+mamba install -c conda-forge rioxarray
+mamba install -c conda-forge pyresample
+mamba install -c conda-forge cdsapi
+mamba install -c conda-forge pygis
+pip install wget
+pip install pyl4c
+```
+
+
 ### Using PyPi (default)
 ```python
 pip install --upgrade geoprepare
@@ -20,9 +50,12 @@ Install the octvi package to download MODIS data
 ```python
 pip install git+https://github.com/ritviksahajpal/octvi.git
 ```
-After installing the octvi package:
 
-Downloading from the NASA distributed archives (DAACs) requires a personal app key. This key was previously provided as part of the octvi distribution, but this is no longer the case as of Version 2.0.0. Instead, users must configure the module using a new console script, octviconfig. After installation, run octviconfig to prompt the input of your personal app key. Information on obtaining app keys can be found at https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#tokens.
+Downloading from the NASA distributed archives (DAACs) requires a personal app key. Users must
+configure the module using a new console script, `octviconfig`. After installation, run `octviconfig`
+in your command prompt to prompt the input of your personal app key. Information on obtaining app keys
+can be found [here](https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#tokens)
+
 ### Using Github repository (for development)
 ```python
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git
@@ -41,7 +74,7 @@ from geoprepare import geoprepare
 
 # Provide full path to the configuration files
 # Download and preprocess data
-geoprepare.run(['PATH_TO_geoprepare.txt'])
+geoprepare.run([r"PATH_TO_geoprepare.txt"])
 ```
 
 * Execute the following code to extract crop masks and EO data
@@ -49,9 +82,7 @@ geoprepare.run(['PATH_TO_geoprepare.txt'])
 from geoprepare import geoextract
 
 # Extract crop masks and EO variables
-geoextract.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
-
-
+geoextract.run([r"PATH_TO_geoprepare.txt", r"PATH_TO_geoextract.txt"])
 ```
 
 * Execute the following code to prepare the data for the crop yield ML model and AgMet graphics
@@ -59,23 +90,23 @@ geoextract.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
 from geoprepare import geomerge
 
 # Merge EO files into one, this is needed to create AgMet graphics and to run the crop yield model
-geomerge.run(['PATH_TO_geoprepare.txt', 'PATH_TO_geoextract.txt'])
+geomerge.run([r"PATH_TO_geoprepare.txt", r"PATH_TO_geoextract.txt"])
 ```
 
 
-Before running the code above, we need to specify the two configuration files.
-`geoprepare.txt` contains configuration settings for downloading and processing the input data.
-`geoextract.txt` contains configuration settings for extracting crop masks and EO variables.
+Before running the code above, we need to specify the two configuration files:
+* `geoprepare.txt` contains configuration settings for downloading and processing the input data.
+* `geoextract.txt` contains configuration settings for extracting crop masks and EO variables.
 
 ## Configuration files
 ### geoprepare.txt
-`datasets`: Specify which datasets need to be downloaded and processed
-`dir_base`: Path where to store the downloaded and processed files
-`start_year`, `end_year`: Specify time-period for which data should be downloaded and processed
-`logfile`: What directory name to use for the log files
-`level`: Which level to use for [logging](https://www.loggly.com/ultimate-guide/python-logging-basics/)
-`parallel_process`: Whether to use multiple CPUs
-`fraction_cpus`: What fraction of available CPUs to use
+* `datasets`: Specify which datasets need to be downloaded and processed
+* `dir_base`: Path where to store the downloaded and processed files
+* `start_year`, `end_year`: Specify time-period for which data should be downloaded and processed
+* `logfile`: What directory name to use for the log files
+* `level`: Which level to use for [logging](https://www.loggly.com/ultimate-guide/python-logging-basics/)
+* `parallel_process`: Whether to use multiple CPUs
+* `fraction_cpus`: What fraction of available CPUs to use
 ```python
 [DATASETS]
 datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
@@ -143,14 +174,14 @@ end_year = 2022
 ```
 
 ### geoextract.txt
-`countries`: List of countries to process
-`forecast_seasons`: List of seasons to process
-`mask`: Name of file to use as a mask for cropland/croptype
-`redo`: Redo the processing for all days (`True`) or only days with new data (`False`)
-`threshold`: Use a `threshold` value (`True`) or a `percentile` (`False`) on the cropland/croptype mask
-`floor`: Value below which to set the mask to 0
-`ceil`: Value above which to set the mask to 1
-`eo_model`: List of datasets to extract from
+* `countries`: List of countries to process
+* `forecast_seasons`: List of seasons to process
+* `mask`: Name of file to use as a mask for cropland/croptype
+* `redo`: Redo the processing for all days (`True`) or only days with new data (`False`)
+* `threshold`: Use a `threshold` value (`True`) or a `percentile` (`False`) on the cropland/croptype mask
+* `floor`: Value below which to set the mask to 0
+* `ceil`: Value above which to set the mask to 1
+* `eo_model`: List of datasets to extract from
 ```python
 [kenya]
 category = EWCM
