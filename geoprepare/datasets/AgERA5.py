@@ -69,7 +69,7 @@ def get_list_days(year, month):
 
 
 def create_target_fname(
-    meteo_variable_full_name, sday, agera5_dir, stat="final", v="1.0"
+    meteo_variable_full_name, sday, agera5_dir, stat="final", v="1.1"
 ):
     """
     Creates the AgERA5 variable filename for given variable and day
@@ -201,7 +201,7 @@ def parallel_process_agERA5(params):
             process_agERA5(val)
 
 
-def download_nc(inputs, version="1.0"):
+def download_nc(inputs, version="1.1"):
     """
 
     Args:
@@ -228,7 +228,7 @@ def download_nc(inputs, version="1.0"):
         if sday > (datetime.now() - timedelta(days=10)).strftime("%Y%m%d"):
             break
 
-        fname = create_target_fname(varname, sday, path_nc / varname)
+        fname = create_target_fname(varname, sday, path_nc / varname, v="1.1")
         fzip = path_download / varname / f"{varname}_{sday}_{statistic}-v{version}.zip"
 
         # Check if netCDF file already exists, if not then download it

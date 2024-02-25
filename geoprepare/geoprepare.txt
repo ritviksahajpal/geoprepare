@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['VIIRS', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS', 'CPC', 'NDVI']
+datasets = ['FPAR', 'VIIRS', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS', 'CPC', 'NDVI']
 ; 'LST', 'CPC', 'AVHRR', 'AGERA5'
 
 [PATHS]
@@ -66,6 +66,9 @@ print_missing = False
 
 [SOIL-MOISTURE]
 data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
+
+[FPAR]
+data_url = https://agricultural-production-hotspots.ec.europa.eu/data/indicators_fpar/fpar/
 
 [LOGGING]
 level = ERROR

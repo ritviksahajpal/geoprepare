@@ -100,14 +100,14 @@ def process(all_params):
     # Unzip the downloaded .tar.gz files
     interim_folder = params.dir_interim / "vhi" / "unzipped"
     os.makedirs(interim_folder, exist_ok=True)
-    # download_and_extract_files(tar_gz_links, params.url_historic, download_folder, interim_folder)
-    #
-    # # Download the present data which is in the form of .tif files
-    # response_text = get_webpage_content(params.url_current)
-    # soup = BeautifulSoup(response_text, 'html.parser')
-    # tif_links = find_links(soup, ".tif")
-    #
-    # download_and_extract_files(tif_links, params.url_current, interim_folder)
+    download_and_extract_files(tar_gz_links, params.url_historic, download_folder, interim_folder)
+
+    # Download the present data which is in the form of .tif files
+    response_text = get_webpage_content(params.url_current)
+    soup = BeautifulSoup(response_text, 'html.parser')
+    tif_links = find_links(soup, ".tif")
+
+    download_and_extract_files(tif_links, params.url_current, interim_folder)
 
     # Convert all files to global data
     filelist = list(interim_folder.glob("*VCI.tif"))

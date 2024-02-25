@@ -66,58 +66,6 @@ def download_CHIRPS(all_params):
                 f.write(requests.get(urljoin(download_url + "/", link["href"])).content)
 
 
-def download(all_params):
-    """
-    Preliminary CHIRPS data: /pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/
-    Final CHIRPS data: /pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/
-    Download CHIRPS preliminary and final files
-    store prelim in: /download/chirps/prelim
-    store final in: /download/chirps/final.
-
-    Args:
-        all_params ():
-
-    Returns:
-
-    """
-    from ftplib import FTP
-
-    type_data, year, params, dir_prelim, dir_final = all_params
-
-    # prelim data should only be downloaded for current and previous year at most
-    if type_data == "prelim" and (
-        params.redo_last_year and year < datetime.today().year - 1
-    ):
-        return
-
-    with FTP("ftp.chc.ucsb.edu", "anonymous") as ftp:
-        if type_data == "prelim":
-            try:
-                ftp.cwd(params.prelim + str(year))
-            except Exception as e:
-                params.logger.error(f"Could not connect to FTP server: {e}")
-                return SystemError(f"Encountered error {e}")
-            dir_out = dir_prelim
-
-        if type_data == "final":
-            ftp.cwd(params.final + str(year))
-            dir_out = dir_final
-
-        os.makedirs(dir_out, exist_ok=True)
-
-        list_files = ftp.nlst()
-
-        for fl in tqdm(list_files, desc=f"Downloading {type_data} CHIRPS"):
-            if fl.find("chirps") > -1:
-                local_filename = os.path.join(dir_out, fl)
-
-                if os.path.isfile(dir_out / fl):
-                    pass
-                else:
-                    with open(local_filename, "wb") as lf:
-                        ftp.retrbinary("RETR " + fl, lf.write)
-
-
 def unzip(all_params):
     """
     Store CHIRPS preliminary unzipped (/interim/chirps/prelim/unzipped)
@@ -272,7 +220,7 @@ def run(params):
             )
 
     for val in all_params:
-        download(val)
+        download_CHIRPS(val)
 
     ##########
     # Unzip

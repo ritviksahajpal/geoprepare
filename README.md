@@ -40,12 +40,6 @@ pip install wget
 pip install pyl4c
 ```
 
-
-### Using PyPi (default)
-```python
-pip install --upgrade geoprepare
-```
-
 Install the octvi package to download MODIS data
 ```python
 pip install git+https://github.com/ritviksahajpal/octvi.git
@@ -55,6 +49,12 @@ Downloading from the NASA distributed archives (DAACs) requires a personal app k
 configure the module using a new console script, `octviconfig`. After installation, run `octviconfig`
 in your command prompt to prompt the input of your personal app key. Information on obtaining app keys
 can be found [here](https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#tokens)
+
+
+### Using PyPi (default)
+```python
+pip install --upgrade geoprepare
+```
 
 ### Using Github repository (for development)
 ```python

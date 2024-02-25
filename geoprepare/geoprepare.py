@@ -97,6 +97,10 @@ def run(path_config_file=["geoprepare.txt"]):
 
             geoprep.url_historic = geoprep.parser.get("VHI", "data_historic")
             geoprep.url_current = geoprep.parser.get("VHI", "data_current")
+        elif dataset == "FPAR":
+            from .datasets import FPAR as obj
+
+            geoprep.data_url = geoprep.parser.get("FPAR", "data_url")
         elif dataset == "FLDAS":
             raise NotImplementedError(f"{dataset} not implemented")
         else:

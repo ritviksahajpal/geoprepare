@@ -67,7 +67,6 @@ from urllib.parse import urlparse
 from urllib.request import urlopen, Request, build_opener, HTTPCookieProcessor
 from urllib.error import HTTPError, URLError
 
-import constants_preprocess as constants
 
 short_name = "SPL4SMGP"
 version = "007"

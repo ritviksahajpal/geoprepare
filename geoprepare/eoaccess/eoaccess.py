@@ -1,6 +1,7 @@
 import os
 import logging
 import rasterio as rio
+import xarray as xr
 import rioxarray as rxr
 from pathlib import Path
 import earthaccess as ea
@@ -37,9 +38,8 @@ class NASAEarthAccess:
         if self.shapefile:
             self.get_bbox_from_shapefile()
 
-        try:
-            ea.login(strategy=self.login_strategy)
-        except ea.exceptions.LoginError:
+        auth = ea.login(strategy=self.login_strategy)
+        if not auth.authenticated:
             ea.login(strategy="interactive", persist=True)
 
         # Change output_dir to Path if it is a string
@@ -78,6 +78,32 @@ class NASAEarthAccess:
             )
         except Exception as e:
             raise RuntimeError(f"Search failed for {self.dataset}, error: {e}")
+
+    def stream(self):
+        fileset = ea.open(self.results)
+
+        print(f" Using {type(fileset[0])} filesystem")
+        # Open each file with rioxarray and store in a list
+        datasets = [rxr.open_rasterio(file) for file in fileset]
+
+        # Concatenate datasets with a progress bar
+        with tqdm(total=len(datasets), desc="Concatenating datasets") as pbar:
+            def concat_with_progress(ds_list):
+                for ds in ds_list:
+                    yield ds
+                    pbar.update(1)
+
+            merged_dataset = xr.concat(concat_with_progress(datasets), dim='new_dimension')
+            breakpoint()
+
+        # Merge the datasets
+        # This example uses concat along a new dimension; adjust as needed
+        merged_dataset = xr.concat(datasets)
+
+        breakpoint()
+        ds = xr.open_mfdataset(fileset)
+        ds
+        breakpoint()
 
     @staticmethod
     def download(item):
