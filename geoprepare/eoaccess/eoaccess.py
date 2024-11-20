@@ -80,7 +80,7 @@ class NASAEarthAccess:
     def stream(self):
         fileset = ea.open(self.results)
 
-        print(f" Using {type(fileset[0])} filesystem")
+        print(f"Using {type(fileset[0])} filesystem")
         datasets = [rxr.open_rasterio(file) for file in fileset]
 
         with tqdm(total=len(datasets), desc="Concatenating datasets") as pbar:
@@ -91,9 +91,8 @@ class NASAEarthAccess:
 
             merged_dataset = xr.concat(concat_with_progress(datasets), dim='new_dimension')
 
-        merged_dataset = xr.concat(datasets)
         ds = xr.open_mfdataset(fileset)
-        ds
+        return ds
 
     @staticmethod
     def download(item):
@@ -106,11 +105,12 @@ class NASAEarthAccess:
 
         try:
             with Pool(num_cpu) as p:
-                for i, _ in enumerate(p.imap_unordered(self.download, combinations)):
+                for _ in tqdm(p.imap_unordered(self.download, combinations), total=len(combinations)):
                     pass
         finally:
             p.close()
             p.join()
+
 
 @dataclass
 class EarthAccessProcessor:
@@ -126,7 +126,7 @@ class EarthAccessProcessor:
         if self.bbox and self.shapefile:
             raise ValueError("Both bbox and shapefile cannot be specified")
 
-        self.mosaic_dir = Path(os.path.join(self.input_dir, "mosaic"))
+        self.mosaic_dir = Path(self.input_dir) / "mosaic"
         os.makedirs(self.mosaic_dir, exist_ok=True)
 
     def get_ts(self):
@@ -176,12 +176,7 @@ class EarthAccessProcessor:
             # Call mosaic utility function
             utils.mosaic(tif_files, mosaic_file)
 
-    import numpy as np
-    import rioxarray as rxr
-    from pathlib import Path
-    from tqdm import tqdm
-
-    def create_quality_mask(quality_data, bit_nums: list = [1, 2, 3, 4, 5]):
+    def create_quality_mask(self, quality_data, bit_nums: list = [1, 2, 3, 4, 5]):
         """
         Uses the Fmask layer and bit numbers to create a binary mask of good pixels.
         By default, bits 1-5 are used to remove bad pixels like cloud, shadow, snow.
@@ -193,14 +188,14 @@ class EarthAccessProcessor:
         Returns:
         - mask_array: A binary mask where 1 indicates bad pixels, 0 indicates good pixels.
         """
-        mask_array = np.zeros((quality_data.shape[0], quality_data.shape[1]))
+        mask_array = np.zeros(quality_data.shape, dtype=bool)
 
         # Replace NaNs with 0 and convert to integer
-        quality_data = np.nan_to_num(quality_data, 0).astype(np.int8)
+        quality_data = np.nan_to_num(quality_data, nan=0).astype(np.int8)
 
         # Iterate through the bits to generate the mask
         for bit in bit_nums:
-            mask_temp = np.array(quality_data) & 1 << bit > 0
+            mask_temp = (quality_data & (1 << bit)) > 0
             mask_array = np.logical_or(mask_array, mask_temp)
 
         return mask_array
@@ -222,7 +217,7 @@ class EarthAccessProcessor:
         output_dir = Path(output_dir)
         os.makedirs(output_dir, exist_ok=True)
 
-        # Open the red, NIR, green, and blue bands with scaling
+        # Open the bands with scaling
         scale_factor = 0.0001
         red_band = rxr.open_rasterio(red_band_file).squeeze() * scale_factor
         nir_band = rxr.open_rasterio(nir_band_file).squeeze() * scale_factor
@@ -236,7 +231,7 @@ class EarthAccessProcessor:
         bit_nums = [1, 2, 3, 4, 5]  # Define which bits to use for masking (can be adjusted)
         mask_layer = self.create_quality_mask(fmask.data, bit_nums)
 
-        # Apply the QA mask to each band (good pixels are where mask_layer == 0)
+        # Apply the QA mask to each band (good pixels are where mask_layer == False)
         red_band = red_band.where(~mask_layer)
         nir_band = nir_band.where(~mask_layer)
         green_band = green_band.where(~mask_layer)
@@ -264,58 +259,71 @@ class EarthAccessProcessor:
                 print(f"{index} already exists, skipping computation.")
                 continue
 
-            if index_functions.get(index) is not None:
-                # Call the appropriate index function and save the result
-                index_functions[index](red_band, nir_band, green_band, blue_band, output_file, swir_band_file,
-                                       red_edge_band_file)
+            index_function = index_functions.get(index)
+            if index_function is not None:
+                # Prepare the arguments based on the index
+                if index == 'NDMI':
+                    index_function(nir_band, output_file, swir_band_file)
+                elif index == 'RENDVI':
+                    index_function(nir_band, output_file, red_edge_band_file)
+                else:
+                    index_function(red_band, nir_band, green_band, blue_band, output_file)
             else:
                 print(f"{index} is not available or missing necessary bands (e.g., SWIR or Red Edge).")
 
     # Functions to compute individual indices
-    def compute_ndvi(self, red_band, nir_band, *_):
+    def compute_ndvi(self, red_band, nir_band, *args):
+        output_file = args[-1]
         ndvi = (nir_band - red_band) / (nir_band + red_band)
-        ndvi.rio.to_raster(_[0])
+        ndvi.rio.to_raster(output_file)
 
-    def compute_gcvi(self, red_band, nir_band, green_band, *_):
+    def compute_gcvi(self, red_band, nir_band, green_band, *args):
+        output_file = args[-1]
         gcvi = (nir_band / green_band) - 1
-        gcvi.rio.to_raster(_[0])
+        gcvi.rio.to_raster(output_file)
 
-    def compute_evi(self, red_band, nir_band, green_band, blue_band, output_file, *_):
+    def compute_evi(self, red_band, nir_band, green_band, blue_band, *args):
+        output_file = args[-1]
         evi = 2.5 * (nir_band - red_band) / (nir_band + 6 * red_band - 7.5 * blue_band + 1)
         evi.rio.to_raster(output_file)
 
-    def compute_savi(self, red_band, nir_band, *_):
+    def compute_savi(self, red_band, nir_band, *args):
+        output_file = args[-1]
         L = 0.5
         savi = ((nir_band - red_band) / (nir_band + red_band + L)) * (1 + L)
-        savi.rio.to_raster(_[0])
+        savi.rio.to_raster(output_file)
 
-    def compute_msavi(self, red_band, nir_band, *_):
+    def compute_msavi(self, red_band, nir_band, *args):
+        output_file = args[-1]
         msavi = (2 * nir_band + 1 - np.sqrt((2 * nir_band + 1) ** 2 - 8 * (nir_band - red_band))) / 2
-        msavi.rio.to_raster(_[0])
+        msavi.rio.to_raster(output_file)
 
-    def compute_ndwi(self, red_band, nir_band, green_band, *_):
+    def compute_ndwi(self, red_band, nir_band, green_band, *args):
+        output_file = args[-1]
         ndwi = (green_band - nir_band) / (green_band + nir_band)
-        ndwi.rio.to_raster(_[0])
+        ndwi.rio.to_raster(output_file)
 
-    def compute_gndvi(self, red_band, nir_band, green_band, *_):
+    def compute_gndvi(self, red_band, nir_band, green_band, *args):
+        output_file = args[-1]
         gndvi = (nir_band - green_band) / (nir_band + green_band)
-        gndvi.rio.to_raster(_[0])
+        gndvi.rio.to_raster(output_file)
 
-    def compute_arvi(self, red_band, nir_band, green_band, blue_band, output_file, *_):
+    def compute_arvi(self, red_band, nir_band, green_band, blue_band, *args):
+        output_file = args[-1]
         arvi = (nir_band - (2 * red_band - blue_band)) / (nir_band + (2 * red_band - blue_band))
         arvi.rio.to_raster(output_file)
 
-    def compute_ndmi(self, red_band, nir_band, green_band, blue_band, output_file, swir_band_file, *_):
-        swir_band = rxr.open_rasterio(swir_band_file)
+    def compute_ndmi(self, nir_band, output_file, swir_band_file, *args):
+        swir_band = rxr.open_rasterio(swir_band_file).squeeze() * 0.0001
         ndmi = (nir_band - swir_band) / (nir_band + swir_band)
         ndmi.rio.to_raster(output_file)
 
-    def compute_rendvi(self, red_band, nir_band, green_band, blue_band, output_file, _, red_edge_band_file):
-        red_edge_band = rxr.open_rasterio(red_edge_band_file)
+    def compute_rendvi(self, nir_band, output_file, red_edge_band_file, *args):
+        red_edge_band = rxr.open_rasterio(red_edge_band_file).squeeze() * 0.0001
         rendvi = (nir_band - red_edge_band) / (nir_band + red_edge_band)
         rendvi.rio.to_raster(output_file)
 
-    def compute_vari(self, red_band, nir_band, green_band, blue_band, output_file, *_):
+    def compute_vari(self, red_band, nir_band, green_band, blue_band, *args):
+        output_file = args[-1]
         vari = (green_band - red_band) / (green_band + red_band - blue_band)
         vari.rio.to_raster(output_file)
-
