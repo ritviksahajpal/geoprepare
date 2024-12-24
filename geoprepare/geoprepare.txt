@@ -1,10 +1,11 @@
 [DATASETS]
-datasets = ['FPAR', 'VIIRS', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS', 'CPC', 'NDVI']
-; 'LST', 'CPC', 'AVHRR', 'AGERA5'
+datasets = ['FPAR', 'NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
 
 [PATHS]
-dir_base = /gpfs/data1/cmongp1/GEOGLAM
+dir_base = D:\Users\ritvik\projects\GEOGLAM
 dir_input = ${dir_base}/Input
+dir_condition = ${dir_input}/crop_condition
+dir_crop_inputs = ${dir_condition}/crop_t20
 dir_log = ${dir_base}/log
 dir_interim = ${dir_input}/intermed
 dir_download = ${dir_input}/download
@@ -18,11 +19,9 @@ dir_crop_masks = ${dir_input}/crop_masks
 dir_models = ${dir_input}/models
 
 [AGERA5]
-start_year = 2022
-variables = ['Temperature_Air_2m_Max_24h', 'Temperature_Air_2m_Min_24h', 'Precipitation_Flux']
+variables = ['Precipitation_Flux', 'Temperature_Air_2m_Max_24h', 'Temperature_Air_2m_Min_24h']
 
 [AVHRR]
-start_year = 1985
 data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
 
 [CHIRPS]
@@ -42,11 +41,13 @@ data_dir = https://gis1.servirglobal.net//data//esi//
 
 [FLDAS]
 
+[FPAR]
+data_dir = https://agricultural-production-hotspots.ec.europa.eu//data//indicators_fpar//fpar//
+
 [LST]
 num_update_days = 7
 
 [VHI]
-start_year = 1985
 data_historic = https://www.star.nesdis.noaa.gov/data/pub0018/VHPdata4users/VHP_4km_GeoTiff/
 data_current = https://www.star.nesdis.noaa.gov/pub/corp/scsb/wguo/data/Blended_VH_4km/geo_TIFF/
 
@@ -64,11 +65,10 @@ scale_glam = False
 scale_mark = True
 print_missing = False
 
+[NSIDC]
+
 [SOIL-MOISTURE]
 data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
-
-[FPAR]
-data_url = https://agricultural-production-hotspots.ec.europa.eu/data/indicators_fpar/fpar/
 
 [LOGGING]
 level = ERROR
@@ -77,5 +77,5 @@ level = ERROR
 logfile = log
 parallel_process = False
 fraction_cpus = 0.75
-start_year = 2024
+start_year = 2001
 end_year = 2024

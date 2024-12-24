@@ -3,9 +3,11 @@
 # email: ritvik@umd.edu
 # June 18, 2022
 ###############################################################################
-import os
 import ast
 import datetime
+
+from tqdm import tqdm
+
 from . import base
 
 
@@ -34,8 +36,15 @@ def run(path_config_file=["geoprepare.txt"]):
     geoprep = GeoPrepare(path_config_file)
     datasets = ast.literal_eval(geoprep.parser.get("DATASETS", "datasets"))
 
+    geoprep.logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    geoprep.logger.info(f"Downloading: {datasets}")
+    geoprep.logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     # Loop through all datasets in parser
+    pbar = tqdm(datasets, desc="Downloading Datasets")
     for dataset in datasets:
+        pbar.set_description(f"Downloading {dataset}")
+        pbar.update()
+
         if dataset == "CHIRPS":
             from .datasets import CHIRPS as obj
 
@@ -100,7 +109,7 @@ def run(path_config_file=["geoprepare.txt"]):
         elif dataset == "FPAR":
             from .datasets import FPAR as obj
 
-            geoprep.data_url = geoprep.parser.get("FPAR", "data_url")
+            geoprep.data_dir = geoprep.parser.get("FPAR", "data_dir")
         elif dataset == "FLDAS":
             raise NotImplementedError(f"{dataset} not implemented")
         else:
@@ -112,6 +121,8 @@ def run(path_config_file=["geoprepare.txt"]):
         geoprep.pp_config(dataset)
         # Execute!
         obj.run(geoprep)
+
+    geoprep.logger.info("Finished downloading datasets")
 
 
 if __name__ == "__main__":
