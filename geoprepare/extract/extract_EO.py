@@ -18,6 +18,7 @@ import datetime
 import itertools
 import arrow as ar
 import pandas as pd
+import geopandas as gp
 from tqdm import tqdm
 from pathlib import Path
 import numpy as np
@@ -443,9 +444,111 @@ def process(val):
                     df.to_csv(path_output, index=False)
 
 
-def remove_duplicates(lst):
-    return list(set([i for i in lst]))
+def remove_duplicates(list_of_tuples):
+    """
+    Discard duplicates from 'list_of_tuples', where each item is a tuple.
+    Two tuples are considered duplicates if they match in every position
+    except for positions containing a GeoDataFrame. Any GeoDataFrame inside
+    the tuple is ignored (replaced with a placeholder when checking duplicates).
 
+    Returns a list of tuples where duplicates are removed.
+    """
+    seen = set()
+    result = []
+
+    for item in list_of_tuples:
+        # item is a tuple. Build a hashable "key" by replacing any GeoDataFrame with None.
+        # If there's *other* unhashable stuff, you might need to handle that too,
+        # but for now we'll assume only GDF can cause problems.
+        comparison_key = []
+        for val in item:
+            if isinstance(val, gp.GeoDataFrame):
+                # Replace GDF with None (or any placeholder)
+                comparison_key.append(None)
+            else:
+                comparison_key.append(val)
+
+        # Convert the list to a tuple so it's hashable
+        comparison_key = tuple(comparison_key)
+
+        # Check if we've seen this "key" before
+        if comparison_key not in seen:
+            seen.add(comparison_key)
+            result.append(item)
+
+    return result
+
+
+def process_JRC(val):
+    from .stats import geom_extract
+    params, country, crop, scale, var, year, afi_file, df_country = val
+    if scale not in ["admin_1", "admin_2"]:
+        raise ValueError(
+            f"Scale {scale} is not valid, should be either admin_1 or admin_2"
+        )
+
+    # Do not process CHIRPS forecast data if it is not for the current year
+    if var == "chirps_gefs" and year != ar.utcnow().year:
+        return
+
+    threshold = params.parser.getboolean(country, "threshold")
+    limit = utils.crop_mask_limit(params, country, threshold)
+
+    dir_crop_inputs = Path(f"crop_t{limit}") if threshold else Path(f"crop_p{limit}")
+
+    dir_output = params.dir_input / dir_crop_inputs / country / scale / crop / var
+    os.makedirs(dir_output, exist_ok=True)
+
+    # path_output = dir_output / Path(f"{region}_{region_id}_{year}_{var}_{crop}.csv")
+
+    current_year = ar.utcnow().year
+    end_doy = 367 if calendar.isleap(year) else 366
+
+    # Loop over df_country
+    # for idx, row in df_country.iterrows():
+    #     stat_str = []
+    #     nan_str = f"{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}"
+    #     hndl_outf = None
+    #
+    #     # Check if we are processing current year or in case of a previous year the REDO flag is False
+    #     # If so then only modify those lines where we do not have data currently
+    #     use_partial_file = current_year == year or (current_year > year and not params.redo)
+    #
+    #     if use_partial_file and os.path.isfile(path_outf):
+    #         with open(path_outf) as hndl_outf:
+    #             reader = csv.reader(hndl_outf)
+    #
+    #             # Exclude the header and store remaining rows into a list
+    #             list_rows = list(reader)[1:]
+    #
+    #     stat_str = []
+    #     for doy in range(1, end_doy):
+    #         if name_var == "chirps_gefs":
+    #             if doy > 1:
+    #                 break
+    #
+    #             forecast_date = ar.utcnow().shift(days=+15).date()
+    #             doy = forecast_date.timetuple().tm_yday
+    #
+    #             # Process a single date for chirps_gefs
+    #             empty_str = (
+    #                 f"{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}"
+    #             )
+    #         else:
+    #             if use_partial_file and hndl_outf and list_rows[doy - 1][5] != "nan":
+    #                 stat_str.append(",".join(list_rows[doy - 1]))
+    #                 continue
+    #
+    #             empty_str = f"{country},{region},{region_id},{year},{doy},{nan_str}"
+    #
+    #         fl_var = (
+    #             params.dir_interim
+    #             / name_var
+    #             / Path(get_var_fname(params, name_var, year, doy))
+    #         )
+    #ac = geom_extract(row["geometry"], aa, stats_out=['mean', 'counts'], afi=afi_file, afi_thresh=0, thresh_type='Fixed')
+
+    #passbreakpoint()
 
 def run(params):
     """
@@ -453,7 +556,7 @@ def run(params):
      Returns:
 
     """
-    all_comb = []
+    ac = []
     num_cpus = int(params.fraction_cpus * cpu_count()) if params.parallel_process else 1
     years = list(range(params.start_year, params.end_year + 1))
 
@@ -463,16 +566,34 @@ def run(params):
         crops = ast.literal_eval(params.parser.get(country, "crops"))
         vars = ast.literal_eval(params.parser.get(country, "eo_model"))
         scales = ast.literal_eval(params.parser.get(country, "scales"))
+        df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, "shp_boundary"),
+                                             engine="pyogrio")
+
+        # Rename ADMIN0 to ADM0_NAME and ADMIN1 to ADM1_NAME and ADMIN2 to ADM2_NAME
+        df_cmask.rename(columns={"ADMIN0": "ADM0_NAME", "ADMIN1": "ADM1_NAME", "ADMIN2": "ADM2_NAME"})
+
+        # Extract for country
+        df_country = df_cmask[df_cmask["ADM0_NAME"].str.lower().replace(" ", "_") == country]
 
         for crop in crops:
+            if use_cropland_mask:
+                path_mask = params.parser.get(country, "mask")
+            else:
+                path_mask = params.parser.get(crop, "mask")
+            path_mask = (
+                params.dir_global_datasets
+                / "masks"
+                / path_mask
+            )
+
             for scale in scales:
                 name_crop = "cr" if use_cropland_mask else crop
                 path_crop_masks = params.dir_crop_masks / country / name_crop / scale
                 crop_masks = list(path_crop_masks.glob(f"*_{name_crop}_crop_mask.tif"))
 
-                if len(crop_masks):
+                if len(crop_masks) or params.method == "JRC":
                     for var in vars:
-                        all_comb.extend(
+                        ac.extend(
                             list(
                                 itertools.product(
                                     [params],
@@ -481,49 +602,45 @@ def run(params):
                                     [scale],
                                     [var],
                                     years,
-                                    crop_masks,
+                                    [path_mask] if params.method == "JRC" else crop_masks,
+                                    [df_country],
                                 )
                             )
                         )
 
-    all_comb = remove_duplicates(all_comb)
+    ac = remove_duplicates(ac)
 
-    params.logger.error(
-        "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    )
+    params.logger.error("++++++++++++++++++++++++++++++++++++++++++++++++++++")
     params.logger.error(params.countries)
-    params.logger.error(
-        f"Spatial scale (admin_1/state or admin_2/county): {scales}, REDO flag: {params.redo}"
-    )
-    params.logger.error(
-        f"Starting year: {params.start_year}, Ending year: {params.end_year}"
-    )
+    params.logger.error(f"Spatial scale: {scales}, REDO flag: {params.redo}")
+    params.logger.error(f"Start: {params.start_year}, End: {params.end_year}")
     params.logger.error(f"EO vars to process: {vars}")
-    params.logger.error(
-        f"Number of CPUs used: {num_cpus if params.parallel_process else 1}"
-    )
+    params.logger.error(f"CPUs: {num_cpus if params.parallel_process else 1}")
     params.logger.error(f"Output directory: {params.dir_output}")
-    params.logger.error(
-        "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    )
+    params.logger.error("++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-    if params.parallel_process:
+    if params.method == "GEOGLAM":
+        func_process = process
+    elif params.method == "JRC":
+        func_process = process_JRC
+    else:
+        raise ValueError(f"{params.method} not recognized")
+
+    if False and params.parallel_process:
         with Pool(num_cpus) as p:
-            with tqdm(total=len(all_comb)) as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(process, all_comb))):
-                    pbar.set_description(
-                        f"Processing {all_comb[i][1]} {all_comb[i][2]} {all_comb[i][4]}"
-                    )
+            with tqdm(total=len(ac)) as pbar:
+                for i, _ in tqdm(enumerate(p.imap_unordered(func_process, ac))):
+                    desc = f"Processing {ac[i][1]} {ac[i][2]} {ac[i][4]}"
+                    pbar.set_description(desc)
                     pbar.update()
     else:
-        # Use the code below if you want to test without parallelization or if you want to debug by using pdb
-        pbar = tqdm(all_comb)
+        pbar = tqdm(ac)
         for i, val in enumerate(pbar):
-            pbar.set_description(
-                f"Processing {all_comb[i][1]} {all_comb[i][2]} {all_comb[i][4]}"
-            )
+            desc = f"Processing {ac[i][1]} {ac[i][2]} {ac[i][4]}"
+            pbar.set_description(desc)
             pbar.update()
-            process(val)
+
+            func_process(val)
 
 
 if __name__ == "__main__":
