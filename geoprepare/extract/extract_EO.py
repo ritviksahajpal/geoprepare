@@ -14,7 +14,6 @@ import ast
 import csv
 import glob
 import calendar
-import datetime
 import itertools
 import arrow as ar
 import pandas as pd
@@ -22,8 +21,6 @@ import geopandas as gp
 from tqdm import tqdm
 from pathlib import Path
 import numpy as np
-import bottleneck as bn
-from rasterio.io import MemoryFile
 from multiprocessing import Pool, cpu_count
 
 from .. import utils
@@ -114,336 +111,6 @@ def get_var_fname(params, var, year, doy):
     return fname
 
 
-def get_var(var, hndl_fl_var):
-    """
-    1. Reads in data from variable file handle
-    2. Converts data type to float
-    3. Assigns NaNs to values that are invalid e.g. -ve precip
-    Determines the method of masking and scaling the input data
-    :param var:
-    :param hndl_fl_var:
-    :return:
-    """
-    tmp_var = hndl_fl_var.read(1).astype(float)
-
-    if var == "ndvi":
-        tmp_var[(tmp_var > 250) | (tmp_var < 50)] = np.NaN
-    elif var == "gcvi":
-        tmp_var[(tmp_var > 200000) | (tmp_var < 0)] = np.NaN
-        tmp_var /= 10000.0
-    elif var in ["esi_4wk", "esi_12wk"]:
-        tmp_var = (tmp_var + 4.0) * 10.0
-        tmp_var[tmp_var < 0.0] = np.NaN
-    elif var in ["soil_moisture_as1", "soil_moisture_as2"]:
-        tmp_var[tmp_var < 0.0] = np.NaN
-        tmp_var[tmp_var == 9999.0] = np.NaN
-    elif var in ["chirps"]:
-        tmp_var[tmp_var < 0.0] = np.NaN
-        tmp_var /= 100.0
-    elif var in ["chirps_gefs"]:
-        tmp_var[tmp_var < 0.0] = np.NaN
-        tmp_var /= 100.0
-    elif var in ["cpc_tmax", "cpc_tmin"]:
-        tmp_var[tmp_var < -273.15] = np.NaN
-    elif var in ["lst"]:
-        tmp_var = tmp_var * 0.02 - 273.15
-        tmp_var[tmp_var < -123.15] = np.NaN
-    else:
-        tmp_var[tmp_var < 0.0] = np.NaN
-
-    return tmp_var
-
-
-def nanaverage(var, var_weights):
-    """
-    Compute weighted average taking NaNs into account
-    :param var:
-    :param var_weights:
-    :return:
-    """
-
-    indices = ~np.isnan(var)
-
-    return np.average(var[indices], weights=var_weights[indices])
-
-
-def nancount(var):
-    """
-    Compute weighted average taking NaNs into account
-    :param var:
-    :param var_weights:
-    :return:
-    """
-
-    indices = ~np.isnan(var)
-
-    return np.size(var[indices])
-
-
-def compute_single_stat(
-    fl_var, name_var, mask_crop_per, empty_str, country, region, region_id, year, doy
-):
-    """
-
-    Args:
-        fl_var ():
-        name_var ():
-        mask_crop_per ():
-        empty_str ():
-        country ():
-        region ():
-        region_id ():
-        year ():
-        doy ():
-
-    Returns:
-
-    """
-    with MemoryFile(open(fl_var, "rb").read()) as memfile:
-        with memfile.open() as fl_var:
-            arr_var = get_var(name_var, fl_var)
-            arr_crop_var = arr_var * (mask_crop_per > 0.0)
-            sum_crop_var = bn.nansum(arr_crop_var)
-
-            # if there are crop pixels but the underlying data layer has no data then sum_crop_var will be 0
-            if sum_crop_var == 0:
-                out_str = empty_str
-            else:
-                if name_var in ["esi_4wk", "esi_12wk"]:
-                    wavg_unscaled = nanaverage(arr_crop_var, mask_crop_per)
-                    weighted_average = (wavg_unscaled / 10.0) - 4.0
-                else:
-                    weighted_average = nanaverage(arr_crop_var, mask_crop_per)
-
-                crop_mask_weighted_average = mask_crop_per[
-                    ~np.isnan(arr_crop_var)
-                ]  # Crop Mask Weighted Average
-                crop_mask_weighted_average[crop_mask_weighted_average <= 0.0] = np.NaN
-                arr_crop_var[arr_crop_var <= 0.0] = np.NaN
-                num_pixels = np.count_nonzero(
-                    ~np.isnan(arr_crop_var)
-                )  # Total number of pixels (after threshold is applied)
-                median_crop_percentage = bn.nanmedian(
-                    crop_mask_weighted_average
-                )  # Median crop percentage of pixels (after threshold)
-                average_crop_percentage = bn.nanmean(
-                    crop_mask_weighted_average
-                )  # Average crop percentage of the pixels (after threshold)
-                min_crop_percentage = bn.nanmin(
-                    crop_mask_weighted_average
-                )  # Min crop percentage of pixels (after threshold)
-                max_crop_percentage = bn.nanmax(
-                    crop_mask_weighted_average
-                )  # Max crop percentage of the pixels (after threshold)
-
-                out_str = (
-                    f"{country},{region},{region_id},{year},{doy},{weighted_average},{num_pixels},{average_crop_percentage},"
-                    f"{median_crop_percentage},{min_crop_percentage},{max_crop_percentage}"
-                )
-
-    return out_str
-
-
-def compute_stats(
-    params, country, region, region_id, year, name_var, mask_crop_per, path_outf
-):
-    """
-
-    Args:
-        params ():
-        country ():
-        region ():
-        region_id ():
-        year ():
-        name_var ():
-        mask_crop_per ():
-        path_outf ():
-
-    Returns:
-
-    """
-    current_year = ar.utcnow().year
-    end_doy = 367 if calendar.isleap(year) else 366
-
-    stat_str = []
-    nan_str = f"{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}"
-    hndl_outf = None
-
-    # Check if we are processing current year or in case of a previous year the REDO flag is False
-    # If so then only modify those lines where we do not have data currently
-    use_partial_file = current_year == year or (current_year > year and not params.redo)
-
-    if use_partial_file and os.path.isfile(path_outf):
-        with open(path_outf) as hndl_outf:
-            reader = csv.reader(hndl_outf)
-
-            # Exclude the header and store remaining rows into a list
-            list_rows = list(reader)[1:]
-
-    stat_str = []
-    for doy in range(1, end_doy):
-        if name_var == "chirps_gefs":
-            if doy > 1:
-                break
-
-            forecast_date = ar.utcnow().shift(days=+15).date()
-            doy = forecast_date.timetuple().tm_yday
-
-            # Process a single date for chirps_gefs
-            empty_str = (
-                f"{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}"
-            )
-        else:
-            if use_partial_file and hndl_outf and list_rows[doy - 1][5] != "nan":
-                stat_str.append(",".join(list_rows[doy - 1]))
-                continue
-
-            empty_str = f"{country},{region},{region_id},{year},{doy},{nan_str}"
-
-        fl_var = (
-            params.dir_interim
-            / name_var
-            / Path(get_var_fname(params, name_var, year, doy))
-        )
-        if not os.path.isfile(fl_var):
-            out_str = empty_str
-        else:
-            try:
-                out_str = compute_single_stat(
-                    fl_var,
-                    name_var,
-                    mask_crop_per,
-                    empty_str,
-                    country,
-                    region,
-                    region_id,
-                    year,
-                    doy,
-                )
-            except Exception as e:
-                params.logger.error(f"{e} {fl_var} {name_var} {country} {region}")
-
-        stat_str.append(out_str)
-
-    return stat_str
-
-
-def setup(params, country, crop, scale, var, crop_mask, threshold, limit):
-    """
-
-    Args:
-        params ():
-        country ():
-        scale ():
-        crop ():
-        var ():
-        crop_mask ():
-        threshold ():
-        limit ():
-
-    Returns:
-
-    """
-    # Extracting 'kansas' from 'kansas_188017000' and finding length to extract 9 digit number
-    # the \d{9} bit matches exactly 9 digits. the bit of the regex that is in (?= ... ) is a lookahead,
-    # which means it is not part of the actual match, but it only matches if that follows the match.
-    fname = os.path.basename(crop_mask)
-
-    if scale == "admin_1":
-        region_name = re.search(r".+(?=_\d{9}_)", fname).group(0)
-    else:  # admin_2
-        region_name = re.search(r".+(?=_\d{12}_)", fname).group(0)
-
-    # Extract numeric admin identifier from crop mask file name
-    region_id = re.findall(r"\d+", fname)[0]
-
-    dir_crop_inputs = Path(f"crop_t{limit}") if threshold else Path(f"crop_p{limit}")
-
-    dir_output = params.dir_input / dir_crop_inputs / country / scale / crop / var
-    os.makedirs(dir_output, exist_ok=True)
-
-    return region_name, region_id, dir_output
-
-
-def process(val):
-    """
-
-    Args:
-        val ():
-        params:
-        country:
-        crop:
-        var:
-        year:
-        crop_mask: name of crop mask file
-
-    Returns:
-
-    """
-    params, country, crop, scale, var, year, crop_mask = val
-
-    if scale not in ["admin_1", "admin_2"]:
-        raise ValueError(
-            f"Scale {scale} is not valid, should be either admin_1 or admin_2"
-        )
-
-    # Do not process CHIRPS forecast data if it is not for the current year
-    if var == "chirps_gefs" and year != ar.utcnow().year:
-        return
-
-    threshold = params.parser.getboolean(country, "threshold")
-    limit = utils.crop_mask_limit(params, country, threshold)
-    region, region_id, dir_output = setup(
-        params, country, crop, scale, var, crop_mask, threshold, limit
-    )
-    path_output = dir_output / Path(f"{region}_{region_id}_{year}_{var}_{crop}.csv")
-
-    os.makedirs(dir_output, exist_ok=True)
-
-    # Process variable:
-    # 1. if output csv does not exist OR
-    # 2. if processing current year OR
-    # 3. if REDO flag is set to true
-    process_current_year = datetime.datetime.now().year == year
-
-    if not os.path.isfile(path_output) or process_current_year or params.redo:
-        with MemoryFile(open(crop_mask, "rb").read()) as memfile:
-            with memfile.open() as hndl_crop_mask:
-                mask_crop_per = hndl_crop_mask.read(1).astype(float)
-
-                if threshold:
-                    mask_crop_per[
-                        mask_crop_per < limit
-                    ] = 0.0  # Create crop mask and mask pixel LT CP
-                else:  # percentile
-                    val_percentile = np.percentile(
-                        mask_crop_per[mask_crop_per > 0.0], limit
-                    )
-                    mask_crop_per[mask_crop_per < val_percentile] = 0.0
-
-                if np.count_nonzero(mask_crop_per):  # if there are no pixels then skip
-                    tmp_str = compute_stats(
-                        params,
-                        country,
-                        region,
-                        region_id,
-                        year,
-                        var,
-                        mask_crop_per,
-                        path_output,
-                    )
-
-                    # Add a header and store as pandas dataframe
-                    tmp_str.insert(
-                        0,
-                        f"country,region,region_id,year,doy,{var},num_pixels,average_crop_percentage,"
-                        "median_crop_percentage,min_crop_percentage,max_crop_percentage",
-                    )
-
-                    df = pd.read_csv(io.StringIO("\n".join(tmp_str)))
-                    df.to_csv(path_output, index=False)
-
-
 def remove_duplicates(list_of_tuples):
     """
     Discard duplicates from 'list_of_tuples', where each item is a tuple.
@@ -479,7 +146,7 @@ def remove_duplicates(list_of_tuples):
     return result
 
 
-def process_JRC(val):
+def process(val):
     from .stats import geom_extract
 
     params, country, crop, scale, var, year, afi_file, df_country = val
@@ -510,6 +177,9 @@ def process_JRC(val):
         region = row["ADM1_NAME"]
         region_id = row["ADM1_ID"]
         stat_str = []
+
+        # lowercase region name and replace spaces with underscores
+        region = region.str.lower().str.replace(" ", "_")
 
         path_output = dir_output / Path(f"{region}_{region_id}_{year}_{var}_{crop}.csv")
 
@@ -549,7 +219,7 @@ def process_JRC(val):
                 / Path(get_var_fname(params, var, year, doy))
             )
             if os.path.isfile(fl_var):
-                val = geom_extract(row["geometry"], fl_var, stats_out=['mean', 'counts'], afi=afi_file, afi_thresh=0, thresh_type='Fixed')
+                val = geom_extract(row["geometry"], var, fl_var, stats_out=['mean', 'counts'], afi=afi_file, afi_thresh=2000, thresh_type='Fixed')
                 # Extract values from the nested dictionary
                 if val:
                     values = list(val['stats'].values()) + list(val['counts'].values())
@@ -557,7 +227,6 @@ def process_JRC(val):
                     comma_separated_str = ', '.join(map(str, values))
                     stat_str.append(f"{country},{region},{region_id},{year},{doy},{comma_separated_str}")
                 else:
-                    breakpoint()
                     stat_str.append(empty_str)
             else:
                 stat_str.append(empty_str)
@@ -571,7 +240,6 @@ def process_JRC(val):
         df = pd.read_csv(io.StringIO("\n".join(stat_str)))
         df.to_csv(path_output, index=False)
 
-    breakpoint()
     return stat_str
 
 def run(params):
@@ -649,11 +317,11 @@ def run(params):
     params.logger.error(f"Output directory: {params.dir_output}")
     params.logger.error("++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-    if False and params.parallel_process:
+    if params.parallel_process:
         with Pool(num_cpus) as p:
             with tqdm(total=len(list_combinations)) as pbar:
                 for i, _ in tqdm(
-                    enumerate(p.imap_unordered(process_JRC, list_combinations))
+                    enumerate(p.imap_unordered(process, list_combinations))
                 ):
                     desc = f"Processing {list_combinations[i][1]} {list_combinations[i][2]} {list_combinations[i][4]}"
                     pbar.set_description(desc)
@@ -665,7 +333,7 @@ def run(params):
             pbar.set_description(desc)
             pbar.update()
 
-            process_JRC(val)
+            process(val)
 
 
 if __name__ == "__main__":
