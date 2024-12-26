@@ -481,6 +481,7 @@ def remove_duplicates(list_of_tuples):
 
 def process_JRC(val):
     from .stats import geom_extract
+
     params, country, crop, scale, var, year, afi_file, df_country = val
     if scale not in ["admin_1", "admin_2"]:
         raise ValueError(
@@ -499,56 +500,79 @@ def process_JRC(val):
     dir_output = params.dir_input / dir_crop_inputs / country / scale / crop / var
     os.makedirs(dir_output, exist_ok=True)
 
-    # path_output = dir_output / Path(f"{region}_{region_id}_{year}_{var}_{crop}.csv")
-
     current_year = ar.utcnow().year
     end_doy = 367 if calendar.isleap(year) else 366
 
     # Loop over df_country
-    # for idx, row in df_country.iterrows():
-    #     stat_str = []
-    #     nan_str = f"{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}"
-    #     hndl_outf = None
-    #
-    #     # Check if we are processing current year or in case of a previous year the REDO flag is False
-    #     # If so then only modify those lines where we do not have data currently
-    #     use_partial_file = current_year == year or (current_year > year and not params.redo)
-    #
-    #     if use_partial_file and os.path.isfile(path_outf):
-    #         with open(path_outf) as hndl_outf:
-    #             reader = csv.reader(hndl_outf)
-    #
-    #             # Exclude the header and store remaining rows into a list
-    #             list_rows = list(reader)[1:]
-    #
-    #     stat_str = []
-    #     for doy in range(1, end_doy):
-    #         if name_var == "chirps_gefs":
-    #             if doy > 1:
-    #                 break
-    #
-    #             forecast_date = ar.utcnow().shift(days=+15).date()
-    #             doy = forecast_date.timetuple().tm_yday
-    #
-    #             # Process a single date for chirps_gefs
-    #             empty_str = (
-    #                 f"{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}"
-    #             )
-    #         else:
-    #             if use_partial_file and hndl_outf and list_rows[doy - 1][5] != "nan":
-    #                 stat_str.append(",".join(list_rows[doy - 1]))
-    #                 continue
-    #
-    #             empty_str = f"{country},{region},{region_id},{year},{doy},{nan_str}"
-    #
-    #         fl_var = (
-    #             params.dir_interim
-    #             / name_var
-    #             / Path(get_var_fname(params, name_var, year, doy))
-    #         )
-    #ac = geom_extract(row["geometry"], aa, stats_out=['mean', 'counts'], afi=afi_file, afi_thresh=0, thresh_type='Fixed')
+    for idx, row in df_country.iterrows():
+        nan_str = f"{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN},{np.NaN}"
+        hndl_outf = None
+        region = row["ADM1_NAME"]
+        region_id = row["ADM1_ID"]
+        stat_str = []
 
-    #passbreakpoint()
+        path_output = dir_output / Path(f"{region}_{region_id}_{year}_{var}_{crop}.csv")
+
+        # Check if we are processing current year or in case of a previous year the REDO flag is False
+        # If so then only modify those lines where we do not have data currently
+        use_partial_file = current_year == year or (current_year > year and not params.redo)
+
+        if use_partial_file and os.path.isfile(path_output):
+            with open(path_output) as hndl_outf:
+                reader = csv.reader(hndl_outf)
+
+                # Exclude the header and store remaining rows into a list
+                list_rows = list(reader)[1:]
+
+        for doy in range(1, end_doy):
+            if var == "chirps_gefs":
+                if doy > 1:
+                    break
+
+                forecast_date = ar.utcnow().shift(days=+15).date()
+                doy = forecast_date.timetuple().tm_yday
+
+                # Process a single date for chirps_gefs
+                empty_str = (
+                    f"{country},{region},{region_id},{forecast_date.year},{doy},{nan_str}"
+                )
+            else:
+                if use_partial_file and hndl_outf and list_rows[doy - 1][5] != "nan":
+                    stat_str.append(",".join(list_rows[doy - 1]))
+                    continue
+
+                empty_str = f"{country},{region},{region_id},{year},{doy},{nan_str}"
+
+            fl_var = (
+                params.dir_interim
+                / var
+                / Path(get_var_fname(params, var, year, doy))
+            )
+            if os.path.isfile(fl_var):
+                val = geom_extract(row["geometry"], fl_var, stats_out=['mean', 'counts'], afi=afi_file, afi_thresh=0, thresh_type='Fixed')
+                # Extract values from the nested dictionary
+                if val:
+                    values = list(val['stats'].values()) + list(val['counts'].values())
+                    # Convert to a comma-separated string
+                    comma_separated_str = ', '.join(map(str, values))
+                    stat_str.append(f"{country},{region},{region_id},{year},{doy},{comma_separated_str}")
+                else:
+                    breakpoint()
+                    stat_str.append(empty_str)
+            else:
+                stat_str.append(empty_str)
+        # Add a header and store as pandas dataframe
+        stat_str.insert(
+            0,
+            f"country,region,region_id,year,doy,{var},num_pixels,average_crop_percentage,"
+            "median_crop_percentage,min_crop_percentage,max_crop_percentage",
+        )
+
+        df = pd.read_csv(io.StringIO("\n".join(stat_str)))
+        df.to_csv(path_output, index=False)
+
+    breakpoint()
+    return stat_str
 
 def run(params):
     """
@@ -556,59 +580,65 @@ def run(params):
      Returns:
 
     """
-    ac = []
+    list_combinations = []
     num_cpus = int(params.fraction_cpus * cpu_count()) if params.parallel_process else 1
     years = list(range(params.start_year, params.end_year + 1))
 
     for country in params.countries:
-        # Check if we use a cropland mask or not
-        use_cropland_mask = params.parser.get(country, "use_cropland_mask")
+        use_cropland_mask = params.parser.getboolean(country, "use_cropland_mask")
         crops = ast.literal_eval(params.parser.get(country, "crops"))
         vars = ast.literal_eval(params.parser.get(country, "eo_model"))
         scales = ast.literal_eval(params.parser.get(country, "scales"))
-        df_cmask = gp.GeoDataFrame.from_file(params.dir_regions_shp / params.parser.get(country, "shp_boundary"),
-                                             engine="pyogrio")
+        df_cmask = gp.GeoDataFrame.from_file(
+            params.dir_regions_shp / params.parser.get(country, "shp_boundary"),
+            engine="pyogrio",
+        )
 
         # Rename ADMIN0 to ADM0_NAME and ADMIN1 to ADM1_NAME and ADMIN2 to ADM2_NAME
-        df_cmask.rename(columns={"ADMIN0": "ADM0_NAME", "ADMIN1": "ADM1_NAME", "ADMIN2": "ADM2_NAME"})
+        df_cmask.rename(
+            columns={
+                "ADMIN0": "ADM0_NAME",
+                "ADMIN1": "ADM1_NAME",
+                "ADMIN2": "ADM2_NAME",
+                "name1": "ADM1_NAME",
+                "name0": "ADM0_NAME",
+                "asap1_id": "ADM1_ID",
+                "asap0_id": "ADM0_ID",
+            },
+            inplace=True
+        )
 
         # Extract for country
-        df_country = df_cmask[df_cmask["ADM0_NAME"].str.lower().replace(" ", "_") == country]
+        df_country = df_cmask[
+            df_cmask["ADM0_NAME"].str.lower().str.replace(" ", "_") == country
+        ]
 
         for crop in crops:
             if use_cropland_mask:
                 path_mask = params.parser.get(country, "mask")
             else:
                 path_mask = params.parser.get(crop, "mask")
-            path_mask = (
-                params.dir_global_datasets
-                / "masks"
-                / path_mask
-            )
+            path_mask = params.dir_masks / path_mask
 
             for scale in scales:
                 name_crop = "cr" if use_cropland_mask else crop
-                path_crop_masks = params.dir_crop_masks / country / name_crop / scale
-                crop_masks = list(path_crop_masks.glob(f"*_{name_crop}_crop_mask.tif"))
-
-                if len(crop_masks) or params.method == "JRC":
-                    for var in vars:
-                        ac.extend(
-                            list(
-                                itertools.product(
-                                    [params],
-                                    [country],
-                                    [name_crop],
-                                    [scale],
-                                    [var],
-                                    years,
-                                    [path_mask] if params.method == "JRC" else crop_masks,
-                                    [df_country],
-                                )
+                for var in vars:
+                    list_combinations.extend(
+                        list(
+                            itertools.product(
+                                [params],
+                                [country],
+                                [name_crop],
+                                [scale],
+                                [var],
+                                years,
+                                [path_mask],
+                                [df_country],
                             )
                         )
+                    )
 
-    ac = remove_duplicates(ac)
+    list_combinations = remove_duplicates(list_combinations)
 
     params.logger.error("++++++++++++++++++++++++++++++++++++++++++++++++++++")
     params.logger.error(params.countries)
@@ -619,28 +649,23 @@ def run(params):
     params.logger.error(f"Output directory: {params.dir_output}")
     params.logger.error("++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-    if params.method == "GEOGLAM":
-        func_process = process
-    elif params.method == "JRC":
-        func_process = process_JRC
-    else:
-        raise ValueError(f"{params.method} not recognized")
-
     if False and params.parallel_process:
         with Pool(num_cpus) as p:
-            with tqdm(total=len(ac)) as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(func_process, ac))):
-                    desc = f"Processing {ac[i][1]} {ac[i][2]} {ac[i][4]}"
+            with tqdm(total=len(list_combinations)) as pbar:
+                for i, _ in tqdm(
+                    enumerate(p.imap_unordered(process_JRC, list_combinations))
+                ):
+                    desc = f"Processing {list_combinations[i][1]} {list_combinations[i][2]} {list_combinations[i][4]}"
                     pbar.set_description(desc)
                     pbar.update()
     else:
-        pbar = tqdm(ac)
+        pbar = tqdm(list_combinations)
         for i, val in enumerate(pbar):
-            desc = f"Processing {ac[i][1]} {ac[i][2]} {ac[i][4]}"
+            desc = f"Processing {list_combinations[i][1]} {list_combinations[i][2]} {list_combinations[i][4]}"
             pbar.set_description(desc)
             pbar.update()
 
-            func_process(val)
+            process_JRC(val)
 
 
 if __name__ == "__main__":
