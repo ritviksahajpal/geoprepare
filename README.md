@@ -11,9 +11,11 @@
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
 
 ## Installation
+> **Note:** The instructions below have only been tested on a Linux system
+
 ### Install Anaconda
 We recommend that you use the conda package manager to install the `geoprepare` library and all its
-dependencies. If you do not have it installed already, you can get it from the [Anaconda distribution](https://www.anaconda.com/distribution)
+dependencies. If you do not have it installed already, you can get it from the [Anaconda distribution](https://www.anaconda.com/download#downloads)
 
 ### Using the CDS API
 If you intend to download AgERA5 data, you will need to install the CDS API.
@@ -21,7 +23,7 @@ You can do this by following the instructions [here](https://cds.climate.coperni
 
 ### Create a new conda environment (optional but highly recommended)
 `geoprepare` requires multiple Python GIS packages including `gdal` and `rasterio`. These packages are not always easy
-to install, especially on Windows. To make the process easier, you can optionally create a new environment using the
+to install. To make the process easier, you can optionally create a new environment using the
 following commands, specify the python version you have on your machine (python >= 3.9 is recommended). we use the `pygis` library
 to install multiple Python GIS packages including `gdal` and `rasterio`.
 
@@ -69,12 +71,13 @@ pip install .
 
 ## Usage
 * Execute the following code to download the data
+
 ```python
-from geoprepare import geoprepare
+from geoprepare import geodownload
 
 # Provide full path to the configuration files
 # Download and preprocess data
-geoprepare.run([r"PATH_TO_geoprepare.txt"])
+geodownload.run([r"PATH_TO_geobase.txt"])
 ```
 
 * Execute the following code to extract crop masks and EO data
@@ -82,7 +85,7 @@ geoprepare.run([r"PATH_TO_geoprepare.txt"])
 from geoprepare import geoextract
 
 # Extract crop masks and EO variables
-geoextract.run([r"PATH_TO_geoprepare.txt", r"PATH_TO_geoextract.txt"])
+geoextract.run([r"PATH_TO_geobase.txt", r"PATH_TO_geoextract.txt"])
 ```
 
 * Execute the following code to prepare the data for the crop yield ML model and AgMet graphics
@@ -90,16 +93,17 @@ geoextract.run([r"PATH_TO_geoprepare.txt", r"PATH_TO_geoextract.txt"])
 from geoprepare import geomerge
 
 # Merge EO files into one, this is needed to create AgMet graphics and to run the crop yield model
-geomerge.run([r"PATH_TO_geoprepare.txt", r"PATH_TO_geoextract.txt"])
+geomerge.run([r"PATH_TO_geobase.txt", r"PATH_TO_geoextract.txt"])
 ```
 
 
 Before running the code above, we need to specify the two configuration files:
-* `geoprepare.txt` contains configuration settings for downloading and processing the input data.
+* `geobase.txt` contains configuration settings for downloading and processing the input data.
 * `geoextract.txt` contains configuration settings for extracting crop masks and EO variables.
 
 ## Configuration files
-### geoprepare.txt
+### geobase.txt
+> **NOTE:** `dir_base` needs to be changed to your specific directory structure
 * `datasets`: Specify which datasets need to be downloaded and processed
 * `dir_base`: Path where to store the downloaded and processed files
 * `start_year`, `end_year`: Specify time-period for which data should be downloaded and processed
@@ -109,16 +113,17 @@ Before running the code above, we need to specify the two configuration files:
 * `fraction_cpus`: What fraction of available CPUs to use
 ```python
 [DATASETS]
-datasets = ['CPC', 'SOIL-MOISTURE', 'LST', 'CPC', 'AVHRR', 'AGERA5', 'CHIRPS', 'CHIRPS-GEFS']
+datasets = ['NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
 
 [PATHS]
-dir_base = /home/servir/GEOCIF
-dir_input = ${dir_base}/input
+dir_base = /gpfs/data1/cmongp1/GEOGLAM
+dir_input = ${dir_base}/Input
 dir_log = ${dir_base}/log
-dir_interim = ${dir_input}/interim
+dir_interim = ${dir_input}/intermed
 dir_download = ${dir_input}/download
-dir_output = ${dir_base}/output
-dir_global_datasets = ${dir_input}/global_datasets
+dir_output = ${dir_base}/Output
+dir_global_datasets = ${dir_input}/Global_Datasets
+dir_metadata = ${dir_input}/metadata
 dir_masks = ${dir_global_datasets}/masks
 dir_regions = ${dir_global_datasets}/regions
 dir_regions_shp = ${dir_regions}/shps
@@ -126,7 +131,7 @@ dir_crop_masks = ${dir_input}/crop_masks
 dir_models = ${dir_input}/models
 
 [AGERA5]
-start_year = 2022
+variables = ['Precipitation_Flux', 'Temperature_Air_2m_Max_24h', 'Temperature_Air_2m_Min_24h']
 
 [AVHRR]
 data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
@@ -135,7 +140,6 @@ data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-veget
 fill_value = -2147483648
 prelim = /pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/
 final = /pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/
-start_year = 2022
 
 [CHIRPS-GEFS]
 fill_value = -2147483648
@@ -152,6 +156,10 @@ data_dir = https://gis1.servirglobal.net//data//esi//
 [LST]
 num_update_days = 7
 
+[VHI]
+data_historic = https://www.star.nesdis.noaa.gov/data/pub0018/VHPdata4users/VHP_4km_GeoTiff/
+data_current = https://www.star.nesdis.noaa.gov/pub/corp/scsb/wguo/data/Blended_VH_4km/geo_TIFF/
+
 [NDVI]
 product = MOD09CMG
 vi = ndvi
@@ -159,8 +167,20 @@ scale_glam = False
 scale_mark = True
 print_missing = False
 
+[VIIRS]
+product = VNP09CMG
+vi = ndvi
+scale_glam = False
+scale_mark = True
+print_missing = False
+
+[NSIDC]
+
 [SOIL-MOISTURE]
 data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
+
+[FPAR]
+data_url = https://agricultural-production-hotspots.ec.europa.eu/data/indicators_fpar/fpar/
 
 [LOGGING]
 level = ERROR
@@ -168,12 +188,13 @@ level = ERROR
 [DEFAULT]
 logfile = log
 parallel_process = False
-fraction_cpus = 0.5
-start_year = 2022
-end_year = 2022
+fraction_cpus = 0.75
+start_year = 2001
+end_year = 2024
 ```
 
 ### geoextract.txt
+> **NOTE:** For each country add a new section to this file, using `kenya` as an example
 * `countries`: List of countries to process
 * `forecast_seasons`: List of seasons to process
 * `mask`: Name of file to use as a mask for cropland/croptype
@@ -219,7 +240,7 @@ crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 use_cropland_mask = True
 
 [ww]
-mask = cropland_v9.tif
+mask = cropland_v9.tif  ; A tif file specifying name of cropland/crop-type mask
 
 [mz]
 mask = cropland_v9.tif
@@ -305,7 +326,8 @@ obj.mosaic()
 2. Update version="A.B.C" in setup.py
 3. Navigate to the directory containing `setup.py` and run the following command:
 ```python
-pip freeze > requirements.txt
+pipreqs . --force --savepath requirements.txt
+mamba env export > environment.yml
 python setup.py sdist
 twine upload dist/geoprepare-A.B.C.tar.gz
 ```

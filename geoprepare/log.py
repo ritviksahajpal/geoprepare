@@ -19,7 +19,7 @@ class Logger:
         dir_log,  # Path to the directory where the log file will be saved
         project="geoprepare",  # Name of the project, this will be created as a subdirectory in dir_log
         file="logger.txt",  # Name of the log file
-        level=logging.INFO  # Logging level (see above)
+        level=logging.INFO,  # Logging level (see above)
     ):
         log_format = "[%(asctime)s] %(message)s"
         dir_log = Path(dir_log) / project / ar.now().format("MMMM_DD_YYYY")

@@ -70,23 +70,22 @@ from urllib.error import HTTPError, URLError
 
 short_name = "SPL4SMGP"
 version = "007"
-time_start = "2015-03-31T00:00:00Z"
+time_start = '2024-10-30T00:00:00Z'
 time_end = ar.utcnow().format("YYYY-MM-DDTHH:mm:ss") + "Z"
 bounding_box = ""
 polygon = ""
 filename_filter = ""
 url_list = []
 
-CMR_URL = "https://cmr.earthdata.nasa.gov"
-URS_URL = "https://urs.earthdata.nasa.gov"
+CMR_URL = 'https://cmr.earthdata.nasa.gov'
+URS_URL = 'https://urs.earthdata.nasa.gov'
 CMR_PAGE_SIZE = 2000
-CMR_FILE_URL = (
-    "{0}/search/granules.json?provider=NSIDC_ECS"
-    "&sort_key[]=start_date&sort_key[]=producer_granule_id"
-    "&scroll=true&page_size={1}".format(CMR_URL, CMR_PAGE_SIZE)
-)
+CMR_FILE_URL = ('{0}/search/granules.json?provider=NSIDC_ECS'
+                '&sort_key[]=start_date&sort_key[]=producer_granule_id'
+                '&page_size={1}'.format(CMR_URL, CMR_PAGE_SIZE))
 
-VAR_LIST = ["sm_surface", "sm_rootzone"]
+VAR_LIST = ['sm_surface', 'sm_rootzone']
+
 
 
 def convert(params, source_h5):
@@ -131,7 +130,10 @@ def convert(params, source_h5):
             continue
 
         sds = gdal.Open("HDF5:" + str(source_h5) + "://Geophysical_Data/" + var)
-        sds_array = sds.ReadAsArray()
+        try:
+            sds_array = sds.ReadAsArray()
+        except Exception as e:
+            continue
         dst_tmp = (
             str(params.dir_interim)
             + os.sep
@@ -312,7 +314,7 @@ def get_login_response(url, credentials, token):
 
     req = Request(url)
     if token:
-        req.add_header("Authorization", "Bearer {0}".format(token))
+        req.add_header('Authorization', 'Bearer {0}'.format(token))
     elif credentials:
         try:
             response = opener.open(req)
@@ -322,34 +324,31 @@ def get_login_response(url, credentials, token):
             # No redirect - just try again with authorization.
             pass
         except Exception as e:
-            print("Error{0}: {1}".format(type(e), str(e)))
+            print('Error{0}: {1}'.format(type(e), str(e)))
             sys.exit(1)
 
         req = Request(url)
-        req.add_header("Authorization", "Basic {0}".format(credentials))
+        req.add_header('Authorization', 'Basic {0}'.format(credentials))
 
     try:
         response = opener.open(req)
     except HTTPError as e:
-        err = "HTTP error {0}, {1}".format(e.code, e.reason)
-        if "Unauthorized" in e.reason:
+        err = 'HTTP error {0}, {1}'.format(e.code, e.reason)
+        if 'Unauthorized' in e.reason:
             if token:
-                err += ": Check your bearer token"
+                err += ': Check your bearer token'
             else:
-                err += ": Check your username and password"
+                err += ': Check your username and password'
         print(err)
         sys.exit(1)
     except Exception as e:
-        print("Error{0}: {1}".format(type(e), str(e)))
+        print('Error{0}: {1}'.format(type(e), str(e)))
         sys.exit(1)
 
     return response
 
 
 def cmr_download(params, urls, force=False, quiet=False):
-    dir_out = params.dir_download / "nsidc"
-    os.makedirs(dir_out, exist_ok=True)
-
     """Download files from list of urls."""
     if not urls:
         return
@@ -357,97 +356,89 @@ def cmr_download(params, urls, force=False, quiet=False):
     url_count = len(urls)
     credentials = None
     token = None
+    downloaded_files = []
+    dir_out = params.dir_download / 'nsidc'
 
     for index, url in tqdm(enumerate(urls, start=1), total=len(urls)):
         if not credentials and not token:
             p = urlparse(url)
-            if p.scheme == "https":
+            if p.scheme == 'https':
                 credentials, token = get_login_credentials()
 
-        filename = url.split("/")[-1]
+        filename = url.split('/')[-1]
         # skip if file is already downloaded
         if os.path.isfile(dir_out / filename):
             continue
 
         try:
             response = get_login_response(url, credentials, token)
-            length = int(response.headers["content-length"])
+            length = int(response.headers['content-length'])
 
             chunk_size = min(max(length, 1), 1024 * 1024)
-            with open(dir_out / filename, "wb") as out_file:
-                for data in cmr_read_in_chunks(response, chunk_size=chunk_size):
+            with open(dir_out / filename, 'wb') as out_file:
+                for data in tqdm(cmr_read_in_chunks(response, chunk_size=chunk_size), desc=f"downloading {out_file}", leave=False):
                     out_file.write(data)
         except HTTPError as e:
-            print("HTTP error {0}, {1}".format(e.code, e.reason))
+            print('HTTP error {0}, {1}'.format(e.code, e.reason))
         except URLError as e:
-            print("URL error: {0}".format(e.reason))
+            print('URL error: {0}'.format(e.reason))
         except IOError:
             raise
+        downloaded_files.append([dir_out / filename])
 
 
 def cmr_filter_urls(search_results):
     """Select only the desired data files from CMR response."""
-    if "feed" not in search_results or "entry" not in search_results["feed"]:
+    if 'feed' not in search_results or 'entry' not in search_results['feed']:
         return []
 
-    entries = [e["links"] for e in search_results["feed"]["entry"] if "links" in e]
+    entries = [e['links']
+               for e in search_results['feed']['entry']
+               if 'links' in e]
     # Flatten "entries" to a simple list of links
     links = list(itertools.chain(*entries))
 
     urls = []
     unique_filenames = set()
     for link in links:
-        if "href" not in link:
+        if 'href' not in link:
             # Exclude links with nothing to download
             continue
-        if "inherited" in link and link["inherited"] is True:
+        if 'inherited' in link and link['inherited'] is True:
             # Why are we excluding these links?
             continue
-        if "rel" in link and "data#" not in link["rel"]:
+        if 'rel' in link and 'data#' not in link['rel']:
             # Exclude links which are not classified by CMR as "data" or "metadata"
             continue
 
-        if "title" in link and "opendap" in link["title"].lower():
+        if 'title' in link and 'opendap' in link['title'].lower():
             # Exclude OPeNDAP links--they are responsible for many duplicates
             # This is a hack; when the metadata is updated to properly identify
             # non-datapool links, we should be able to do this in a non-hack way
             continue
 
-        filename = link["href"].split("/")[-1]
+        filename = link['href'].split('/')[-1]
         if filename in unique_filenames:
             # Exclude links with duplicate filenames (they would overwrite)
             continue
         unique_filenames.add(filename)
 
-        urls.append(link["href"])
+        urls.append(link['href'])
 
     return urls
 
 
-def cmr_search(
-    short_name,
-    version,
-    time_start,
-    time_end,
-    bounding_box="",
-    polygon="",
-    filename_filter="",
-    quiet=False,
-):
-    """Perform a scrolling CMR query for files matching input criteria."""
-    cmr_query_url = build_cmr_query_url(
-        short_name=short_name,
-        version=version,
-        time_start=time_start,
-        time_end=time_end,
-        bounding_box=bounding_box,
-        polygon=polygon,
-        filename_filter=filename_filter,
-    )
+def cmr_search(short_name, version, time_start, time_end,
+               bounding_box='', polygon='', filename_filter='', quiet=False):
+    """Perform a paginated CMR query for files matching input criteria using search-after."""
+    cmr_query_url = build_cmr_query_url(short_name=short_name, version=version,
+                                        time_start=time_start, time_end=time_end,
+                                        bounding_box=bounding_box, polygon=polygon,
+                                        filename_filter=filename_filter)
     if not quiet:
-        print("Querying for data:\n\t{0}\n".format(cmr_query_url))
+        print('Querying for data:\n\t{0}\n'.format(cmr_query_url))
 
-    cmr_scroll_id = None
+    search_after = None
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -456,33 +447,34 @@ def cmr_search(
     hits = 0
     while True:
         req = Request(cmr_query_url)
-        if cmr_scroll_id:
-            req.add_header("cmr-scroll-id", cmr_scroll_id)
+        if search_after:
+            req.add_header('CMR-Search-After', search_after)
         try:
             response = urlopen(req, context=ctx)
         except Exception as e:
-            print("Error: " + str(e))
+            print('Error: ' + str(e))
             sys.exit(1)
-        if not cmr_scroll_id:
-            # Python 2 and 3 have different case for the http headers
-            headers = {k.lower(): v for k, v in dict(response.info()).items()}
-            cmr_scroll_id = headers["cmr-scroll-id"]
-            hits = int(headers["cmr-hits"])
+        # Get headers and convert keys to lowercase for consistency
+        headers = {k.lower(): v for k, v in dict(response.info()).items()}
+        if not hits:
+            hits = int(headers.get('cmr-hits', '0'))
             if not quiet:
                 if hits > 0:
-                    print("Found {0} matches.".format(hits))
+                    print('Found {0} matches.'.format(hits))
                 else:
-                    print("Found no matches.")
+                    print('Found no matches.')
+        search_after = headers.get('cmr-search-after', None)
         search_page = response.read()
-        search_page = json.loads(search_page.decode("utf-8"))
+        search_page = json.loads(search_page.decode('utf-8'))
         url_scroll_results = cmr_filter_urls(search_page)
         if not url_scroll_results:
             break
         if not quiet and hits > CMR_PAGE_SIZE:
-            print(".", end="")
+            print('.', end='')
             sys.stdout.flush()
         urls += url_scroll_results
-
+        if not search_after:
+            break  # No more pages to fetch
     if not quiet and hits > CMR_PAGE_SIZE:
         print()
     return urls
@@ -603,11 +595,13 @@ def subdaily_to_daily(params, type="rootzone"):
 
 
 def process(params):
+    dir_out = params.dir_download / "nsidc"
+
     dir_subdaily = params.dir_interim / "nsidc" / "subdaily"
     os.makedirs(dir_subdaily, exist_ok=True)
 
     # Convert h5 files to subdaily (3 hourly) data
-    for file in tqdm(dir_subdaily.glob("*.h5"), desc="h5 to subdaily"):
+    for file in tqdm(dir_out.glob("*.h5"), desc="h5 to subdaily tif"):
         convert(params, file)
 
     # Convert subdaily data to daily data by averaging

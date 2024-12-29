@@ -1,47 +1,72 @@
-########################################################################################################################
-# Ritvik Sahajpal, Joanne Hall
-# ritvik@umd.edu
-#
-# The original data is in zipped/unzipped tiff format at 0.05 degree resolution (zipped for final products and unzipped
-# for preliminary product in recent years). The naming convention is in year, month, day and to match the other datasets
-# the data has to be renamed into year, julian day.
-#
-# Final Tiffs
-# Step 1: Unzip, rename the original tiff files, and convert the floating point (unit: mm) data into integer by scaling
-# by 100. This speeds up step 2 and the Weighted Average Extraction code.
-# Step 2: Convert the data into a global extent to match the crop masks.
-#
-# Preliminary Tiffs
-# Step 1: Rename the original tiff files. Convert the floating point (unit: mm) data into integer by scaling by 100.
-# This speeds up step 2 and the Weighted Average Extraction code.
-# Step 2: Convert the data into a global extent to match the crop masks.
-########################################################################################################################
+import itertools
 import os
+
 import requests
-from tqdm import tqdm
+import multiprocessing
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
+
+
+def download_file(input):
+    """
+    Downloads a file from the given URL and saves it in the current directory.
+    Shows a progress bar for the download.
+    Args:
+        input:
+
+    Returns:
+
+    """
+    params, url = input
+    local_filename = url.split('/')[-1]
+    os.makedirs(params.dir_download / "fpar", exist_ok=True)
+
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        total_size_in_bytes = int(r.headers.get('content-length', 0))
+        block_size = 1024  # 1 Kibibyte
+        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc=local_filename)
+
+        with open(params.dir_download / "fpar" / local_filename, 'wb') as f:
+            for chunk in r.iter_content(block_size):
+                progress_bar.update(len(chunk))
+                f.write(chunk)
+        progress_bar.close()
+
+    return local_filename
+
+
+def get_file_urls(url):
+    """
+    Scrapes the given directory URL for .tif file links and returns their URLs.
+    """
+    response = requests.get(url)
+    response.raise_for_status()  # Raises an HTTPError if the response code was unsuccessful
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    return [url + a['href'] for a in soup.find_all('a') if a['href'].endswith('.tif')]
 
 
 def download_FPAR(params):
-    base_url = "https://agricultural-production-hotspots.ec.europa.eu/data/indicators_fpar/fpar/"
+    """
 
-    dir_out = params.dir_download / "fpar"
-    os.makedirs(dir_out, exist_ok=True)
-    print(f"Downloading to {dir_out}")
+    Args:
+        params:
 
-    response = requests.get(base_url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    Returns:
 
-    for link in tqdm(
-        soup.select("a[href$='.tif']"), desc=f"FPAR"
-    ):
-        # Name the pdf files using the last portion of each link which are unique in this case
-        filename = os.path.join(dir_out, link["href"].split("/")[-1])
+    """
+    all_params = []
+    file_urls = get_file_urls(params.data_dir)
+    for url in file_urls:
+        all_params.extend(list(itertools.product([params], [url])))
 
-        if not os.path.isfile(filename):
-            with open(filename, "wb") as f:
-                f.write(requests.get(urljoin(params.data_url + "/", link["href"])).content)
+    ncpus = int(multiprocessing.cpu_count() * params.fraction_cpus)
+    # Download files in parallel using ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=ncpus) as executor:
+        # include params as an argument in download_file
+        list(tqdm(executor.map(download_file, all_params), total=len(file_urls), desc="Downloading files"))
 
 
 def run(params):
@@ -53,9 +78,6 @@ def run(params):
     Returns:
 
     """
-    ##########
-    # DOWNLOAD
-    ##########
     download_FPAR(params)
 
 

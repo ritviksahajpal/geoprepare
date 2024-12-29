@@ -327,41 +327,48 @@ def is_leap(s):
 
 def mosaic(tif_files, output_file):
     """
+    Merges multiple TIFF files into a single mosaic TIFF file.
 
     Args:
-        tif_files:
-        output_file:
+        tif_files (list): List of file paths to the input TIFF files.
+        output_file (str): File path to the output mosaic TIFF file.
 
     Returns:
-
+        None
     """
+    import rasterio
     from rasterio.merge import merge
+    from concurrent.futures import ThreadPoolExecutor
 
-    # Read the tif files
-    src_files_to_mosaic = []
-    for fp in tif_files:
-        src = rasterio.open(fp)
-        src_files_to_mosaic.append(src)
+    def open_file(fp):
+        """Opens a raster file."""
+        return rasterio.open(fp)
+
+    # Read the tif files in parallel
+    with ThreadPoolExecutor() as executor:
+        src_files_to_mosaic = list(executor.map(open_file, tif_files))
 
     # Mosaic the files
     mosaic, out_trans = merge(src_files_to_mosaic)
 
     # Copy the metadata
-    out_meta = src.meta.copy()
+    out_meta = src_files_to_mosaic[0].meta.copy()
 
-    # Update the metadata
+    # Update the metadata for mosaic
     out_meta.update(
         {
             "driver": "GTiff",
-            "height": mosaic.shape[1],
-            "width": mosaic.shape[2],
+            "height": mosaic.shape[1],  # Height of the mosaic
+            "width": mosaic.shape[2],  # Width of the mosaic
             "transform": out_trans,
+            "count": mosaic.shape[0],  # Number of bands
         }
     )
 
     # Write the mosaic raster to disk
     with rasterio.open(output_file, "w", **out_meta) as dest:
-        dest.write(mosaic)
+        for i in range(1, mosaic.shape[0] + 1):  # Write each band
+            dest.write(mosaic[i - 1], i)
 
     # Close the files
     for src in src_files_to_mosaic:

@@ -8,7 +8,6 @@ import pdb
 import wget
 import requests
 import multiprocessing
-import numpy as np
 from tqdm import tqdm
 from pathlib import Path
 from osgeo.gdalnumeric import *

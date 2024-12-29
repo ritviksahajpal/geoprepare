@@ -34,8 +34,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
     ],
     description="A Python package to prepare (download, extract, process input data) for GEOCIF and related models",
@@ -52,6 +50,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/ritviksahajpal/geoprepare",
-    version="0.5.61",
+    version="0.5.81",
     zip_safe=False,
 )

@@ -12,9 +12,9 @@ dir_download = ${dir_input}/download
 dir_output = ${dir_base}/Output
 dir_global_datasets = ${dir_input}/Global_Datasets
 dir_metadata = ${dir_input}/metadata
-dir_masks = ${dir_global_datasets}/masks
-dir_regions = ${dir_global_datasets}/regions
-dir_regions_shp = ${dir_regions}/shps
+dir_masks = ${dir_global_datasets}/Masks
+dir_regions = ${dir_global_datasets}/Regions
+dir_regions_shp = ${dir_regions}/Shps
 dir_crop_masks = ${dir_input}/crop_masks
 dir_models = ${dir_input}/models
 

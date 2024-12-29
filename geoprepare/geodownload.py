@@ -1,4 +1,4 @@
-###############################################################################
+##############################################################################
 # Ritvik Sahajpal
 # email: ritvik@umd.edu
 # June 18, 2022
@@ -11,7 +11,7 @@ from tqdm import tqdm
 from . import base
 
 
-class GeoPrepare(base.BaseGeo):
+class GeoDownload(base.BaseGeo):
     def __init__(self, path_config_file):
         super().__init__(path_config_file)
 
@@ -26,19 +26,16 @@ class GeoPrepare(base.BaseGeo):
         """
         super().parse_config(section="DEFAULT")
 
-        # check if current date is on or after March 1st. If it is then set redo_last_year flag to False else True
+        # check if current date is on or after March     1st. If it is then set redo_last_year flag to False else True
         # If redo_last_year is True then we redo the download, processing of last year's data
         self.redo_last_year = False if datetime.datetime.today().month >= 3 else True
 
 
-def run(path_config_file=["geoprepare.txt"]):
+def run(path_config_file=["geobase.txt"]):
     # Read in configuration file
-    geoprep = GeoPrepare(path_config_file)
+    geoprep = GeoDownload(path_config_file)
     datasets = ast.literal_eval(geoprep.parser.get("DATASETS", "datasets"))
 
-    geoprep.logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    geoprep.logger.info(f"Downloading: {datasets}")
-    geoprep.logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     # Loop through all datasets in parser
     pbar = tqdm(datasets, desc="Downloading Datasets")
     for dataset in datasets:
@@ -59,21 +56,17 @@ def run(path_config_file=["geoprepare.txt"]):
             geoprep.vi = geoprep.parser.get(dataset, "vi")
             geoprep.start_year = geoprep.parser.getint(dataset, "start_year")
             # Use GLAM scaling NDVI * 10000
-            geoprep.scale_glam = geoprep.parser.getboolean(
-                dataset, "scale_glam"
-            )
+            geoprep.scale_glam = geoprep.parser.getboolean(dataset, "scale_glam")
             # Use Mark's scaling (NDVI * 200) + 50
-            geoprep.scale_mark = geoprep.parser.getboolean(
-                dataset, "scale_mark"
-            )
+            geoprep.scale_mark = geoprep.parser.getboolean(dataset, "scale_mark")
             # Print missing dates (+status) and exit
-            geoprep.print_missing = geoprep.parser.getboolean(
-                dataset, "print_missing"
-            )
+            geoprep.print_missing = geoprep.parser.getboolean(dataset, "print_missing")
         elif dataset == "AGERA5":
             from .datasets import AgERA5 as obj
 
-            geoprep.variables = ast.literal_eval(geoprep.parser.get("AGERA5", "variables"))
+            geoprep.variables = ast.literal_eval(
+                geoprep.parser.get("AGERA5", "variables")
+            )
         elif dataset == "CHIRPS-GEFS":
             from .datasets import CHIRPS_GEFS as obj
 
@@ -121,8 +114,6 @@ def run(path_config_file=["geoprepare.txt"]):
         geoprep.pp_config(dataset)
         # Execute!
         obj.run(geoprep)
-
-    geoprep.logger.info("Finished downloading datasets")
 
 
 if __name__ == "__main__":

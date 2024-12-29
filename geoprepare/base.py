@@ -13,7 +13,7 @@ from . import log
 
 
 class BaseGeo:
-    def __init__(self, path_config_file=["geoprepare.txt", "geoextract.txt"]):
+    def __init__(self, path_config_file=["geobase.txt", "geoextract.txt"]):
         self.parser = utils.read_config(path_config_file)
         self.redo_last_year = True
 
@@ -114,6 +114,7 @@ class BaseGeo:
 
     def read_statistics(
         self,
+        country,
         read_calendar=False,
         read_statistics=False,
         read_countries=False,
@@ -126,12 +127,14 @@ class BaseGeo:
         Returns:
 
         """
+        category = self.parser.get(country, "category")
+
         # Get crop calendar information
         if read_calendar or read_all:
             self.path_calendar = (
                 self.dir_input
                 / "crop_calendars"
-                / self.parser.get("DEFAULT", "calendar_file")
+                / self.parser.get(category, "calendar_file")
             )
             self.df_calendar = (
                 pd.read_csv(self.path_calendar)
@@ -145,7 +148,7 @@ class BaseGeo:
             self.path_stats = (
                 self.dir_input
                 / "statistics"
-                / self.parser.get("DEFAULT", "statistics_file")
+                / self.parser.get(country, "statistics_file")
             )
             self.df_statistics = (
                 pd.read_csv(self.path_stats)
