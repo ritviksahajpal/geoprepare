@@ -1,49 +1,265 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               AMIS                                       ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[argentina]
+crops = ['sb', 'ww', 'mz']
+
+[austria]
+
+[australia]
+crops = ['ww', 'mz']
+
+[belgium]
+
+[brazil]
+crops = ['mz', 'sb', 'ww', 'rc']
+
+[bulgaria]
+
+[canada]
+
+[china]
+
+[croatia]
+
+[cyprus]
+
+[czech_republic]
+
+[denmark]
+
+[estonia]
+
+[finland]
+
+[france]
+crops = ['ww', 'mz']
+
+[germany]
+crops = ['ww', 'mz']
+
+[greece]
+
+[hungary]
+crops = ['ww', 'mz']
+
+[india]
+crops = ['rc', 'mz', 'ww', 'sb']
+
+[indonesia]
+crops = ['mz', 'rc']
+
+[italy]
+crops = ['ww', 'mz']
+
+[ireland]
+
+[japan]
+crops = ['rc']
+
+[kazakhstan]
+crops = ['sw']
+
+[malta]
+
+[mexico]
+crops = ['ww', 'mz', 'sb']
+
+[latvia]
+
+[lithuania]
+
+[luxembourg]
+
+[netherlands]
+
+[paraguay]
+crops = ['sb']
+
+[philippines]
+crops = ['rc']
+
+[poland]
+
+[portugal]
+
+[romania]
+crops = ['ww', 'mz']
+
+[republic_of_korea]
+crops = ['rc']
+
+[russian_federation]
+crops = ['ww', 'sw', 'mz', 'sb']
+
+[slovakia]
+
+[slovenia]
+
+[spain]
+crops = ['ww', 'mz']
+
+[sweden]
+
+[thailand]
+crops = ['rc']
+
+[turkey]
+crops = ['ww']
+
+[ukraine]
+crops = ['ww', 'mz', 'sb']
+
+[u.k._of_great_britain_and_northern_ireland]
+crops = ['ww', 'mz']
+
+[vietnam]
+crops = ['rc']
+
+[united_states_of_america]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               EWCM                                       ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[angola]
+category = EWCM
+scales = ['admin_1']
+
+[benin]
+category = EWCM
+scales = ['admin_2']
+
+[burkina_faso]
+category = EWCM
+scales = ['admin_2']
+
+[burundi]
+category = EWCM
+scales = ['admin_1']
+
+[cameroon]
+category = EWCM
+scales = ['admin_2']
+
+[central_african_republic]
+category = EWCM
+scales = ['admin_1']
+
+[chad]
+category = EWCM
+scales = ['admin_1']
+
+[drc]
+category = EWCM
+scales = ['admin_1']
+
+[ethiopia]
+category = EWCM
+scales = ['admin_2']
+
+[guinea]
+category = EWCM
+scales = ['admin_2']
+
 [kenya]
 category = EWCM
-scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
-growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
-crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
-use_cropland_mask = True
+scales = ['admin_1']
 
-[rwanda]
+[lesotho]
 category = EWCM
-scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
-growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
-crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
-use_cropland_mask = True
+scales = ['admin_1']
+
+[liberia]
+category = EWCM
+scales = ['admin_1']
+
+[madagascar]
+category = EWCM
+scales = ['admin_2']
 
 [malawi]
 category = EWCM
-scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
-growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
-crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
-use_cropland_mask = True
+scales = ['admin_2']
+
+[mali]
+category = EWCM
+scales = ['admin_1']
+
+[mauritania]
+category = EWCM
+scales = ['admin_1']
+
+[mozambique]
+category = EWCM
+scales = ['admin_1']
+
+[niger]
+category = EWCM
+scales = ['admin_2']
+
+[rwanda]
+category = EWCM
+scales = ['admin_2']
+
+[senegal]
+category = EWCM
+scales = ['admin_2']
+
+[sierra_leone]
+category = EWCM
+scales = ['admin_2']
+
+[somalia]
+category = EWCM
+scales = ['admin_2']
+
+[south_africa]
+category = EWCM
+scales = ['admin_1']
+crops = ['mz', 'ww']
+
+[south_sudan]
+category = EWCM
+scales = ['admin_2']
+
+[sudan]
+category = EWCM
+scales = ['admin_1']
+
+[tanzania]
+category = EWCM
+scales = ['admin_1']
+
+[uganda]
+category = EWCM
+scales = ['admin_2']
 
 [zambia]
 category = EWCM
-scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
-growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
-crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
-use_cropland_mask = True
+scales = ['admin_2']
 
-[united_republic_of_tanzania]
+[zimbabwe]
 category = EWCM
-scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
-growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
-crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
-use_cropland_mask = True
+scales = ['admin_2']
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               Crops                                      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [ww]
-mask = cropland_v9.tif
+mask = Percent_Winter_Wheat.tif
+
+[sw]
+mask = Percent_Spring_Wheat.tif
 
 [mz]
-mask = cropland_v9.tif
+mask = Percent_Maize.tif
 
 [sb]
-mask = cropland_v9.tif
+mask = Percent_Soybean.tif
 
 [rc]
-mask = cropland_v9.tif
+mask = Percent_Rice.tif
 
 [tf]
 mask = cropland_v9.tif
@@ -54,24 +270,45 @@ mask = cropland_v9.tif
 [ml]
 mask = cropland_v9.tif
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          Calendars                                       ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [EWCM]
-calendar_file = EWCM_2021-6-17.xlsx
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
 
 [AMIS]
-calendar_file = AMISCM_2021-6-17.xlsx
+calendar_file = AMISCM_2024-11-11.xlsx
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                             Default                                      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [DEFAULT]
+method = JRC
 redo = False
 threshold = True
 floor = 20
 ceil = 90
+countries = ['angola', 'benin']
+crops = ['ww', 'sb', 'sw', 'rc', 'mz']
+shp_boundary = gaul1_asap_v04.shp
+category = AMIS
 scales = ['admin_1']
 growing_seasons = [1]
-countries = ['kenya']
 forecast_seasons = [2022]
 mask = cropland_v9.tif
-shp_boundary = EWCM_Level_1.shp
+use_cropland_mask = False
 statistics_file = statistics.csv
 zone_file = countries.csv
 calendar_file = crop_calendar.csv
 eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                             Project                                      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[PROJECT]
+project_name = FEWSNET
+parallel_extract = False

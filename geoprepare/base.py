@@ -11,6 +11,9 @@ from pathlib import Path
 from . import utils
 from . import log
 
+from importlib.metadata import version
+print(f"Running geoprepare: {version('geoprepare')}")
+
 
 class BaseGeo:
     def __init__(self, path_config_file=["geobase.txt", "geoextract.txt"]):
@@ -62,21 +65,22 @@ class BaseGeo:
 
         return level
 
-    def parse_config(self, section="DEFAULT"):
+    def parse_config(self, project_name="", section="DEFAULT"):
         """
 
         Args:
+            project_name ():
             section ():
 
         Returns:
 
         """
         self.dir_base = Path(self.parser.get("PATHS", "dir_base"))
-        self.dir_log = Path(self.parser.get("PATHS", "dir_log"))
+        self.dir_log = Path(self.parser.get("PATHS", "dir_log")) / project_name
         self.dir_input = Path(self.parser.get("PATHS", "dir_input"))
         self.dir_interim = Path(self.parser.get("PATHS", "dir_interim"))
         self.dir_download = Path(self.parser.get("PATHS", "dir_download"))
-        self.dir_output = Path(self.parser.get("PATHS", "dir_output"))
+        self.dir_output = Path(self.parser.get("PATHS", "dir_output")) / project_name
         self.dir_global_datasets = Path(self.parser.get("PATHS", "dir_global_datasets"))
         self.dir_metadata = Path(self.parser.get("PATHS", "dir_metadata"))
         self.logging_level = self.parser.get("LOGGING", "level")

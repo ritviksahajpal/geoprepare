@@ -50,6 +50,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/ritviksahajpal/geoprepare",
-    version="0.5.81",
+    version="0.5.87",
     zip_safe=False,
 )

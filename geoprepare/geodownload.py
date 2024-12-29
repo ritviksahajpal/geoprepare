@@ -80,6 +80,7 @@ def run(path_config_file=["geobase.txt"]):
             from .datasets import ESI as obj
 
             geoprep.data_dir = geoprep.parser.get("ESI", "data_dir")
+            geoprep.list_products = ast.literal_eval(geoprep.parser.get("ESI", "list_products"))
         elif dataset == "CPC":
             from .datasets import CPC as obj
 

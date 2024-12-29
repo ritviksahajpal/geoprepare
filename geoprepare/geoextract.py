@@ -26,32 +26,29 @@ class GeoExtract(base.BaseGeo):
         Returns:
 
         """
-        super().parse_config(section="DEFAULT")
-
+        self.project_name = self.parser.get("PROJECT", "project_name")
+        super().parse_config(self.project_name, section="DEFAULT")
+        self.method = self.parser.get("DEFAULT", "method")
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
         self.dir_masks = Path(self.parser.get("PATHS", "dir_masks"))
         self.dir_regions = Path(self.parser.get("PATHS", "dir_regions"))
         self.dir_regions_shp = Path(self.parser.get("PATHS", "dir_regions_shp"))
         self.dir_crop_masks = Path(self.parser.get("PATHS", "dir_crop_masks"))
+        # self.use_cropland_mask = self.parser.get(country, "use_cropland_mask")
+        # self.crop_mask = self.dir_crop_masks / self.parser.
         self.redo = self.parser.getboolean("DEFAULT", "redo")
-
         # self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
+        self.parallel_extract = self.parser.getboolean("PROJECT", "parallel_extract")
 
 
 def run(path_config_file="geoextract.txt"):
     # Read in configuration file.
-    geoextract = GeoExtract(path_config_file)
-    geoextract.parse_config("DEFAULT")
+    obj = GeoExtract(path_config_file)
+    obj.parse_config("DEFAULT")
 
-    # Create crop masks
-    from .extract import extract_crop_masks as ec
-
-    ec.run(geoextract)
-
-    # Extract EO data
     from .extract import extract_EO as ee
 
-    ee.run(geoextract)
+    ee.run(obj)
 
 
 if __name__ == "__main__":

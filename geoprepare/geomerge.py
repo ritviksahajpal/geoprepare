@@ -66,9 +66,7 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
-        self.logger.info(
-            "###################################################################"
-        )
+        self.logger.info("###################################################")
         if info == "country_information":
             self.logger.info(self.country)
             self.logger.info(f"Scale: {self.scale}")
@@ -80,9 +78,7 @@ class GeoMerge(base.BaseGeo):
             self.logger.info(
                 f"Use cropland (True) or crop (False) mask: {self.use_cropland_mask}"
             )
-        self.logger.info(
-            "####################################################################"
-        )
+        self.logger.info("###################################################")
 
     def create_run_combinations(self):
         """
@@ -426,11 +422,11 @@ def run(path_config_file="geoextract.txt"):
     # Get all combinations of country, crop, scale, growing_season to produce GEOCIF/AgMET inputs for
     all_combinations = gm.create_run_combinations()
 
-    # Read calendar and crop statistics
-    gm.read_statistics(read_all=True)
-
     pbar = tqdm(all_combinations, total=len(all_combinations))
     for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1
+        # Read calendar and crop statistics
+        gm.read_statistics(country, read_all=True)
+
         pbar.set_description(
             f"Crop: {crop} Growing season: {growing_season} Scale: {scale} {country.title()}"
         )
@@ -447,6 +443,7 @@ def run(path_config_file="geoextract.txt"):
 
         # 3a. Check if crop calendar information exists for country, crop and growing_season
         # if empty then skip
+        breakpoint()
         df_cal = gm.df_calendar[
             (gm.df_calendar["country"] == country)
             & (gm.df_calendar["crop"] == crop)

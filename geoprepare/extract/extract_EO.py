@@ -20,7 +20,7 @@ from .. import utils
 # ========================
 #         UTILITIES
 # ========================
-np.seterr(invalid="ignore")  # Ignore 'RuntimeWarning: invalid value encountered in ...'
+np.seterr(invalid="ignore")
 
 
 def remove_duplicates(list_of_tuples):
@@ -105,7 +105,7 @@ def build_output_path(dir_output, region, region_id, year, var, crop):
     """
     Generates the output path for a CSV file.
     """
-    return dir_output / f"{region}_{region_id}_{year}_{var}_{crop}.csv"
+    return dir_output / f"{region_id}_{region}_{year}_{var}_{crop}.csv"
 
 
 # ========================
@@ -134,6 +134,9 @@ def process(val):
     if scale not in ["admin_1", "admin_2"]:
         raise ValueError(f"Scale {scale} is not valid. Must be 'admin_1' or 'admin_2'.")
 
+    admin_name = "ADM1_NAME" if scale == "admin_1" else "ADM2_NAME"
+    admin_id = "ADM_ID"
+
     # Skip chirps_gefs if year != current year
     if var == "chirps_gefs" and year != ar.utcnow().year:
         return
@@ -145,7 +148,8 @@ def process(val):
     limit = utils.crop_mask_limit(params, country, threshold)
 
     dir_crop_inputs = Path(f"crop_t{limit}") if threshold else Path(f"crop_p{limit}")
-    dir_output = params.dir_input / dir_crop_inputs / country / scale / crop / var
+    # e.g. D:/Users/ritvik/projects/GEOGLAM/Output/FEWSNET/crop_t20/angola/admin_1/cr/ndvi
+    dir_output = params.dir_output / dir_crop_inputs / country / scale / crop / var
     os.makedirs(dir_output, exist_ok=True)
 
     # ---------------------------
@@ -154,11 +158,12 @@ def process(val):
     current_year = ar.utcnow().year
     end_doy = 367 if calendar.isleap(year) else 366
 
-    stat_str_output = []
-
     for _, row in df_country.iterrows():
-        region = row["ADM1_NAME"].lower().replace(" ", "_")
-        region_id = row["ADM1_ID"]
+        if not row[admin_name]:
+            continue
+
+        region = row[admin_name].lower().replace(" ", "_")
+        region_id = row[admin_id]
 
         path_output = build_output_path(dir_output, region, region_id, year, var, crop)
 
@@ -174,7 +179,7 @@ def process(val):
                 reader = csv.reader(hndl_outf)
                 existing_rows = list(reader)[1:]  # skip header
 
-        day_stats = []
+        daily_stats = []
         for doy in range(1, end_doy):
             # Handle special chirps_gefs case
             if var == "chirps_gefs":
@@ -187,59 +192,51 @@ def process(val):
             else:
                 date_part = f"{year},{doy}"
 
-            # If partial file has data for this day (index = doy-1), skip
-            if use_partial_file and existing_rows:
-                # 6th position (index=5) is the var data (or "nan")
-                if existing_rows[doy - 1][5] != "nan":
-                    day_stats.append(",".join(existing_rows[doy - 1]))
-                    continue
-
             # Build default empty string for missing data
             empty_values = ",".join([str(np.NaN)] * 6)
             empty_str = f"{country},{region},{region_id},{date_part},{empty_values}"
 
             # Attempt to find raster file
             fname = get_var_fname(params, var, year, doy)
-            if not fname:
-                day_stats.append(empty_str)
+            fl_var = params.dir_interim / var / fname
+            if not fl_var.is_file():
+                daily_stats.append(empty_str)
                 continue
 
-            fl_var = params.dir_interim / var / fname
-            if fl_var.is_file():
-                # Call your geom_extract function here
-                val_extracted = geom_extract(
-                    row["geometry"], var, fl_var,
-                    stats_out=["mean", "counts"],
-                    afi=afi_file,
-                    afi_thresh=2000,
-                    thresh_type="Fixed"
-                )
-                if val_extracted:
-                    # Combine the stats and counts
-                    values = list(val_extracted["stats"].values()) + list(val_extracted["counts"].values())
-                    values_str = ",".join(map(str, values))
-                    day_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
-                else:
-                    day_stats.append(empty_str)
+            # If partial file has data for this day (index = doy-1), skip
+            if use_partial_file and existing_rows:
+                # 6th position (index=5) is the var data (or "")
+                if existing_rows[doy - 1][5] != "":
+                    daily_stats.append(",".join(existing_rows[doy - 1]))
+                    continue
+
+            val_extracted = geom_extract(
+                row["geometry"], var, fl_var,
+                stats_out=["mean", "counts"],
+                afi=afi_file,
+                afi_thresh=limit * 100,
+                thresh_type="Fixed"
+            )
+            if val_extracted:
+                # Combine the stats and counts
+                values = list(val_extracted["stats"].values()) + list(val_extracted["counts"].values())
+                values_str = ",".join(map(str, values))
+                daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
             else:
-                day_stats.append(empty_str)
+                daily_stats.append(empty_str)
 
-        # Insert a header at the start
-        header = (
-            f"country,region,region_id,year,doy,{var},num_pixels,"
-            "average_crop_percentage,median_crop_percentage,"
-            "min_crop_percentage,max_crop_percentage"
-        )
-        day_stats.insert(0, header)
+        if len(daily_stats):
+            # Insert a header at the start
+            header = (
+                f"country,region,region_id,year,doy,{var},num_pixels,"
+                "average_crop_percentage,median_crop_percentage,"
+                "min_crop_percentage,max_crop_percentage"
+            )
+            daily_stats.insert(0, header)
 
-        # Write results to CSV
-        df_result = pd.read_csv(io.StringIO("\n".join(day_stats)))
-        df_result.to_csv(path_output, index=False)
-
-        # Keep track of all results (if needed)
-        stat_str_output.append(day_stats)
-
-    return stat_str_output
+            # Write results to CSV
+            df_result = pd.read_csv(io.StringIO("\n".join(daily_stats)))
+            df_result.to_csv(path_output, index=False)
 
 
 # ========================
@@ -254,15 +251,15 @@ def build_combinations(params):
     years = list(range(params.start_year, params.end_year + 1))
 
     for country in params.countries:
-        # Example usage from your original code:
-        use_cropland_mask = params.parser.getboolean(country, "use_cropland_mask")
-        crops = ast.literal_eval(params.parser.get(country, "crops"))
-        vars_list = ast.literal_eval(params.parser.get(country, "eo_model"))
-        scales = ast.literal_eval(params.parser.get(country, "scales"))
+        category = params.parser.get(country, "category")
+        use_cropland_mask = params.parser.getboolean(category, "use_cropland_mask")
+        crops = ast.literal_eval(params.parser.get(category, "crops"))
+        vars_list = ast.literal_eval(params.parser.get(category, "eo_model"))
+        scales = ast.literal_eval(params.parser.get(category, "scales"))
 
         # Load your GeoDataFrame
         df_cmask = gp.read_file(
-            params.dir_regions_shp / params.parser.get(country, "shp_boundary"),
+            params.dir_regions_shp / params.parser.get(category, "shp_boundary"),
             engine="pyogrio",
         )
 
@@ -274,7 +271,8 @@ def build_combinations(params):
                 "ADMIN2": "ADM2_NAME",
                 "name1": "ADM1_NAME",
                 "name0": "ADM0_NAME",
-                "asap1_id": "ADM1_ID",
+                "FNID": "ADM_ID",
+                "asap1_id": "ADM_ID",
                 "asap0_id": "ADM0_ID",
             },
             inplace=True,
@@ -283,7 +281,7 @@ def build_combinations(params):
         # Filter GeoDataFrame for the specific country
         mask_country = country.lower().replace(" ", "_")
         df_country = df_cmask[
-            df_cmask["ADM0_NAME"].str.lower().replace(" ", "_") == mask_country
+            df_cmask["ADM0_NAME"].str.lower().str.replace(" ", "_") == mask_country
         ]
 
         # Build mask path
@@ -322,11 +320,11 @@ def build_combinations(params):
 
 def run(params):
     """
-    Main function for processing the data in parallel or sequentially based on the configuration.
+
     """
     list_combinations = build_combinations(params)
     num_cpus = (
-        int(params.fraction_cpus * cpu_count()) if params.parallel_process else 1
+        int(params.fraction_cpus * cpu_count()) if params.parallel_extract else 1
     )
 
     # Logging info
@@ -334,24 +332,25 @@ def run(params):
     vars_list = ast.literal_eval(params.parser.get(params.countries[0], "eo_model"))
     msg = (
         "++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+        f"# CPUs: {num_cpus}\n"
+        f"Parallel: {params.parallel_extract}\n"
+        f"REDO flag: {params.redo}\n"
         f"Countries: {params.countries}\n"
-        f"Spatial scale: {scales}, REDO flag: {params.redo}\n"
-        f"Start: {params.start_year}, End: {params.end_year}\n"
         f"EO vars to process: {vars_list}\n"
-        f"CPUs: {num_cpus}\n"
+        f"Start Year: {params.start_year}, End Year: {params.end_year}\n"
         f"Output directory: {params.dir_output}\n"
         "++++++++++++++++++++++++++++++++++++++++++++++++++++"
     )
     params.logger.error(msg)
 
-    # Either parallel or sequential
-    if params.parallel_process:
+    if params.parallel_extract:
         with Pool(num_cpus) as p:
             with tqdm(total=len(list_combinations)) as pbar:
                 for i, _ in enumerate(p.imap_unordered(process, list_combinations)):
                     desc = (
                         f"Processing {list_combinations[i][1]} "
-                        f"{list_combinations[i][2]} {list_combinations[i][4]}"
+                        f"{list_combinations[i][2]} {list_combinations[i][4]} "
+                        f"{list_combinations[i][5]}"
                     )
                     pbar.set_description(desc)
                     pbar.update()
@@ -360,7 +359,8 @@ def run(params):
         for i, val in enumerate(pbar):
             desc = (
                 f"Processing {list_combinations[i][1]} "
-                f"{list_combinations[i][2]} {list_combinations[i][4]}"
+                f"{list_combinations[i][2]} {list_combinations[i][4]} "
+                f"{list_combinations[i][5]}"
             )
             pbar.set_description(desc)
             pbar.update()
@@ -368,7 +368,4 @@ def run(params):
 
 
 if __name__ == "__main__":
-    # Example usage (if you wanted to run this directly):
-    # params = create_params_somehow()
-    # run(params)
     pass

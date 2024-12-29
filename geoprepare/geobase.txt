@@ -1,5 +1,5 @@
 [DATASETS]
-datasets = ['FPAR', 'NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
+datasets = ['ESI', 'NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
 
 [PATHS]
 dir_base = D:\Users\ritvik\projects\GEOGLAM
@@ -38,6 +38,7 @@ data_dir = ftp://ftp.cdc.noaa.gov/Datasets
 
 [ESI]
 data_dir = https://gis1.servirglobal.net//data//esi//
+list_products = ['4wk', '12wk']
 
 [FLDAS]
 

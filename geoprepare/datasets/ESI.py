@@ -11,11 +11,11 @@ import multiprocessing
 from tqdm import tqdm
 from pathlib import Path
 from osgeo.gdalnumeric import *
+import numpy as np
+from tqdm import tqdm
 
 start_jd = 8
 end_jd = 366
-
-list_products = ["4wk", "12wk"]
 
 
 def download_ESI(all_params):
@@ -32,7 +32,11 @@ def download_ESI(all_params):
     dir_download = params.dir_download / "esi" / product / str(year)
     os.makedirs(dir_download, exist_ok=True)
 
-    for jd in range(start_jd, end_jd, 7):
+    pbar = tqdm(range(start_jd, end_jd, 7))
+    for jd in pbar:
+        pbar.set_description(f"Downloading {product} {year} {jd}")
+        pbar.update()
+
         # It is possible that the file is present as a tgz archive, in which case downloand and unzip it
         fl_download = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
 
@@ -112,7 +116,7 @@ def run(params):
     import itertools
 
     all_params = []
-    for product in list_products:
+    for product in params.list_products:
         for year in range(params.start_year, params.end_year + 1):
             all_params.extend(list(itertools.product([params], [product], [year])))
 
@@ -130,7 +134,7 @@ def run(params):
 
     # Convert .tif to a global tif file
     all_params = []
-    for product in list_products:
+    for product in params.list_products:
         for year in range(params.start_year, params.end_year + 1):
             all_params.extend(list(itertools.product([params], [product], [year])))
 
