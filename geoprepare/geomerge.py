@@ -31,6 +31,7 @@ class GeoMerge(base.BaseGeo):
 
         """
         self.project_name = self.parser.get("PROJECT", "project_name")
+        self.parallel_merge = self.parser.getboolean("PROJECT", "parallel_merge")
         super().parse_config(project_name=self.project_name, section="DEFAULT")
 
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
@@ -169,6 +170,8 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
+        self.logger.info("Adding static information to the dataframe")
+
         pos = len(self.static_columns)
 
         # Add datetime based on year and day of year, make this the first column
@@ -248,6 +251,7 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
+        breakpoint()
         # Subset statstics dataframe for current growing_season and crop
         df_stats = self.df_statistics[
             (self.df_statistics["country"] == self.country)
@@ -367,15 +371,17 @@ class GeoMerge(base.BaseGeo):
 
     def post_process(self):
         # 1. Scale NDVI
-        self.df_ccs.loc[:, "ndvi"] = (self.df_ccs["ndvi"] - 50.0) / 200.0
+        if "ndvi" in self.df_ccs.columns:
+            self.df_ccs.loc[:, "ndvi"] = (self.df_ccs["ndvi"] - 50.0) / 200.0
 
         # 2. Assign hemisphere and temperate/tropical zones
         self.df_ccs = pd.merge(self.df_ccs, self.df_countries, on="country", how="left")
 
         # 3. Add average_temperature
-        self.df_ccs["average_temperature"] = (
-            self.df_ccs["cpc_tmax"] + self.df_ccs["cpc_tmin"]
-        ) / 2.0
+        if "cpc_tmax" in self.df_ccs.columns and "cpc_tmin" in self.df_ccs.columns:
+            self.df_ccs["average_temperature"] = (
+                self.df_ccs["cpc_tmax"] + self.df_ccs["cpc_tmin"]
+            ) / 2.0
 
         # 4. Add harvest season information
         groups = self.df_ccs.groupby(["region", "year"])
@@ -410,71 +416,106 @@ class GeoMerge(base.BaseGeo):
         ]
 
 
-def run(path_config_file="geoextract.txt"):
+def process_combination(combination, path_config_file):
     """
-
-    Args:
-        path_config_file ():
-
-    Returns:
-
+    Worker function for a single combination of (country, scale, crop, growing_season).
+    Returns (combination, success_boolean) for reporting.
     """
-    # Read in configuration file.
+    country, scale, crop, growing_season = combination
+
+    # Create a new GeoMerge instance for each combination
     gm = GeoMerge(path_config_file)
     gm.parse_config("DEFAULT")
 
-    # Get all combinations of country, crop, scale, growing_season to produce GEOCIF/AgMET inputs for
-    all_combinations = gm.create_run_combinations()
+    # 1. Read statistics (you can pass read_all=True if needed)
+    gm.read_statistics(country, crop, growing_season, read_all=True)
 
-    pbar = tqdm(all_combinations, total=len(all_combinations))
-    for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1
-        # Read calendar and crop statistics
-        gm.read_statistics(country, crop, growing_season, read_all=True)
+    # 2. Initialize GeoMerge object with country, scale, crop, growing_season
+    gm.country_information(country, scale, crop, growing_season)
+    gm.pretty_print(info="country_information")
 
-        pbar.set_description(
-            f"Crop: {crop} Growing season: {growing_season} Scale: {scale} {country.title()}"
-        )
-        pbar.update()
+    # 3. Set up output directory and output file
+    dir_output = gm.dir_output / gm.dir_threshold / country / scale
+    os.makedirs(dir_output, exist_ok=True)
+    output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
-        # 1. Initialize GeoMerge object with country, scale, crop, growing_season
-        gm.country_information(country, scale, crop, growing_season)
-        gm.pretty_print(info="country_information")
+    # 4. Check if crop calendar info exists
+    df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
+    if df_cal.empty:
+        return (combination, False)  # No data, skip
 
-        # 2. Set up output directory and file that stores the output
-        dir_output = gm.dir_output / gm.dir_threshold / country / scale
-        os.makedirs(dir_output, exist_ok=True)
-        output_file = dir_output / f"{crop}_s{growing_season}.csv"
+    # 5. Merge all EO data
+    gm.df_ccs = gm.merge_eo_files()
 
-        # 3a. Check if crop calendar information exists for country, crop and growing_season
-        # if empty then skip the current combination
-        df_cal = gm.df_calendar[(gm.df_calendar["country"] == country)]
+    # 6. Add static data, fill missing, add yield stats, etc.
+    gm.add_static_information()
+    gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm.eo_model)
+    # gm.df_ccs = gm.add_statistics()
+    gm.df_ccs = gm.add_calendar()
+    gm.post_process()
 
-        if not df_cal.empty:
-            # 3b. Merge all EO data for country, crop and scale (ccs) into a dataframe
-            gm.df_ccs = gm.merge_eo_files()
+    # 7. Store output to disk if not empty
+    if not gm.df_ccs.empty:
+        gm.logger.info(f"Storing output in {output_file}")
+        gm.df_ccs.to_csv(output_file, index=False)
+        return (combination, True)
+    else:
+        return (combination, False)
 
-            # 4. Add static data: country, crop, scale, datetime, month, etc.
-            gm.add_static_information()
 
-            # 5. Fill in missing values, append additional blank year
-            gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm.eo_model)
+def run(path_config_file="geoextract.txt"):
+    """
+    Main function that can run either sequentially or in parallel,
+    depending on the `parallel` argument.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
-            # 5. Add yield, area, production information
-            gm.df_ccs = gm.add_statistics()
+    # 1. Instantiate GeoMerge just to parse the config and create run combos
+    gm_master = GeoMerge(path_config_file)
+    gm_master.parse_config("DEFAULT")
 
-            # Remove leap year day (Feb 29th) to make assigning calendar information easier
-            # gm.df_ccs = utils.remove_leap_doy(gm.df_ccs)
+    # 2. Get all combinations
+    all_combinations = gm_master.create_run_combinations()
 
-            # 6. Add crop calendar information
-            gm.df_ccs = gm.add_calendar()
+    if not gm_master.parallel_merge:
+        # -- SEQUENTIAL EXECUTION --
+        results = []
+        pbar = tqdm(all_combinations, total=len(all_combinations))
+        for combo in pbar:
+            pbar.set_description(f"Processing {combo}")
+            pbar.update()
 
-            # 7. Post process data
-            gm.post_process()
+            combo_result, success = process_combination(combo, path_config_file)
+            results.append((combo_result, success))
+        succeeded = sum(s for _, s in results)
+        gm_master.logger.info(f"[SEQUENTIAL] {succeeded}/{len(results)} combinations processed successfully.")
+    else:
+        # -- PARALLEL EXECUTION --
+        results = []
+        with ThreadPoolExecutor() as executor:
+            # Submit tasks
+            future_to_combo = {
+                executor.submit(process_combination, combo, path_config_file): combo
+                for combo in all_combinations
+            }
 
-            # 8. Store output to disk
-            if not gm.df_ccs.empty:
-                gm.logger.info(f"Storing output in {output_file}")
-                gm.df_ccs.to_csv(output_file, index=False)
+            # Use tqdm to track progress of tasks as they complete
+            for future in tqdm(
+                as_completed(future_to_combo),
+                total=len(future_to_combo),
+                desc="Processing combos (parallel)",
+                leave=True
+            ):
+                combo = future_to_combo[future]
+                try:
+                    combo_result, success = future.result()
+                    results.append((combo_result, success))
+                except Exception as e:
+                    print(f"[ERROR] Combination {combo}: {e}")
+                    results.append((combo, False))
+
+        succeeded = sum(s for _, s in results)
+        gm_master.logger.info(f"[PARALLEL] {succeeded}/{len(results)} combinations processed successfully.")
 
 
 if __name__ == "__main__":
