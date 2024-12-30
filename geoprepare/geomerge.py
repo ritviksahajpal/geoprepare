@@ -30,7 +30,8 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
-        super().parse_config(section="DEFAULT")
+        self.project_name = self.parser.get("PROJECT", "project_name")
+        super().parse_config(project_name=self.project_name, section="DEFAULT")
 
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
 
@@ -55,7 +56,7 @@ class GeoMerge(base.BaseGeo):
         self.eo_model = ast.literal_eval(
             self.parser.get(country, "eo_model")
         )  # list of EO variables to use in the model
-        self.use_cropland_mask = self.parser.get(country, "use_cropland_mask")
+        self.use_cropland_mask = self.parser.getboolean(country, "use_cropland_mask")
         self.get_dirname(country)
 
     def pretty_print(self, info="country_information"):
@@ -117,12 +118,11 @@ class GeoMerge(base.BaseGeo):
 
         """
         frames = []
-
         # For each element in vars, create a list of files to be merged
         for var in self.eo_model:
             crop_folder_name = "cr" if self.use_cropland_mask else "cr"
             path_var_files = (
-                self.dir_input
+                self.dir_output
                 / self.dir_threshold
                 / self.country
                 / self.scale
@@ -141,13 +141,17 @@ class GeoMerge(base.BaseGeo):
         df_result = None
         pbar = tqdm(frames, total=len(frames), leave=False)
         for df in pbar:
-            pbar.set_description(f"Merging {var} files")
+            pbar.set_description(f"Merging files")
             pbar.update()
 
+            # Set index for the current DataFrame
+            df = df.set_index(self.static_columns)
+
+            # Merge the current DataFrame into the result
             if df_result is None:
-                df_result = df.set_index(self.static_columns)
+                df_result = df
             else:
-                df_result = df_result.combine_first(df.set_index(self.static_columns))
+                df_result = df_result.combine_first(df)
 
         # Reset index to get the right format
         df_result = df_result.reset_index()
@@ -425,7 +429,7 @@ def run(path_config_file="geoextract.txt"):
     pbar = tqdm(all_combinations, total=len(all_combinations))
     for country, scale, crop, growing_season in pbar:  # e.g. rwanda, cr, admin1
         # Read calendar and crop statistics
-        gm.read_statistics(country, read_all=True)
+        gm.read_statistics(country, crop, growing_season, read_all=True)
 
         pbar.set_description(
             f"Crop: {crop} Growing season: {growing_season} Scale: {scale} {country.title()}"
@@ -437,18 +441,13 @@ def run(path_config_file="geoextract.txt"):
         gm.pretty_print(info="country_information")
 
         # 2. Set up output directory and file that stores the output
-        dir_output = gm.dir_input / gm.dir_threshold / country / scale
+        dir_output = gm.dir_output / gm.dir_threshold / country / scale
         os.makedirs(dir_output, exist_ok=True)
         output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
         # 3a. Check if crop calendar information exists for country, crop and growing_season
-        # if empty then skip
-        breakpoint()
-        df_cal = gm.df_calendar[
-            (gm.df_calendar["country"] == country)
-            & (gm.df_calendar["crop"] == crop)
-            & (gm.df_calendar["growing_season"] == growing_season)
-        ]
+        # if empty then skip the current combination
+        df_cal = gm.df_calendar[(gm.df_calendar["country"] == country)]
 
         if not df_cal.empty:
             # 3b. Merge all EO data for country, crop and scale (ccs) into a dataframe
