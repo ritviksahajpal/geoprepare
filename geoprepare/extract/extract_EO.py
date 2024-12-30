@@ -52,6 +52,7 @@ def get_var_fname(params, var, year, doy):
     Determines the input file name based on the variable and date.
     """
     year_doy = f"{year}{str(doy).zfill(3)}"
+    month, day_of_month = get_month_and_day_from_day_of_year(year, doy)
 
     # Common variable-to-filename mapping
     variable_fnames = {
@@ -68,23 +69,18 @@ def get_var_fname(params, var, year, doy):
         "cpc_precip": f"cpc_{year_doy}_precip_global.tif",
         "soil_moisture_as1": f"nasa_usda_soil_moisture_{year_doy}_as1_global.tif",
         "soil_moisture_as2": f"nasa_usda_soil_moisture_{year_doy}_as2_global.tif",
+        "nsidc_surface": f"nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_surface_global.tif",
+        "nsidc_rootzone": f"nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_rootzone_global.tif",
         "lai": f"MCD15A2H.A{year_doy}_Lai_500m_mosaic_0p05.tif",
         "fpar": f"MCD15A2H.A{year_doy}_Fpar_500m_mosaic_0p05.tif",
         "chirps": f"global/chirps_v2.0.{year_doy}_global.tif",
+        "chirps_gefs": f"data.{year}.{month:02d}{day_of_month:02d}.tif",
+        "lst": f"MOD11C1.A{year_doy}_global.tif"
     }
 
     # Return filename if in dictionary
     if var in variable_fnames:
         return variable_fnames[var]
-
-    # Handle special cases
-    if var == "chirps_gefs":
-        filelist = glob.glob(str(params.dir_interim / "chirps_gefs" / "*.tif"))
-        if filelist:
-            return os.path.basename(filelist[0])
-        else:
-            params.logger.error("No chirps_gefs file found.")
-            return None
     elif var == "smos":
         # Example threshold: "2015124"
         # SM_OPER* if >= 2015124, else SM_RE04*
@@ -93,8 +89,6 @@ def get_var_fname(params, var, year, doy):
             if year_doy >= "2015124"
             else f"SM_RE04_MIR_CLF33A_{year_doy}.tif"
         )
-    elif var == "lst":
-        return f"MOD11C1.A{year_doy}_global.tif"
     else:
         # If variable doesn't match any known pattern
         params.logger.error(f"Variable '{var}' does not exist.")
@@ -106,6 +100,20 @@ def build_output_path(dir_output, region, region_id, year, var, crop):
     Generates the output path for a CSV file.
     """
     return dir_output / f"{region_id}_{region}_{year}_{var}_{crop}.csv"
+
+
+def get_month_and_day_from_day_of_year(year, day_of_year):
+    # Create an arrow object for the first day of the given year
+    start_of_year = ar.get(f"{year}-01-01")
+
+    # Calculate the date by adding the day of the year to the start of the year
+    date = start_of_year.shift(days=day_of_year - 1)  # Adjusted for zero-based indexing
+
+    # Extract the month and day from the date
+    month = date.month
+    day_of_month = date.day
+
+    return month, day_of_month
 
 
 # ========================
@@ -179,51 +187,89 @@ def process(val):
                 reader = csv.reader(hndl_outf)
                 existing_rows = list(reader)[1:]  # skip header
 
-        daily_stats = []
-        for doy in range(1, end_doy):
-            # Handle special chirps_gefs case
-            if var == "chirps_gefs":
-                # Only do day=1
-                if doy > 1:
-                    break
-                forecast_date = ar.utcnow().shift(days=+15).date()
-                doy = forecast_date.timetuple().tm_yday
-                date_part = f"{forecast_date.year},{doy}"
-            else:
-                date_part = f"{year},{doy}"
+        if var == "chirps_gefs":
+            start_date = ar.utcnow().date().timetuple().tm_yday
+            end_date = ar.utcnow().shift(days=+15).date().timetuple().tm_yday
 
-            # Build default empty string for missing data
-            empty_values = ",".join([str(np.NaN)] * 6)
-            empty_str = f"{country},{region},{region_id},{date_part},{empty_values}"
+            for jd in range(start_date, end_date):
+                # Build default empty string for missing data
+                empty_values = ",".join([str(np.NaN)] * 6)
+                empty_str = f"{country},{region},{region_id},{date_part},{empty_values}"
 
-            # Attempt to find raster file
-            fname = get_var_fname(params, var, year, doy)
-            fl_var = params.dir_interim / var / fname
-            if not fl_var.is_file():
-                daily_stats.append(empty_str)
-                continue
+                fl_var = params.dir_interim / var / Path(get_var_fname(var, year, jd))
+                if not os.path.isfile(fl_var):
+                    daily_stats.append(empty_str)
+                else:
+                    val_extracted = geom_extract(
+                        row["geometry"], var, fl_var,
+                        stats_out=["mean", "counts"],
+                        afi=afi_file,
+                        afi_thresh=limit * 100,
+                        thresh_type="Fixed"
+                    )
+                    if val_extracted:
+                        # Combine the stats and counts
+                        values = list(val_extracted["stats"].values()) + list(val_extracted["counts"].values())
+                        values_str = ",".join(map(str, values))
+                        daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
+                    else:
+                        daily_stats.append(empty_str)
+        else:
+            daily_stats = []
+            for doy in range(1, end_doy):
+                # Handle special chirps_gefs case
+                if var == "chirps_gefs":
+                    # Only do day=1
+                    if doy > 1:
+                        break
+                    forecast_date = ar.utcnow().shift(days=+15).date()
+                    doy = forecast_date.timetuple().tm_yday
+                    date_part = f"{forecast_date.year},{doy}"
+                else:
+                    date_part = f"{year},{doy}"
 
-            # If partial file has data for this day (index = doy-1), skip
-            if use_partial_file and existing_rows:
-                # 6th position (index=5) is the var data (or "")
-                if existing_rows[doy - 1][5] != "":
-                    daily_stats.append(",".join(existing_rows[doy - 1]))
+                # Build default empty string for missing data
+                empty_values = ",".join([str(np.NaN)] * 6)
+                empty_str = f"{country},{region},{region_id},{date_part},{empty_values}"
+
+                # Attempt to find raster file
+                fname = get_var_fname(params, var, year, doy)
+
+                if var == "nsidc_surface":
+                    fl_var = params.dir_interim / "nsidc" / "daily" / "surface" / fname
+                elif var == "nsidc_rootzone":
+                    fl_var = params.dir_interim / "nsidc" / "daily" / "rootzone" / fname
+                else:
+                    fl_var = params.dir_interim / var / fname
+
+                if not os.path.isfile(fl_var):
+                    daily_stats.append(empty_str)
                     continue
 
-            val_extracted = geom_extract(
-                row["geometry"], var, fl_var,
-                stats_out=["mean", "counts"],
-                afi=afi_file,
-                afi_thresh=limit * 100,
-                thresh_type="Fixed"
-            )
-            if val_extracted:
-                # Combine the stats and counts
-                values = list(val_extracted["stats"].values()) + list(val_extracted["counts"].values())
-                values_str = ",".join(map(str, values))
-                daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
-            else:
-                daily_stats.append(empty_str)
+                # If partial file has data for this day (index = doy-1), skip
+                if use_partial_file and existing_rows:
+                    # 6th position (index=5) is the var data (or "")
+                    try:
+                        if existing_rows[doy - 1][5] != "":
+                            daily_stats.append(",".join(existing_rows[doy - 1]))
+                            continue
+                    except:
+                        breakpoint()
+
+                val_extracted = geom_extract(
+                    row["geometry"], var, fl_var,
+                    stats_out=["mean", "counts"],
+                    afi=afi_file,
+                    afi_thresh=limit * 100,
+                    thresh_type="Fixed"
+                )
+                if val_extracted:
+                    # Combine the stats and counts
+                    values = list(val_extracted["stats"].values()) + list(val_extracted["counts"].values())
+                    values_str = ",".join(map(str, values))
+                    daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
+                else:
+                    daily_stats.append(empty_str)
 
         if len(daily_stats):
             # Insert a header at the start
@@ -252,14 +298,14 @@ def build_combinations(params):
 
     for country in params.countries:
         category = params.parser.get(country, "category")
-        use_cropland_mask = params.parser.getboolean(category, "use_cropland_mask")
-        crops = ast.literal_eval(params.parser.get(category, "crops"))
+        use_cropland_mask = params.parser.getboolean(country, "use_cropland_mask")
+        crops = ast.literal_eval(params.parser.get(country, "crops"))
         vars_list = ast.literal_eval(params.parser.get(category, "eo_model"))
-        scales = ast.literal_eval(params.parser.get(category, "scales"))
+        scales = ast.literal_eval(params.parser.get(country, "scales"))
 
         # Load your GeoDataFrame
         df_cmask = gp.read_file(
-            params.dir_regions_shp / params.parser.get(category, "shp_boundary"),
+            params.dir_regions_shp / params.parser.get(country, "shp_boundary"),
             engine="pyogrio",
         )
 
