@@ -59,6 +59,14 @@ def get_var(var: str, indicator_arr: np.ndarray) -> ma.MaskedArray:
             (x < 0.0) | (x == 9999.0),
             x
         ),
+        "nsidc_surface": lambda x: ma.masked_where(
+            (x < 0.0) | (x == 9999.0),
+            x
+        ),
+        "nsidc_rootzone": lambda x: ma.masked_where(
+            (x < 0.0) | (x == 9999.0),
+            x
+        ),
         "chirps": lambda x: ma.masked_less(x, 0.0) / 100.0,
         "chirps_gefs": lambda x: ma.masked_less(x, 0.0) / 100.0,
         "cpc_tmax": lambda x: ma.masked_less(x, -273.15),

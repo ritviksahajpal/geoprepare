@@ -116,9 +116,52 @@ class BaseGeo:
             f"crop_t{self.limit}" if self.threshold else f"crop_p{self.limit}"
         )
 
+    def get_key_or_value(self, input_item):
+        """
+        If input_item is a key, return its value.
+        If input_item is a value, return its key.
+        Otherwise, return None.
+        """
+        mapping = {
+            "mz": "maize",
+            "sb": "soybean",
+            "rc": "rice",
+            "sw": "spring_wheat",
+            "ww": "winter_wheat",
+            "ml": "millet",
+            "tf": "teff",
+            "sr": "sorghum"
+        }
+
+        # Check if the input item is a key in the mapping
+        if input_item in mapping:
+            return mapping[input_item]
+
+        # Check if the input item is a value in the inverse mapping
+        inverse_mapping = {v: k for k, v in mapping.items()}
+
+        if input_item in inverse_mapping:
+            return inverse_mapping[input_item]
+
+        # If it's neither a key nor a value
+        return None
+
+    def get_calendar_sheet_name(self, crop, growing_season):
+        sheet_name = None
+        crop_name = self.get_key_or_value(crop)
+
+        if crop in ["winter_wheat", "spring_wheat"]:
+            sheet_name = crop_name
+        else:
+            sheet_name = f"{crop_name}_{growing_season}"
+
+        return sheet_name
+
     def read_statistics(
         self,
         country,
+        crop="mz",
+        growing_season=1,
         read_calendar=False,
         read_statistics=False,
         read_countries=False,
@@ -135,13 +178,14 @@ class BaseGeo:
 
         # Get crop calendar information
         if read_calendar or read_all:
+            sheet_name = self.get_calendar_sheet_name(crop, growing_season)
             self.path_calendar = (
                 self.dir_input
                 / "crop_calendars"
                 / self.parser.get(category, "calendar_file")
             )
             self.df_calendar = (
-                pd.read_csv(self.path_calendar)
+                pd.read_excel(self.path_calendar, sheet_name=sheet_name)
                 if os.path.isfile(self.path_calendar)
                 else pd.DataFrame()
             )

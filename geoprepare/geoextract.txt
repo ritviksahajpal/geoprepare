@@ -121,126 +121,293 @@ crops = ['rc']
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               EWCM                                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[afghanistan]
+category = EWCM
+scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = gaul1_asap_v04.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+
 [angola]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+
+[bangladesh]
+category = EWCM
+scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = gaul1_asap_v04.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [benin]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [burkina_faso]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [burundi]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [cameroon]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [central_african_republic]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [chad]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [drc]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [ethiopia]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [guinea]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [kenya]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [lesotho]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [liberia]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [madagascar]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [malawi]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [mali]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [mauritania]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [mozambique]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [niger]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [rwanda]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [senegal]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [sierra_leone]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [somalia]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [south_africa]
 category = EWCM
 scales = ['admin_1']
 crops = ['mz', 'ww']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
 
 [south_sudan]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [sudan]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
-[tanzania]
+[united_republic_of_tanzania]
 category = EWCM
 scales = ['admin_1']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [uganda]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [zambia]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [zimbabwe]
 category = EWCM
 scales = ['admin_2']
+growing_seasons = [1]
+use_cropland_mask = True
+shp_boundary = adm_shapefile.shp
+calendar_file = EWCM_2024-10-16.xlsx
+crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Crops                                      ;;
@@ -292,7 +459,7 @@ redo = False
 threshold = True
 floor = 20
 ceil = 90
-countries = ['angola', 'benin']
+countries = ['angola']
 crops = ['ww', 'sb', 'sw', 'rc', 'mz']
 shp_boundary = gaul1_asap_v04.shp
 category = AMIS
@@ -304,7 +471,7 @@ use_cropland_mask = False
 statistics_file = statistics.csv
 zone_file = countries.csv
 calendar_file = crop_calendar.csv
-eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk', 'soil_moisture_as1', 'soil_moisture_as2']
+eo_model = ['nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Project                                      ;;
@@ -312,3 +479,4 @@ eo_model = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk', 
 [PROJECT]
 project_name = FEWSNET
 parallel_extract = False
+parallel_merge = False
