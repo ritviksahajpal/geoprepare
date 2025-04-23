@@ -333,5 +333,5 @@ twine upload dist/geoprepare-A.B.C.tar.gz
 ```
 
 ## Credits
-
-This package was created with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [giswqs/pypackage](https://github.com/giswqs/pypackage) project template.
+This project was supported by was supported by NASA Applied Sciences Grant No. 80NSSC17K0625 through the NASA Harvest Consortium,
+and the NASA Acres Consortium under NASA Grant #80NSSC23M0034
