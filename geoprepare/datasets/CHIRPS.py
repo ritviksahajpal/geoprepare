@@ -1,290 +1,302 @@
-########################################################################################################################
-# Ritvik Sahajpal, Joanne Hall
-# ritvik@umd.edu
-#
-# The original data is in zipped/unzipped tiff format at 0.05 degree resolution (zipped for final products and unzipped
-# for preliminary product in recent years). The naming convention is in year, month, day and to match the other datasets
-# the data has to be renamed into year, julian day.
-#
-# Final Tiffs
-# Step 1: Unzip, rename the original tiff files, and convert the floating point (unit: mm) data into integer by scaling
-# by 100. This speeds up step 2 and the Weighted Average Extraction code.
-# Step 2: Convert the data into a global extent to match the crop masks.
-#
-# Preliminary Tiffs
-# Step 1: Rename the original tiff files. Convert the floating point (unit: mm) data into integer by scaling by 100.
-# This speeds up step 2 and the Weighted Average Extraction code.
-# Step 2: Convert the data into a global extent to match the crop masks.
-########################################################################################################################
-import os
-import pdb
-import requests
-import rasterio
-import itertools
+#!/usr/bin/env python3
+"""
+Ritvik Sahajpal, Joanne Hall
+ritvik@umd.edu
+
+Download, unzip, scale, and reproject CHIRPS data
+(preliminary & final) at 0.05° resolution.
+
+Steps:
+ 1. Download .tif.gz files for each year.
+ 2. Unzip/rename and convert floating mm to integer (×100)
+    with a nodata sentinel.
+ 3. Reproject to a global 3600×7200 grid matching crop masks.
+"""
+import gzip
+import logging
 import multiprocessing
-import numpy as np
-from tqdm import tqdm
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+import os
+from calendar import isleap, monthrange
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urljoin
 
-list_products = ["prelim", "final"]
+import numpy as np
+import rasterio
+import requests
+from bs4 import BeautifulSoup
+from osgeo import gdal, osr
+from tqdm import tqdm
+
+# Module-level logger
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(levelname)s:%(message)s"
+)
+logger = logging.getLogger(__name__)
+
+LIST_PRODUCTS = ["prelim", "final"]
+NODATA_VALUE = -9999
 
 
-def download_CHIRPS(all_params):
+def download_chirps(
+    type_data, year, dir_prelim, dir_final, redo_last_year
+):
+    """
+    Download CHIRPS .tif.gz files for a given year and product type.
+    """
     base_url = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/"
-    type_data, year, params, dir_prelim, dir_final = all_params
-
-    # prelim data should only be downloaded for current and previous year at most
-    if type_data == "prelim" and (
-        params.redo_last_year and year < datetime.today().year - 1
+    # skip old prelim data if not re-downloading
+    if (
+        type_data == "prelim"
+        and not redo_last_year
+        and year < datetime.today().year - 1
     ):
         return
 
+    # set output directory and URL
     if type_data == "prelim":
-        dir_out = dir_prelim
-        download_url = base_url + "prelim/global_daily/tifs/p05/" + str(year)
-    elif type_data == "final":
-        dir_out = dir_final
-        download_url = base_url + "global_daily/tifs/p05/" + str(year)
+        out_dir = dir_prelim
+        url = f"{base_url}prelim/global_daily/tifs/p05/{year}/"
+    else:
+        out_dir = dir_final
+        url = f"{base_url}global_daily/tifs/p05/{year}/"
 
-    os.makedirs(dir_out, exist_ok=True)
-    print(f"Downloading to {dir_out}")
+    os.makedirs(out_dir, exist_ok=True)
+    logger.info(f"Listing CHIRPS {type_data} {year} at {url}")
 
-    response = requests.get(download_url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    try:
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        logger.error(f"Failed to list {url}: {e}")
+        return
 
+    soup = BeautifulSoup(resp.text, "html.parser")
     for link in tqdm(
-        soup.select("a[href$='.tif.gz']"), desc=f"CHIRPS {type_data} {year}"
+        soup.select("a[href$='.tif.gz']"),
+        desc=f"Download {type_data} {year}",
     ):
-        # Name the pdf files using the last portion of each link which are unique in this case
-        filename = os.path.join(dir_out, link["href"].split("/")[-1])
+        href = link["href"]
+        out_file = Path(out_dir) / href.split("/")[-1]
+        if not out_file.exists():
+            try:
+                r2 = requests.get(urljoin(url, href), timeout=60)
+                r2.raise_for_status()
+                with open(out_file, "wb") as f:
+                    f.write(r2.content)
+            except Exception as e:
+                logger.error(f"Failed to download {href}: {e}")
 
-        if not os.path.isfile(filename):
-            with open(filename, "wb") as f:
-                f.write(requests.get(urljoin(download_url + "/", link["href"])).content)
 
-
-def unzip(all_params):
+def unzip_and_scale(
+    type_product,
+    year,
+    mon,
+    day,
+    dir_prelim,
+    dir_final,
+    dir_interim,
+):
     """
-    Store CHIRPS preliminary unzipped (/interim/chirps/prelim/unzipped)
-    Store CHIRPS final scaled (/interim/chirps/final/scaled)
-    Store CHIRPS prelim scaled (/interim/chirps/prelim/scaled)
-    :param all_params:
-    :return:
+    Unzip (if final) or rename (if prelim) and convert to integer-scaled GeoTIFF.
     """
-    import gzip
-
-    type_product, year, mon, day, params, dir_prelim, dir_final = all_params
-
+    # prepare paths
     if type_product == "final":
-        dir_unzipped = params.dir_interim / "chirps" / type_product / "unzipped"
-        os.makedirs(dir_unzipped, exist_ok=True)
+        unzip_dir = dir_interim / "chirps" / type_product / "unzipped"
+        os.makedirs(unzip_dir, exist_ok=True)
+        zip_path = (
+            Path(dir_final)
+            / f"chirps-v2.0.{year}.{mon:02d}.{day:02d}.tif.gz"
+        )
+    else:
+        unzip_dir = dir_prelim
 
-        # fl_zip refers to the downloaded zipped CHIRPS final file
-        fl_zip = dir_final / Path(
-            f"chirps-v2.0.{year}.{str(mon).zfill(2)}.{str(day).zfill(2)}.tif.gz"
+    scaled_dir = dir_interim / "chirps" / type_product / "scaled"
+    os.makedirs(scaled_dir, exist_ok=True)
+    jd = datetime(year, mon, day).timetuple().tm_yday
+    out_scaled = (
+        scaled_dir / f"chirps_v2_{year}{jd:03d}_scaled.tif"
+    )
+    if out_scaled.exists():
+        return
+
+    # unzip final or use prelim TIFF
+    if type_product == "final" and zip_path.exists():
+        tif_path = (
+            unzip_dir
+            / f"chirps-v2.0.{year}.{mon:02d}.{day:02d}.tif"
+        )
+        logger.info(f"Unzipping {zip_path} to {tif_path}")
+        with gzip.open(zip_path, "rb") as zin, open(tif_path, "wb") as zout:
+            zout.write(zin.read())
+    else:
+        tif_path = (
+            unzip_dir
+            / f"chirps-v2.0.{year}.{mon:02d}.{day:02d}.tif"
         )
 
-    dir_integer = params.dir_interim / "chirps" / type_product / "scaled"
-    os.makedirs(dir_integer, exist_ok=True)
+    if not tif_path.exists():
+        return
 
-    # change to JD
-    day_of_year = datetime(year, mon, day).timetuple().tm_yday
+    # read and scale
+    logger.info(f"Scaling {tif_path} to integer")
+    with rasterio.open(tif_path) as src:
+        profile = src.profile.copy()
+        data = src.read(1).astype(float)
 
-    # fl_int is the unzipped and scaled file we create
-    fl_int = dir_integer / Path(
-        f"chirps_v2_{year}{str(day_of_year).zfill(3)}_scaled.tif"
+    arr = (data * 100).astype(np.int32)
+    arr[data == -999900.0] = NODATA_VALUE
+    profile.update(
+        dtype=rasterio.int32,
+        count=1,
+        nodata=NODATA_VALUE,
     )
 
-    if os.path.exists(fl_int):
-        params.logger.info(f"File exists {fl_int}")
-    else:
-        if type_product == "final":
-            fl_unzip = dir_unzipped / Path(
-                f"chirps_v2.0.{year}{str(day_of_year).zfill(3)}_unzip.tif"
-            )
-
-            if os.path.isfile(fl_zip):
-                params.logger.info(f"Unzipping {fl_zip} to {fl_unzip}")
-                with gzip.open(fl_zip, "rb") as hndl_zip:
-                    with open(fl_unzip, "wb") as hndl_unzip:
-                        hndl_unzip.write(hndl_zip.read())
-        else:
-            fl_unzip = dir_prelim / Path(
-                f"chirps-v2.0.{year}.{str(mon).zfill(2)}.{str(day).zfill(2)}.tif"
-            )
-
-        if os.path.isfile(fl_unzip):
-            params.logger.info(f"Converting to int {fl_unzip} to {fl_int}")
-            with rasterio.open(os.path.normpath(fl_unzip)) as dataset:
-                profile = dataset.profile
-                profile.update(dtype=rasterio.int32, count=1)
-                data = dataset.read()
-
-            arr = data * 100  # multiply by 100 to convert to integer
-            arr[arr == -999900.0] = None  # Assigning null value
-
-            with rasterio.open(fl_int, "w", **profile) as dst:
-                dst.write(arr.astype(rasterio.int32))
+    with rasterio.open(out_scaled, "w", **profile) as dst:
+        dst.write(arr, 1)
 
 
-def to_global(all_params):
+def reproject_global(
+    type_product,
+    year,
+    jd,
+    dir_interim,
+    fill_value,
+):
     """
-    Store CHIRPS preliminary global (/interim/chirps/prelim/global)
-    Args:
-        all_params ():
-
-    Returns:
-
+    Reproject scaled TIFF into 3600×7200 global grid.
     """
-    from osgeo import osr, gdal
+    scaled_dir = dir_interim / "chirps" / type_product / "scaled"
+    global_dir = dir_interim / "chirps" / "global"
+    os.makedirs(global_dir, exist_ok=True)
 
-    type_product, year, jd, params = all_params
+    in_tif = (
+        scaled_dir / f"chirps_v2_{year}{jd:03d}_scaled.tif"
+    )
+    if not in_tif.exists():
+        return
 
-    dir_integer = params.dir_interim / "chirps" / type_product / "scaled"
-    dir_out = params.dir_interim / "chirps" / "global"
-    os.makedirs(dir_out, exist_ok=True)
+    out_tif = (
+        global_dir
+        / f"chirps_v2.0.{year}{jd:03d}_global.tif"
+    )
+    if year < datetime.today().year - 1 and out_tif.exists():
+        return
 
-    if os.path.isfile(
-        dir_integer / Path(f"chirps_v2_{year}{str(jd).zfill(3)}_scaled.tif")
-    ):
-        fl_out = dir_out / Path(f"chirps_v2.0.{year}{str(jd).zfill(3)}_global.tif")
+    logger.info(f"Reprojecting {in_tif} to {out_tif}")
+    ds = gdal.Open(str(in_tif))
+    band = ds.GetRasterBand(1)
+    data = band.ReadAsArray()
 
-        # Redo output file if it already exists, if it is this year or last
-        if year < (datetime.today().year - 1) and os.path.isfile(fl_out):
-            return
+    out_arr = np.full((3600, 7200), fill_value, dtype=np.int32)
+    out_arr[800:2800, :] = data
 
-        params.logger.info(
-            f"{type_product} global {dir_out} / chirps_v2.0.{year}{str(jd).zfill(3)}_global.tif"
-        )
-        ds = gdal.Open(
-            str(dir_integer) + os.sep + f"chirps_v2_{year}{str(jd).zfill(3)}_scaled.tif"
-        )
-
-        b = ds.GetRasterBand(1)
-        bArr = gdal.Band.ReadAsArray(b)
-        outArr = np.empty([3600, 7200], dtype=int)
-        outArr[0:800, :] = params.fill_value
-        outArr[2800:3600, :] = params.fill_value
-        outArr[800:2800, :] = bArr
-
-        otype = gdal.GDT_Int32
-        driver = gdal.GetDriverByName("GTiff")
-        dst_ds = driver.Create(str(fl_out), 7200, 3600, 1, otype)
-        outRasterSRS = osr.SpatialReference()
-        outRasterSRS.ImportFromEPSG(4326)
-        dst_ds.SetProjection(outRasterSRS.ExportToWkt())
-        dst_ds.SetGeoTransform((-180, 0.05, 0, 90, 0, -0.05))
-        dst_ds.GetRasterBand(1).WriteArray(outArr)
-
-        ds = None
+    driver = gdal.GetDriverByName("GTiff")
+    dst = driver.Create(
+        str(out_tif), 7200, 3600, 1, gdal.GDT_Int32
+    )
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    dst.SetProjection(srs.ExportToWkt())
+    dst.SetGeoTransform((-180, 0.05, 0, 90, 0, -0.05))
+    dst.GetRasterBand(1).WriteArray(out_arr)
+    dst.FlushCache()
+    ds = None  # close
+    dst = None
 
 
-def run(params):
-    """
+def run(
+    start_year,
+    end_year,
+    dir_download,
+    dir_interim,
+    redo_last_year,
+    parallel_process,
+    fraction_cpus,
+    fill_value,
+):
+    dir_prelim = dir_download / 'chirps' / 'prelim'
+    dir_final = dir_download / 'chirps' / 'final'
+    dir_prelim.mkdir(parents=True, exist_ok=True)
+    dir_final.mkdir(parents=True, exist_ok=True)
 
-    Args:
-        params ():
-
-    Returns:
-
-    """
-    import calendar
-    from calendar import monthrange
-
-    start_year, end_year = params.start_year, params.end_year + 1
-    parallel_process = params.parallel_process
-    fraction_cpus = params.fraction_cpus
-    dir_prelim = (
-        params.dir_download / "chirps" / "prelim"
-    )  # unzipped tiff of CHIRPS prelim
-    dir_final = params.dir_download / "chirps" / "final"  # zipped tiff of CHIRPS final
-
-    os.makedirs(dir_prelim, exist_ok=True)
-    os.makedirs(dir_final, exist_ok=True)
-
-    ##########
-    # DOWNLOAD
-    ##########
-    all_params = []
-    for type_data in list_products:
-        for year in range(start_year, end_year):
-            all_params.extend(
-                list(
-                    itertools.product(
-                        [type_data], [year], [params], [dir_prelim], [dir_final]
-                    )
-                )
-            )
-
-    for val in all_params:
-        download_CHIRPS(val)
-
-    ##########
-    # Unzip
-    ##########
-    all_params = []
-    for type_data in list_products:
-        for year in range(start_year, end_year):
-            for mon in range(1, 13):
-                for day in range(1, monthrange(year, mon)[1] + 1):
-                    all_params.extend(
-                        list(
-                            itertools.product(
-                                [type_data],
-                                [year],
-                                [mon],
-                                [day],
-                                [params],
-                                [dir_prelim],
-                                [dir_final],
-                            )
-                        )
-                    )
-
+    # Download
+    download_tasks = [
+        (prod, yr, dir_prelim, dir_final, redo_last_year)
+        for prod in LIST_PRODUCTS
+        for yr in range(start_year, end_year + 1)
+    ]
     if parallel_process:
         with multiprocessing.Pool(
             int(multiprocessing.cpu_count() * fraction_cpus)
         ) as p:
-            with tqdm(total=len(all_params), desc="unzipping CHIRPS") as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(unzip, all_params))):
-                    pbar.update()
-    else:
-        for val in all_params:
-            unzip(val)
-
-    ########################################
-    # First process CHIRPS preliminary data
-    # Next process CHIRPS final data (thereby overwriting the preliminary data in some places)
-    ########################################
-    for product in ["prelim", "final"]:
-        all_params = []
-        for year in range(start_year, end_year):
-            sjd = 1
-            jd_end = 366 if calendar.isleap(year) else 365
-
-            for jd in range(sjd, jd_end):
-                all_params.extend(
-                    list(itertools.product([product], [year], [jd], [params]))
+            list(
+                tqdm(
+                    p.imap_unordered(
+                        lambda args: download_chirps(*args),
+                        download_tasks,
+                    ),
+                    total=len(download_tasks),
+                    desc="Download",
                 )
+            )
+    else:
+        for args in download_tasks:
+            download_chirps(*args)
 
-        if parallel_process:
-            with multiprocessing.Pool(
-                int(multiprocessing.cpu_count() * fraction_cpus)
-            ) as p:
-                with tqdm(
-                    total=len(all_params), desc=f"creating {product} CHIRPS global"
-                ) as pbar:
-                    for i, _ in tqdm(
-                        enumerate(p.imap_unordered(to_global, all_params))
-                    ):
-                        pbar.update()
-        else:
-            for val in all_params:
-                to_global(val)
+    # Unzip & Scale
+    unzip_tasks = [
+        (prod, yr, m, d, dir_prelim, dir_final, dir_interim)
+        for prod in LIST_PRODUCTS
+        for yr in range(start_year, end_year + 1)
+        for m in range(1, 13)
+        for d in range(1, monthrange(yr, m)[1] + 1)
+    ]
+    if parallel_process:
+        with multiprocessing.Pool(
+            int(multiprocessing.cpu_count() * fraction_cpus)
+        ) as p:
+            list(
+                tqdm(
+                    p.imap_unordered(
+                        lambda args: unzip_and_scale(*args),
+                        unzip_tasks,
+                    ),
+                    total=len(unzip_tasks),
+                    desc="Unzip & Scale",
+                )
+            )
+    else:
+        for args in unzip_tasks:
+            unzip_and_scale(*args)
+
+    # Reproject
+    reproj_tasks = [
+        (prod, yr, jd, dir_interim, fill_value)
+        for prod in LIST_PRODUCTS
+        for yr in range(start_year, end_year + 1)
+        for jd in range(1, (366 if isleap(yr) else 365) + 1)
+    ]
+    if parallel_process:
+        with multiprocessing.Pool(
+            int(multiprocessing.cpu_count() * fraction_cpus)
+        ) as p:
+            list(
+                tqdm(
+                    p.imap_unordered(
+                        lambda args: reproject_global(*args),
+                        reproj_tasks,
+                    ),
+                    total=len(reproj_tasks),
+                    desc="Reproject",
+                )
+            )
+    else:
+        for args in reproj_tasks:
+            reproject_global(*args)
 
 
 if __name__ == "__main__":
+    # Example usage; replace arguments as needed
+    # run(2020, 2021, Path('/data/download'), Path('/data/interim'), False, False, 0.5, NODATA_VALUE)
     pass
