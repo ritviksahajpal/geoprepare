@@ -84,12 +84,15 @@ class NASAEarthAccess:
         datasets = [rxr.open_rasterio(file) for file in fileset]
 
         with tqdm(total=len(datasets), desc="Concatenating datasets") as pbar:
+
             def concat_with_progress(ds_list):
                 for ds in ds_list:
                     yield ds
                     pbar.update(1)
 
-            merged_dataset = xr.concat(concat_with_progress(datasets), dim='new_dimension')
+            merged_dataset = xr.concat(
+                concat_with_progress(datasets), dim="new_dimension"
+            )
 
         ds = xr.open_mfdataset(fileset)
         return ds
@@ -105,7 +108,10 @@ class NASAEarthAccess:
 
         try:
             with Pool(num_cpu) as p:
-                for _ in tqdm(p.imap_unordered(self.download, combinations), total=len(combinations)):
+                for _ in tqdm(
+                    p.imap_unordered(self.download, combinations),
+                    total=len(combinations),
+                ):
                     pass
         finally:
             p.close()
@@ -200,8 +206,18 @@ class EarthAccessProcessor:
 
         return mask_array
 
-    def compute_selected_indices(self, red_band_file, nir_band_file, green_band_file, blue_band_file, fmask_file,
-                                 output_dir, selected_indices, swir_band_file=None, red_edge_band_file=None):
+    def compute_selected_indices(
+        self,
+        red_band_file,
+        nir_band_file,
+        green_band_file,
+        blue_band_file,
+        fmask_file,
+        output_dir,
+        selected_indices,
+        swir_band_file=None,
+        red_edge_band_file=None,
+    ):
         """
         Compute selected vegetation indices like NDVI, GCVI, EVI, SAVI, etc., apply scaling, and QA masking.
         Avoid recomputation if the file already exists.
@@ -228,7 +244,13 @@ class EarthAccessProcessor:
         fmask = rxr.open_rasterio(fmask_file).squeeze()
 
         # Create the quality mask from Fmask using the create_quality_mask function
-        bit_nums = [1, 2, 3, 4, 5]  # Define which bits to use for masking (can be adjusted)
+        bit_nums = [
+            1,
+            2,
+            3,
+            4,
+            5,
+        ]  # Define which bits to use for masking (can be adjusted)
         mask_layer = self.create_quality_mask(fmask.data, bit_nums)
 
         # Apply the QA mask to each band (good pixels are where mask_layer == False)
@@ -239,17 +261,17 @@ class EarthAccessProcessor:
 
         # Available index computation functions
         index_functions = {
-            'NDVI': self.compute_ndvi,
-            'GCVI': self.compute_gcvi,
-            'EVI': self.compute_evi,
-            'SAVI': self.compute_savi,
-            'MSAVI': self.compute_msavi,
-            'NDWI': self.compute_ndwi,
-            'GNDVI': self.compute_gndvi,
-            'ARVI': self.compute_arvi,
-            'NDMI': self.compute_ndmi if swir_band_file else None,
-            'RENDVI': self.compute_rendvi if red_edge_band_file else None,
-            'VARI': self.compute_vari,
+            "NDVI": self.compute_ndvi,
+            "GCVI": self.compute_gcvi,
+            "EVI": self.compute_evi,
+            "SAVI": self.compute_savi,
+            "MSAVI": self.compute_msavi,
+            "NDWI": self.compute_ndwi,
+            "GNDVI": self.compute_gndvi,
+            "ARVI": self.compute_arvi,
+            "NDMI": self.compute_ndmi if swir_band_file else None,
+            "RENDVI": self.compute_rendvi if red_edge_band_file else None,
+            "VARI": self.compute_vari,
         }
 
         # Loop over the selected indices and compute them if not already saved
@@ -262,14 +284,18 @@ class EarthAccessProcessor:
             index_function = index_functions.get(index)
             if index_function is not None:
                 # Prepare the arguments based on the index
-                if index == 'NDMI':
+                if index == "NDMI":
                     index_function(nir_band, output_file, swir_band_file)
-                elif index == 'RENDVI':
+                elif index == "RENDVI":
                     index_function(nir_band, output_file, red_edge_band_file)
                 else:
-                    index_function(red_band, nir_band, green_band, blue_band, output_file)
+                    index_function(
+                        red_band, nir_band, green_band, blue_band, output_file
+                    )
             else:
-                print(f"{index} is not available or missing necessary bands (e.g., SWIR or Red Edge).")
+                print(
+                    f"{index} is not available or missing necessary bands (e.g., SWIR or Red Edge)."
+                )
 
     # Functions to compute individual indices
     def compute_ndvi(self, red_band, nir_band, *args):
@@ -284,7 +310,11 @@ class EarthAccessProcessor:
 
     def compute_evi(self, red_band, nir_band, green_band, blue_band, *args):
         output_file = args[-1]
-        evi = 2.5 * (nir_band - red_band) / (nir_band + 6 * red_band - 7.5 * blue_band + 1)
+        evi = (
+            2.5
+            * (nir_band - red_band)
+            / (nir_band + 6 * red_band - 7.5 * blue_band + 1)
+        )
         evi.rio.to_raster(output_file)
 
     def compute_savi(self, red_band, nir_band, *args):
@@ -295,7 +325,11 @@ class EarthAccessProcessor:
 
     def compute_msavi(self, red_band, nir_band, *args):
         output_file = args[-1]
-        msavi = (2 * nir_band + 1 - np.sqrt((2 * nir_band + 1) ** 2 - 8 * (nir_band - red_band))) / 2
+        msavi = (
+            2 * nir_band
+            + 1
+            - np.sqrt((2 * nir_band + 1) ** 2 - 8 * (nir_band - red_band))
+        ) / 2
         msavi.rio.to_raster(output_file)
 
     def compute_ndwi(self, red_band, nir_band, green_band, *args):
@@ -310,7 +344,9 @@ class EarthAccessProcessor:
 
     def compute_arvi(self, red_band, nir_band, green_band, blue_band, *args):
         output_file = args[-1]
-        arvi = (nir_band - (2 * red_band - blue_band)) / (nir_band + (2 * red_band - blue_band))
+        arvi = (nir_band - (2 * red_band - blue_band)) / (
+            nir_band + (2 * red_band - blue_band)
+        )
         arvi.rio.to_raster(output_file)
 
     def compute_ndmi(self, nir_band, output_file, swir_band_file, *args):
