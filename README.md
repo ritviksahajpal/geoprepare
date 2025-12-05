@@ -27,7 +27,7 @@ to install. To make the process easier, you can optionally create a new environm
 following commands, specify the python version you have on your machine (python >= 3.9 is recommended). we use the `pygis` library
 to install multiple Python GIS packages including `gdal` and `rasterio`.
 
-```python
+```bash
 conda create --name <name_of_environment> python=3.x
 conda activate <name_of_environment>
 conda install -c conda-forge mamba
@@ -43,7 +43,7 @@ pip install pyl4c
 ```
 
 Install the octvi package to download MODIS data
-```python
+```bash
 pip install git+https://github.com/ritviksahajpal/octvi.git
 ```
 
@@ -54,19 +54,24 @@ can be found [here](https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/da
 
 
 ### Using PyPi (default)
-```python
+```bash
 pip install --upgrade geoprepare
 ```
 
 ### Using Github repository (for development)
-```python
+```bash
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git
 ```
 
 ### Local installation
-Navigate to the directory containing `setup.py` and run the following command:
-```python
+Navigate to the directory containing `pyproject.toml` and run the following command:
+```bash
 pip install .
+```
+
+For development (editable install):
+```bash
+pip install -e ".[dev]"
 ```
 
 ## Usage
@@ -111,7 +116,7 @@ Before running the code above, we need to specify the two configuration files:
 * `level`: Which level to use for [logging](https://www.loggly.com/ultimate-guide/python-logging-basics/)
 * `parallel_process`: Whether to use multiple CPUs
 * `fraction_cpus`: What fraction of available CPUs to use
-```python
+```ini
 [DATASETS]
 datasets = ['NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
 
@@ -203,7 +208,7 @@ end_year = 2024
 * `floor`: Value below which to set the mask to 0
 * `ceil`: Value above which to set the mask to 1
 * `eo_model`: List of datasets to extract from
-```python
+```ini
 [kenya]
 category = EWCM
 scales = ['admin_1']  ; can be admin_1 (state level) or admin_2 (county level)
@@ -321,15 +326,78 @@ obj = eoaccess.EarthAccessProcessor(
 obj.mosaic()
 ```
 
-### Upload package to pypi
-1. Update requirements.txt
-2. Update version="A.B.C" in setup.py
-3. Navigate to the directory containing `setup.py` and run the following command:
-```python
-pipreqs . --force --savepath requirements.txt
+## Upload package to PyPI
+
+### Step 1: Update version
+Use `bump2version` to update the version in both `pyproject.toml` and `geoprepare/__init__.py`:
+
+**Using uv:**
+```bash
+uvx bump2version patch   # 0.6.17 → 0.6.18
+uvx bump2version minor   # 0.6.17 → 0.7.0
+uvx bump2version major   # 0.6.17 → 1.0.0
+```
+
+**Using pip:**
+```bash
+pip install bump2version
+bump2version patch   # 0.6.17 → 0.6.18
+bump2version minor   # 0.6.17 → 0.7.0
+bump2version major   # 0.6.17 → 1.0.0
+```
+
+### Step 2: Clean old builds
+
+**Linux/macOS:**
+```bash
+rm -rf dist/ build/ *.egg-info/
+```
+
+**Windows (PowerShell):**
+```powershell
+Remove-Item -Recurse -Force dist/, build/, *.egg-info/ -ErrorAction SilentlyContinue
+```
+
+### Step 3: Build and upload
+
+**Using uv (recommended):**
+```bash
+# Build
+uv build
+
+# Check package
+uvx twine check dist/*
+
+# Upload to PyPI
+uvx twine upload dist/geoprepare-A.B.C*
+```
+
+**Using pip:**
+```bash
+# Install build tools
+pip install build twine
+
+# Build
+python -m build
+
+# Check package
+twine check dist/*
+
+# Upload to PyPI
+twine upload dist/geoprepare-A.B.C*
+```
+
+### Optional: Export environment
+```bash
 mamba env export > environment.yml
-python setup.py sdist
-twine upload dist/geoprepare-A.B.C.tar.gz
+```
+
+### Optional: Configure PyPI credentials
+To avoid entering credentials each time, create a `~/.pypirc` file (Linux/macOS) or `%USERPROFILE%\.pypirc` (Windows):
+```ini
+[pypi]
+username = __token__
+password = pypi-YOUR_API_TOKEN_HERE
 ```
 
 ## Credits
