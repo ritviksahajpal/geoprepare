@@ -201,8 +201,26 @@ def reproject_global(
     dst.SetGeoTransform((-180, 0.05, 0, 90, 0, -0.05))
     dst.GetRasterBand(1).WriteArray(out_arr)
     dst.FlushCache()
-    ds = None  # close
-    dst = None
+    ds = None  # close input
+    dst = None  # close output
+
+
+# ============================================================================
+# Wrapper functions for multiprocessing
+# ============================================================================
+def _download_chirps_wrapper(args):
+    """Wrapper to unpack tuple args for multiprocessing."""
+    return download_chirps(*args)
+
+
+def _unzip_and_scale_wrapper(args):
+    """Wrapper to unpack tuple args for multiprocessing."""
+    return unzip_and_scale(*args)
+
+
+def _reproject_global_wrapper(args):
+    """Wrapper to unpack tuple args for multiprocessing."""
+    return reproject_global(*args)
 
 
 def run(
@@ -220,6 +238,8 @@ def run(
     dir_prelim.mkdir(parents=True, exist_ok=True)
     dir_final.mkdir(parents=True, exist_ok=True)
 
+    num_workers = int(multiprocessing.cpu_count() * fraction_cpus)
+
     # Download
     download_tasks = [
         (prod, yr, dir_prelim, dir_final, redo_last_year)
@@ -227,15 +247,10 @@ def run(
         for yr in range(start_year, end_year + 1)
     ]
     if parallel_process:
-        with multiprocessing.Pool(
-            int(multiprocessing.cpu_count() * fraction_cpus)
-        ) as p:
+        with multiprocessing.Pool(num_workers) as p:
             list(
                 tqdm(
-                    p.imap_unordered(
-                        lambda args: download_chirps(*args),
-                        download_tasks,
-                    ),
+                    p.imap_unordered(_download_chirps_wrapper, download_tasks),
                     total=len(download_tasks),
                     desc="Download",
                 )
@@ -253,15 +268,10 @@ def run(
         for d in range(1, monthrange(yr, m)[1] + 1)
     ]
     if parallel_process:
-        with multiprocessing.Pool(
-            int(multiprocessing.cpu_count() * fraction_cpus)
-        ) as p:
+        with multiprocessing.Pool(num_workers) as p:
             list(
                 tqdm(
-                    p.imap_unordered(
-                        lambda args: unzip_and_scale(*args),
-                        unzip_tasks,
-                    ),
+                    p.imap_unordered(_unzip_and_scale_wrapper, unzip_tasks),
                     total=len(unzip_tasks),
                     desc="Unzip & Scale",
                 )
@@ -278,15 +288,10 @@ def run(
         for jd in range(1, (366 if isleap(yr) else 365) + 1)
     ]
     if parallel_process:
-        with multiprocessing.Pool(
-            int(multiprocessing.cpu_count() * fraction_cpus)
-        ) as p:
+        with multiprocessing.Pool(num_workers) as p:
             list(
                 tqdm(
-                    p.imap_unordered(
-                        lambda args: reproject_global(*args),
-                        reproj_tasks,
-                    ),
+                    p.imap_unordered(_reproject_global_wrapper, reproj_tasks),
                     total=len(reproj_tasks),
                     desc="Reproject",
                 )
