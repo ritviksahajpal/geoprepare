@@ -46,6 +46,11 @@ def run(path_config_file=["geobase.txt"]):
             from .datasets import CHIRPS as obj
 
             geoprep.fill_value = geoprep.parser.getint("CHIRPS", "fill_value")
+            # Get CHIRPS version (v2 or v3), default to v2 for backward compatibility
+            geoprep.version = geoprep.parser.get("CHIRPS", "version", fallback="v2")
+            # Get disaggregation method for v3 (sat or rnl), default to sat
+            geoprep.disagg = geoprep.parser.get("CHIRPS", "disagg", fallback="sat")
+            # Legacy paths (kept for reference but not used in new code)
             geoprep.prelim = geoprep.parser.get("CHIRPS", "prelim")
             geoprep.final = geoprep.parser.get("CHIRPS", "final")
         elif dataset in ["NDVI", "VIIRS"]:

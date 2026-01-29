@@ -9,10 +9,13 @@ import itertools
 import arrow as ar
 import pandas as pd
 import geopandas as gp
+import rasterio
 from tqdm import tqdm
 from pathlib import Path
 import numpy as np
 from multiprocessing import Pool, cpu_count
+from contextlib import contextmanager
+from functools import lru_cache
 
 from .. import utils
 
@@ -21,6 +24,42 @@ from .. import utils
 #         UTILITIES
 # ========================
 np.seterr(invalid="ignore")
+
+
+class RasterCache:
+    """
+    A simple cache for rasterio datasets to avoid repeated file opens.
+    Thread-safe for read operations, but should only be used within a single process.
+    """
+    
+    def __init__(self):
+        self._cache = {}
+    
+    def get(self, path):
+        """Get an open rasterio dataset, opening it if not cached."""
+        path_str = str(path)
+        if path_str not in self._cache:
+            if os.path.isfile(path_str):
+                self._cache[path_str] = rasterio.open(path_str)
+            else:
+                return None
+        return self._cache[path_str]
+    
+    def close_all(self):
+        """Close all cached datasets."""
+        for ds in self._cache.values():
+            try:
+                ds.close()
+            except Exception:
+                pass
+        self._cache.clear()
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close_all()
+        return False
 
 
 def remove_duplicates(list_of_tuples):
@@ -216,10 +255,17 @@ def read_or_skip_existing_day(doy: int, existing_rows: list[list[str]]) -> str |
     return None
 
 
-def extract_stats(geometry, var: str, fl_var: Path, afi_file, limit: int) -> str:
+def extract_stats(geometry, var: str, fl_var, afi_ds, limit: int) -> str:
     """
     Calls geom_extract(...) and returns a comma-separated string of the extracted results.
     If extraction fails/returns no data, return "".
+    
+    Args:
+        geometry: Shapely geometry for the region
+        var: Variable name (e.g., 'ndvi', 'chirps')
+        fl_var: Path to the indicator raster file
+        afi_ds: Open rasterio dataset for the AFI/crop mask (or path if not cached)
+        limit: Threshold value for crop mask filtering
     """
     from .stats import geom_extract
 
@@ -228,7 +274,7 @@ def extract_stats(geometry, var: str, fl_var: Path, afi_file, limit: int) -> str
         var,
         fl_var,
         stats_out=["mean", "counts"],
-        afi=afi_file,
+        afi=afi_ds,
         afi_thresh=limit * 100,
         thresh_type="Fixed"
     )
@@ -267,14 +313,15 @@ def write_daily_stats_to_csv(daily_stats: list[str], path_output: Path, var: str
 def process_chirps_gefs(
     daily_stats: list[str],
     row,
-    afi_file,
+    afi_ds,
     limit: int,
     country: str,
     region: str,
     region_id: str,
     var: str,
     year: int,
-    params
+    params,
+    raster_cache: RasterCache
 ) -> None:
     """
     Handle the special chirps_gefs logic: from start_date to end_date (a ~15-day window),
@@ -296,7 +343,7 @@ def process_chirps_gefs(
             daily_stats.append(empty_str)
             continue
 
-        values_str = extract_stats(row["geometry"], var, fl_var, afi_file, limit)
+        values_str = extract_stats(row["geometry"], var, fl_var, afi_ds, limit)
         if values_str:
             daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
         else:
@@ -309,7 +356,7 @@ def process_chirps_gefs(
 def process_regular_var(
     daily_stats: list[str],
     row,
-    afi_file,
+    afi_ds,
     limit: int,
     var: str,
     params,
@@ -319,11 +366,13 @@ def process_regular_var(
     region_id: str,
     end_doy: int,
     existing_rows: list[list[str]],
-    use_partial_file: bool
+    use_partial_file: bool,
+    raster_cache: RasterCache
 ) -> None:
     """
     Process a 'regular' variable for each day of the year (1..end_doy).
     If partial data exists for a given day, skip re-processing.
+    Uses raster_cache to avoid repeated file opens for indicator rasters.
     """
     for doy in range(1, end_doy):
         date_part = f"{year},{doy}"
@@ -352,8 +401,8 @@ def process_regular_var(
                 daily_stats.append(existing_line)
                 continue
 
-        # Extract stats
-        values_str = extract_stats(row["geometry"], var, fl_var, afi_file, limit)
+        # Extract stats - note: we pass afi_ds which is already an open dataset
+        values_str = extract_stats(row["geometry"], var, fl_var, afi_ds, limit)
         if values_str:
             daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
         else:
@@ -373,6 +422,9 @@ def process(val):
     - Prepares output folder
     - Loops over each region in df_country, extracting stats
     - Writes out a CSV
+    
+    Uses RasterCache to keep the AFI (crop mask) dataset open for all regions,
+    significantly reducing I/O overhead.
     """
     (
         params,
@@ -405,59 +457,70 @@ def process(val):
     limit = utils.crop_mask_limit(params, country, threshold)
     use_partial = should_use_partial_file(params, year, current_year)
 
-    # 6. Iterate over each row (region) in df_country
-    for _, row in df_country.iterrows():
+    # 6. Use RasterCache for efficient dataset management
+    with RasterCache() as raster_cache:
+        # Open the AFI (crop mask) once for all regions
+        afi_ds = raster_cache.get(afi_file)
+        
+        if afi_ds is None:
+            params.logger.warning(f"AFI file not found: {afi_file}")
+            return
 
-        # Skip rows missing an admin name
-        if not row[admin_name]:
-            continue
+        # 7. Iterate over each row (region) in df_country
+        for _, row in df_country.iterrows():
 
-        region = row[admin_name].lower().replace(" ", "_")
-        region_id = row[admin_id]
+            # Skip rows missing an admin name
+            if not row[admin_name]:
+                continue
 
-        # Build the path for this region-year CSV
-        path_output = build_output_path(dir_output, region, region_id, year, var, crop)
+            region = row[admin_name].lower().replace(" ", "_")
+            region_id = row[admin_id]
 
-        # If we plan to use partial data, load existing rows
-        existing_rows = build_existing_rows(path_output) if use_partial else []
+            # Build the path for this region-year CSV
+            path_output = build_output_path(dir_output, region, region_id, year, var, crop)
 
-        # We'll collect daily stats in this list
-        daily_stats = []
+            # If we plan to use partial data, load existing rows
+            existing_rows = build_existing_rows(path_output) if use_partial else []
 
-        # 7. If var == "chirps_gefs", handle that with special logic
-        if var == "chirps_gefs":
-            process_chirps_gefs(
-                daily_stats,
-                row,
-                afi_file,
-                limit,
-                country,
-                region,
-                region_id,
-                var,
-                year,
-                params
-            )
-        else:
-            # Otherwise, process day-by-day
-            process_regular_var(
-                daily_stats,
-                row,
-                afi_file,
-                limit,
-                var,
-                params,
-                year,
-                country,
-                region,
-                region_id,
-                end_doy,
-                existing_rows,
-                use_partial
-            )
+            # We'll collect daily stats in this list
+            daily_stats = []
 
-        # 8. Write the results to CSV
-        write_daily_stats_to_csv(daily_stats, path_output, var)
+            # 8. If var == "chirps_gefs", handle that with special logic
+            if var == "chirps_gefs":
+                process_chirps_gefs(
+                    daily_stats,
+                    row,
+                    afi_ds,  # Pass open dataset instead of path
+                    limit,
+                    country,
+                    region,
+                    region_id,
+                    var,
+                    year,
+                    params,
+                    raster_cache
+                )
+            else:
+                # Otherwise, process day-by-day
+                process_regular_var(
+                    daily_stats,
+                    row,
+                    afi_ds,  # Pass open dataset instead of path
+                    limit,
+                    var,
+                    params,
+                    year,
+                    country,
+                    region,
+                    region_id,
+                    end_doy,
+                    existing_rows,
+                    use_partial,
+                    raster_cache
+                )
+
+            # 9. Write the results to CSV
+            write_daily_stats_to_csv(daily_stats, path_output, var)
 
 
 # ========================
@@ -541,7 +604,7 @@ def build_combinations(params):
 
 def run(params):
     """
-
+    Main entry point for the EO extraction pipeline.
     """
     list_combinations = build_combinations(params)
     num_cpus = (

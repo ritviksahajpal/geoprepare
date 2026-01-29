@@ -23,66 +23,117 @@ def arr_stats(arr, weights=None, output=('min', 'max', 'sum', 'mean', 'count')):
     """
     # prepare output and make sure it is a list
     _output = output if type(output) in [list, tuple] else output.split()
-    _known_outputs = ('min', 'max', 'sum', 'mean', 'std', 'median', 'count', 'weight_sum')  # todo handle more extractions
+    _known_outputs = ('min', 'max', 'sum', 'mean', 'std', 'median', 'count', 'weight_sum')
     if not any(elem in _output for elem in _known_outputs):
         raise Exception('Output not defined properly, should define at least one known output %s' % str(_known_outputs))
     out_vals = dict()
+    
     # make sure array is a masked array
     _arr = np.ma.array(arr)
     
+    # Define nodata threshold once
+    NODATA_THRESHOLD = -9999
     
-    if any(elem in _output for elem in ('std', 'min', 'max', 'sum', 'median')):
+    # Compress arrays once for stats that need it
+    arr_compressed = None
+    weights_compressed = None
+    
+    if any(elem in _output for elem in ('std', 'min', 'max', 'sum', 'median', 'weight_sum')):
         arr_compressed = _arr.compressed()
+        if weights is not None:
+            # Combine mask from arr and weights, then compress
+            weights_compressed = np.ma.array(weights, mask=_arr.mask).compressed()
+    
     if 'mean' in _output:
         if weights is not None:
-            ind = np.isnan(_arr) | np.isnan(weights) | (_arr <= -9999)
-            out_vals['mean'] = np.ma.average(_arr[~ind], weights=weights[~ind])
+            # Create valid mask for full arrays (same shape)
+            valid_mask = ~(np.isnan(_arr) | np.isnan(weights) | (_arr <= NODATA_THRESHOLD))
+            if np.any(valid_mask):
+                out_vals['mean'] = np.ma.average(_arr[valid_mask], weights=weights[valid_mask])
+            else:
+                out_vals['mean'] = None
         else:
-            ind = np.isnan(_arr)
-            out_vals['mean'] = np.ma.mean(_arr[~ind])
+            valid_mask = ~np.isnan(_arr)
+            if np.any(valid_mask):
+                out_vals['mean'] = np.ma.mean(_arr[valid_mask])
+            else:
+                out_vals['mean'] = None
+    
     if 'std' in _output:
-        arr_size = np.size(arr_compressed)
-        if weights is not None:
-            # combine mask from the arr and create a compressed arr
-            weights_compressed = np.ma.array(weights, mask=_arr.mask).compressed()
-            ind = np.isnan(arr_compressed) | np.isnan(weights_compressed) | (_arr <= -9999)
+        arr_size = np.size(arr_compressed) if arr_compressed is not None else 0
+        if weights is not None and weights_compressed is not None:
+            # Filter using compressed arrays (same shape now)
+            valid_mask = ~(np.isnan(arr_compressed) | np.isnan(weights_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+            valid_arr = arr_compressed[valid_mask]
+            valid_weights = weights_compressed[valid_mask]
             
-            if arr_size == 1 or np.sum(weights_compressed[~ind] > 0) == 1:
-                out_vals['std'] = np.int8(0)
-            elif arr_size > 0 and np.sum(weights_compressed[~ind]) > 0:
-                out_vals['std'] = np.sqrt(
-                    np.cov(arr_compressed[~ind], aweights=weights_compressed[~ind], ddof=0))
-            else:
+            if len(valid_arr) == 0 or np.sum(valid_weights > 0) == 0:
                 out_vals['std'] = None
+            elif len(valid_arr) == 1 or np.sum(valid_weights > 0) == 1:
+                out_vals['std'] = np.int8(0)
+            else:
+                out_vals['std'] = np.sqrt(np.cov(valid_arr, aweights=valid_weights, ddof=0))
         else:
-            if arr_size == 1:
-                out_vals['std'] = np.int8(0)
-            elif arr_size > 0:
-                out_vals['std'] = np.sqrt(np.cov(arr_compressed, ddof=0))
-            else:
+            if arr_size == 0:
                 out_vals['std'] = None
+            elif arr_size == 1:
+                out_vals['std'] = np.int8(0)
+            else:
+                # Filter compressed array
+                valid_mask = ~(np.isnan(arr_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+                valid_arr = arr_compressed[valid_mask]
+                if len(valid_arr) == 0:
+                    out_vals['std'] = None
+                elif len(valid_arr) == 1:
+                    out_vals['std'] = np.int8(0)
+                else:
+                    out_vals['std'] = np.sqrt(np.cov(valid_arr, ddof=0))
+    
     if 'min' in _output:
-        ind = np.isnan(arr_compressed) | (_arr <= -9999)
-        out_vals['min'] = arr_compressed[~ind].min()
+        if arr_compressed is not None and len(arr_compressed) > 0:
+            valid_mask = ~(np.isnan(arr_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+            valid_arr = arr_compressed[valid_mask]
+            out_vals['min'] = valid_arr.min() if len(valid_arr) > 0 else None
+        else:
+            out_vals['min'] = None
+    
     if 'max' in _output:
-        ind = np.isnan(arr_compressed) | (_arr <= -9999)
-        out_vals['max'] = arr_compressed[~ind].max()
+        if arr_compressed is not None and len(arr_compressed) > 0:
+            valid_mask = ~(np.isnan(arr_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+            valid_arr = arr_compressed[valid_mask]
+            out_vals['max'] = valid_arr.max() if len(valid_arr) > 0 else None
+        else:
+            out_vals['max'] = None
+    
     if 'sum' in _output:
-        ind = np.isnan(arr_compressed) | (_arr <= -9999)
-        out_vals['sum'] = arr_compressed[~ind].sum()
+        if arr_compressed is not None and len(arr_compressed) > 0:
+            valid_mask = ~(np.isnan(arr_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+            valid_arr = arr_compressed[valid_mask]
+            out_vals['sum'] = valid_arr.sum() if len(valid_arr) > 0 else None
+        else:
+            out_vals['sum'] = None
+    
     if 'median' in _output:
-        ind = np.isnan(arr_compressed) | (_arr <= -9999)
-        out_vals['median'] = np.ma.median(arr_compressed[~ind])
+        if arr_compressed is not None and len(arr_compressed) > 0:
+            valid_mask = ~(np.isnan(arr_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+            valid_arr = arr_compressed[valid_mask]
+            out_vals['median'] = np.ma.median(valid_arr) if len(valid_arr) > 0 else None
+        else:
+            out_vals['median'] = None
+    
     if 'count' in _output:
         out_vals['count'] = int((~_arr.mask).sum())
-    if 'weight_sum' in _output and weights is not None:
-        ind = np.isnan(weights_compressed) | (_arr <= -9999)
-        weights_compressed = np.ma.array(weights[~ind], mask=_arr.mask[~ind]).compressed()
-        out_vals['weight_sum'] = weights_compressed.sum()
     
+    if 'weight_sum' in _output and weights is not None:
+        if weights_compressed is not None and arr_compressed is not None and len(weights_compressed) > 0:
+            valid_mask = ~(np.isnan(weights_compressed) | (arr_compressed <= NODATA_THRESHOLD))
+            valid_weights = weights_compressed[valid_mask]
+            out_vals['weight_sum'] = valid_weights.sum() if len(valid_weights) > 0 else None
+        else:
+            out_vals['weight_sum'] = None
     
     # convert to regular py types from np types which can cause problems down the line like JSON serialisation
-    out_vals = {k: v.item() for k, v in out_vals.items()}
+    out_vals = {k: (v.item() if hasattr(v, 'item') else v) for k, v in out_vals.items()}
 
     return out_vals
 

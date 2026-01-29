@@ -26,6 +26,14 @@ data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-veget
 
 [CHIRPS]
 fill_value = -2147483648
+; CHIRPS version: 'v2' for CHIRPS-2.0 or 'v3' for CHIRPS-3.0
+version = v3
+; Disaggregation method for v3 only: 'sat' (IMERG) or 'rnl' (ERA5)
+; - 'sat': Uses NASA IMERG Late V07 for daily downscaling (available from 1998, 0.1° resolution)
+; - 'rnl': Uses ECMWF ERA5 for daily downscaling (full time coverage, 0.25° resolution)
+; Note: Prelim data is only available with 'sat' due to ERA5 latency (5-6 days)
+disagg = sat
+; Legacy paths for v2 (kept for reference, now constructed dynamically)
 prelim = /pub/org/chc/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/
 final = /pub/org/chc/products/CHIRPS-2.0/global_daily/tifs/p05/
 
@@ -79,4 +87,4 @@ logfile = log
 parallel_process = False
 fraction_cpus = 0.75
 start_year = 2001
-end_year = 2024
+end_year = 2026
