@@ -1,0 +1,141 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geoprepare"
+version = "0.6.26"
+description = "A Python package to prepare (download, extract, process input data) for GEOCIF and related models"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Ritvik Sahajpal", email = "ritvik@umd.edu"}
+]
+requires-python = ">=3.9"
+keywords = ["geoprepare", "geospatial", "agriculture", "remote-sensing", "earth-observation"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "bump2version",
+    "wheel",
+    "watchdog",
+    "flake8",
+    "tox",
+    "coverage",
+    "Sphinx",
+    "twine",
+    "grip",
+    "pytest",
+    "pytest-cov",
+    "black",
+    "isort",
+    "mypy",
+]
+docs = [
+    "mkdocs",
+    "mkdocstrings",
+    "mkdocs-material",
+    "mkdocs-jupyter",
+    "mkdocs-git-revision-date-plugin",
+]
+
+[project.urls]
+Homepage = "https://github.com/ritviksahajpal/geoprepare"
+Documentation = "https://ritviksahajpal.github.io/geoprepare"
+Repository = "https://github.com/ritviksahajpal/geoprepare"
+Issues = "https://github.com/ritviksahajpal/geoprepare/issues"
+
+[tool.setuptools.packages.find]
+include = ["geoprepare", "geoprepare.*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.rst", "*.md"]
+"geoprepare.datasets" = ["*.nc", "*.tif"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+exclude = '''
+/(
+    \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | docs
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+
+[tool.flake8]
+max-line-length = 100
+exclude = [
+    ".git",
+    "__pycache__",
+    "docs",
+    "build",
+    "dist",
+    ".eggs",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=geoprepare --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["geoprepare"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.bumpversion]
+current_version = "0.6.17"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "geoprepare/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'

@@ -49,6 +49,38 @@ data_dir = https://gis1.servirglobal.net//data//esi//
 list_products = ['4wk', '12wk']
 
 [FLDAS]
+; FLDAS Forecast data from NASA NCCS
+; URL: https://portal.nccs.nasa.gov/datashare/fldas-forecast/Data_files/FF2/
+; Documentation: https://ldas.gsfc.nasa.gov/fldas/models/forecast
+;
+; Data products:
+; - forecast: NMME ensemble averaged monthly hydrologic forecasts (6 lead months)
+; - openloop: Monthly averaged hydrologic output forced by CHIRPS + MERRA-2
+;
+; NMME models: CanESM5, GEM5.2-NEMO, CESM1, CFSv2, GEOSv2
+; Resolution: 0.25° over Continental Africa and Middle East
+;
+; use_spear: Whether to include SPEAR model in NMME ensemble
+;   - False: Use NMME_noSPEAR directory (default, recommended)
+;   - True: Use NMME directory (includes SPEAR model)
+use_spear = False
+;
+; data_types: Which products to download
+;   - forecast: NMME hydrologic forecasts
+;   - openloop: Observation-forced baseline (for anomaly computation)
+data_types = ['forecast']
+;
+; variables: Variables to extract from NetCDF files
+;   Available: SoilMoist_tavg, Evap_tavg, Qs_tavg, Qsb_tavg, TWS_tavg,
+;              Streamflow_tavg, Rainf_tavg, TotalPrecip_tavg, Tair_tavg,
+;              SWdown_tavg, Qle_tavg, Qh_tavg
+variables = ['SoilMoist_tavg', 'TotalPrecip_tavg', 'Tair_tavg', 'Evap_tavg', 'TWS_tavg']
+;
+; leads: Forecast lead times to process (0-5, where 0 is initialization month)
+leads = [0, 1, 2, 3, 4, 5]
+;
+; compute_anomalies: Whether to compute anomalies relative to 1991-2020 climatology
+compute_anomalies = False
 
 [FPAR]
 data_dir = https://agricultural-production-hotspots.ec.europa.eu//data//indicators_fpar//fpar//

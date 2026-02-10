@@ -328,29 +328,37 @@ obj.mosaic()
 
 ## Upload package to PyPI
 
+Navigate to the **root of the geoprepare repository** (the directory containing `pyproject.toml`):
+```bash
+cd /path/to/geoprepare
+```
+
 ### Step 1: Update version
 Use `bump2version` to update the version in both `pyproject.toml` and `geoprepare/__init__.py`:
 
 **Using uv:**
 ```bash
-uvx bump2version patch   # 0.6.17 → 0.6.18
-uvx bump2version minor   # 0.6.17 → 0.7.0
-uvx bump2version major   # 0.6.17 → 1.0.0
+uvx bump2version patch --current-version X.X.X --new-version X.X.Y pyproject.toml geoprepare/__init__.py
 ```
 
 **Using pip:**
 ```bash
 pip install bump2version
-bump2version patch   # 0.6.17 → 0.6.18
-bump2version minor   # 0.6.17 → 0.7.0
-bump2version major   # 0.6.17 → 1.0.0
+bump2version patch --current-version X.X.X --new-version X.X.Y pyproject.toml geoprepare/__init__.py
 ```
+
+Or manually edit the version in `pyproject.toml` and `geoprepare/__init__.py`.
 
 ### Step 2: Clean old builds
 
 **Linux/macOS:**
 ```bash
 rm -rf dist/ build/ *.egg-info/
+```
+
+**Windows (Command Prompt):**
+```cmd
+rmdir /s /q dist build geoprepare.egg-info
 ```
 
 **Windows (PowerShell):**
@@ -360,37 +368,29 @@ Remove-Item -Recurse -Force dist/, build/, *.egg-info/ -ErrorAction SilentlyCont
 
 ### Step 3: Build and upload
 
-**Using uv (recommended):**
+**Using uv (Linux/macOS):**
 ```bash
-# Build
 uv build
-
-# Check package
 uvx twine check dist/*
+uvx twine upload dist/geoprepare-X.X.X*
+```
 
-# Upload to PyPI
-uvx twine upload dist/geoprepare-A.B.C*
+**Using uv (Windows):**
+```cmd
+uv build
+uvx twine check dist\geoprepare-X.X.X.tar.gz dist\geoprepare-X.X.X-py3-none-any.whl
+uvx twine upload dist\geoprepare-X.X.X.tar.gz dist\geoprepare-X.X.X-py3-none-any.whl
 ```
 
 **Using pip:**
 ```bash
-# Install build tools
 pip install build twine
-
-# Build
 python -m build
-
-# Check package
 twine check dist/*
-
-# Upload to PyPI
-twine upload dist/geoprepare-A.B.C*
+twine upload dist/geoprepare-X.X.X*
 ```
 
-### Optional: Export environment
-```bash
-mamba env export > environment.yml
-```
+Replace `X.X.X` with your current version and `X.X.Y` with the new version.
 
 ### Optional: Configure PyPI credentials
 To avoid entering credentials each time, create a `~/.pypirc` file (Linux/macOS) or `%USERPROFILE%\.pypirc` (Windows):
