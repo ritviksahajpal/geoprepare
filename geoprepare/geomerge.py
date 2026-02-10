@@ -9,12 +9,14 @@ import datetime
 import itertools
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from tqdm import tqdm
 
 import geopandas as gp
 
 from . import base
 from . import utils
+from . import georegion
 
 
 class GeoMerge(base.BaseGeo):
@@ -35,6 +37,7 @@ class GeoMerge(base.BaseGeo):
         super().parse_config(project_name=self.project_name, section="DEFAULT")
 
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
+        self.dir_regions_shp = Path(self.parser.get("PATHS", "dir_regions_shp"))
 
     def country_information(self, country, scale, crop, growing_season):
         """
@@ -121,7 +124,7 @@ class GeoMerge(base.BaseGeo):
         frames = []
         # For each element in vars, create a list of files to be merged
         for var in self.eo_model:
-            crop_folder_name = "cr" if self.use_cropland_mask else "cr"
+            crop_folder_name = "cr" if self.use_cropland_mask else self.crop
             path_var_files = (
                 self.dir_output
                 / self.dir_threshold
@@ -251,7 +254,6 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
-        breakpoint()
         # Subset statstics dataframe for current growing_season and crop
         df_stats = self.df_statistics[
             (self.df_statistics["country"] == self.country)
@@ -451,6 +453,19 @@ def process_combination(combination, path_config_file):
     gm.add_static_information()
     gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm.eo_model)
     # gm.df_ccs = gm.add_statistics()
+
+    # Assign calendar_region from spatial overlay of admin units → EWCM regions
+    path_admin_shp = gm.dir_regions_shp / gm.parser.get(country, "boundary_file")
+    path_region_shp = gm.dir_regions_shp / gm.parser.get(country, "shp_region")
+    region_lookup = georegion.get_region_lookup(
+        path_admin_shp=path_admin_shp,
+        path_region_shp=path_region_shp,
+        country=country,
+        scale=scale,
+        dir_cache=gm.dir_interim / "region_cache",
+    )
+    gm.df_ccs["calendar_region"] = gm.df_ccs["region"].map(region_lookup)
+
     gm.df_ccs = gm.add_calendar()
     gm.post_process()
 
@@ -463,7 +478,7 @@ def process_combination(combination, path_config_file):
         return (combination, False)
 
 
-def run(path_config_file="geoextract.txt"):
+def run(path_config_file=["geobase.txt", "geocif.txt"]):
     """
     Main function that can run either sequentially or in parallel,
     depending on the `parallel` argument.

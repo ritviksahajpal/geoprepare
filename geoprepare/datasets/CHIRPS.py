@@ -135,12 +135,17 @@ def download_chirps(
     if version == "v3" and type_data == "prelim" and disagg == "rnl":
         logger.info(f"Skipping v3 prelim with rnl - only sat available for prelim")
         return
+    
+    # For v3, prelim data only exists for recent years (2025+)
+    # Skip prelim for historical years where only final data exists
+    if version == "v3" and type_data == "prelim" and year < 2025:
+        return
 
-    # Set output directory
+    # Set output directory with year subfolder
     if type_data == "prelim":
-        out_dir = dir_prelim
+        out_dir = dir_prelim / str(year)
     else:
-        out_dir = dir_final
+        out_dir = dir_final / str(year)
 
     os.makedirs(out_dir, exist_ok=True)
     
@@ -211,11 +216,15 @@ def unzip_and_scale(
     if version == "v3" and type_product == "prelim" and disagg == "rnl":
         return
     
-    # Set source directory based on product type
+    # For v3, prelim data only exists for recent years (2025+)
+    if version == "v3" and type_product == "prelim" and year < 2025:
+        return
+    
+    # Set source directory based on product type (with year subfolder)
     if type_product == "final":
-        src_dir = Path(dir_final)
+        src_dir = Path(dir_final) / str(year)
     else:
-        src_dir = Path(dir_prelim)
+        src_dir = Path(dir_prelim) / str(year)
     
     # Get source filename based on version
     if version == "v2":
@@ -229,9 +238,9 @@ def unzip_and_scale(
         src_path = src_dir / src_filename
         is_compressed = False
     
-    # Set up output directories - include version in path
-    unzip_dir = dir_interim / "chirps" / version / type_product / "unzipped"
-    scaled_dir = dir_interim / "chirps" / version / type_product / "scaled"
+    # Set up output directories - include version and year in path
+    unzip_dir = dir_interim / "chirps" / version / type_product / "unzipped" / str(year)
+    scaled_dir = dir_interim / "chirps" / version / type_product / "scaled" / str(year)
     os.makedirs(unzip_dir, exist_ok=True)
     os.makedirs(scaled_dir, exist_ok=True)
     
@@ -308,7 +317,7 @@ def reproject_to_global(
         fill_value: Fill value for nodata
         version: CHIRPS version ('v2' or 'v3')
     """
-    global_dir = dir_interim / "chirps" / version / "global"
+    global_dir = dir_interim / "chirps" / version / "global" / str(year)
     os.makedirs(global_dir, exist_ok=True)
 
     version_str = "v2.0" if version == "v2" else "v3.0"
@@ -316,9 +325,9 @@ def reproject_to_global(
     # Marker file to track if output was from prelim (so we know to replace with final)
     prelim_marker = global_dir / f".{year}{jd:03d}_from_prelim"
     
-    # Check for final and prelim scaled files
-    final_scaled = dir_interim / "chirps" / version / "final" / "scaled" / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
-    prelim_scaled = dir_interim / "chirps" / version / "prelim" / "scaled" / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
+    # Check for final and prelim scaled files (with year subfolder)
+    final_scaled = dir_interim / "chirps" / version / "final" / "scaled" / str(year) / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
+    prelim_scaled = dir_interim / "chirps" / version / "prelim" / "scaled" / str(year) / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
     
     # Determine which source to use
     if final_scaled.exists():

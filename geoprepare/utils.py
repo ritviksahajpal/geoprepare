@@ -162,10 +162,6 @@ def fill_till_valid(group, fill_zero=False, interpolate=False):
     assert not (
         fill_zero and interpolate
     ), "fill_zero and interpolate cannot be True at the same time"
-    # Assert that both fill_zero and interpolate are not False at the same time
-    assert not (
-        not fill_zero and not interpolate
-    ), "fill_zero and interpolate cannot be False at the same time"
 
     # The last date for which we can have valid data is today's date
     idx = pd.Timestamp(datetime.datetime.now())

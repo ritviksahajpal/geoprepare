@@ -110,7 +110,33 @@ def run(path_config_file=["geobase.txt"]):
 
             geoprep.data_dir = geoprep.parser.get("FPAR", "data_dir")
         elif dataset == "FLDAS":
-            raise NotImplementedError(f"{dataset} not implemented")
+            from .datasets import FLDAS as obj
+
+            # FLDAS configuration
+            # Whether to use NMME with SPEAR model (default: False -> uses NMME_noSPEAR)
+            geoprep.fldas_use_spear = geoprep.parser.getboolean(
+                "FLDAS", "use_spear", fallback=False
+            )
+            # Data types to download: forecast, openloop, or both
+            geoprep.fldas_data_types = ast.literal_eval(
+                geoprep.parser.get("FLDAS", "data_types", fallback="['forecast']")
+            )
+            # Variables to extract from NetCDF files
+            geoprep.fldas_variables = ast.literal_eval(
+                geoprep.parser.get(
+                    "FLDAS",
+                    "variables",
+                    fallback="['SoilMoist_tavg', 'TotalPrecip_tavg', 'Tair_tavg', 'Evap_tavg', 'TWS_tavg']"
+                )
+            )
+            # Forecast lead times to process (0-5)
+            geoprep.fldas_leads = ast.literal_eval(
+                geoprep.parser.get("FLDAS", "leads", fallback="[0, 1, 2, 3, 4, 5]")
+            )
+            # Whether to compute anomalies
+            geoprep.fldas_compute_anomalies = geoprep.parser.getboolean(
+                "FLDAS", "compute_anomalies", fallback=False
+            )
         else:
             raise ValueError(f"{dataset} not implemented")
 
