@@ -5,7 +5,7 @@
 
 import unittest
 
-from geoprepare import geoprepare
+from geoprepare import geodownload
 
 
 class TestGeoprepare(unittest.TestCase):

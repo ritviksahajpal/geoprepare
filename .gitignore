@@ -4,7 +4,8 @@ private/
 *.py[cod]
 *$py.class
 .tmp.driveupload/
-.idea/
+.idea/*.*
+geoprepare/playground/*.*
 *.xml
 
 # C extensions
