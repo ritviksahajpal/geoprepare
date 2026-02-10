@@ -1,0 +1,133 @@
+country,zones,hemisphere,category
+afghanistan,Temperate,N,EWCM
+algeria,Temperate,N,EWCM
+angola,Tropical,S,EWCM
+argentina,Temperate,S,AMIS
+australia,Temperate,S,AMIS
+austria,Temperate,N,AMIS
+bangladesh,Tropical,N,EWCM
+belgium,Temperate,N,AMIS
+benin,Tropical,N,EWCM
+bolivia,Tropical,S,EWCM
+botswana,Tropical,S,EWCM
+brazil,Tropical,S,AMIS
+bulgaria,Temperate,N,AMIS
+burkina faso,Tropical,N,EWCM
+burundi,Tropical,S,EWCM
+cambodia,Tropical,N,EWCM
+cameroon,Tropical,N,EWCM
+canada,Temperate,N,AMIS
+cape verde,Tropical,N,EWCM
+central african republic,Tropical,S,EWCM
+chad,Tropical,N,EWCM
+chile,Temperate,S,EWCM
+china,Temperate,N,AMIS
+colombia,Tropical,N,EWCM
+congo,Tropical,S,EWCM
+cote d'ivoire,Tropical,S,EWCM
+croatia,Temperate,N,AMIS
+cuba,Tropical,N,EWCM
+cyprus,Temperate,N,AMIS
+czech republic,Temperate,N,EWCM
+dem people's rep of korea,Temperate,N,EWCM
+democratic republic of the congo,Tropical,S,EWCM
+denmark,Temperate,N,AMIS
+djibouti,Tropical,S,EWCM
+egypt,Tropical,N,EWCM
+el salvador,Tropical,N,EWCM
+equador,Tropical,S,EWCM
+equatorial guinea,Tropical,N,EWCM
+eritrea,Tropical,S,EWCM
+estonia,Temperate,N,AMIS
+eswatini,Tropical,S,EWCM
+ethiopia,Tropical,S,EWCM
+finland,Temperate,N,AMIS
+france,Temperate,N,AMIS
+gambia,Tropical,N,EWCM
+germany,Temperate,N,AMIS
+ghana,Tropical,N,EWCM
+greece,Temperate,N,AMIS
+guatemala,Tropical,N,EWCM
+guinea,Tropical,N,EWCM
+guinea-bissau,Tropical,N,EWCM
+haiti,Tropical,N,EWCM
+honduras,Tropical,N,EWCM
+hungary,Temperate,N,AMIS
+india,Tropical,N,AMIS
+indonesia,Tropical,S,AMIS
+iran  (islamic republic of),Temperate,N,EWCM
+iraq,Temperate,N,EWCM
+ireland,Temperate,N,AMIS
+italy,Temperate,N,AMIS
+japan,Temperate,N,AMIS
+kazakhstan,Temperate,N,AMIS
+kenya,Tropical,N,EWCM
+kyrgyzstan,Temperate,N,EWCM
+lao people's democratic republic,Tropical,N,EWCM
+latvia,Temperate,N,AMIS
+lebanon,Temperate,N,EWCM
+lesotho,Tropical,S,EWCM
+liberia,Tropical,N,EWCM
+libya,Tropical,N,EWCM
+lithuania,Temperate,N,AMIS
+luxembourg,Temperate,N,AMIS
+madagascar,Tropical,S,EWCM
+malawi,Tropical,S,EWCM
+mali,Tropical,N,EWCM
+malta,Temperate,N,AMIS
+mauritania,Tropical,N,EWCM
+mexico,Tropical,N,AMIS
+mongolia,Temperate,N,EWCM
+morocco,Tropical,N,EWCM
+mozambique,Tropical,S,EWCM
+myanmar,Tropical,N,EWCM
+namibia,Tropical,S,EWCM
+nepal,Temperate,N,EWCM
+netherlands,Temperate,N,AMIS
+nicaragua,Tropical,N,EWCM
+niger,Tropical,N,EWCM
+nigeria,Tropical,N,EWCM
+pakistan,Temperate,N,EWCM
+paraguay,Tropical,S,AMIS
+peru,Tropical,S,EWCM
+philippines,Tropical,N,AMIS
+poland,Temperate,N,AMIS
+portugal,Temperate,N,AMIS
+republic of korea,Tropical,N,AMIS
+romania,Temperate,N,AMIS
+russian federation,Temperate,N,AMIS
+rwanda,Tropical,S,EWCM
+saudi arabia,Tropical,N,AMIS
+senegal,Tropical,N,EWCM
+sierra leone,Tropical,N,EWCM
+slovakia,Temperate,N,AMIS
+slovenia,Temperate,N,AMIS
+somalia,Tropical,N,EWCM
+south africa,Temperate,S,AMIS
+south sudan,Tropical,S,EWCM
+spain,Temperate,N,AMIS
+sri lanka,Tropical,S,EWCM
+sudan,Tropical,S,EWCM
+swaziland,Tropical,S,EWCM
+sweden,Temperate,N,AMIS
+syrian arab republic,Temperate,N,EWCM
+tajikistan,Temperate,N,EWCM
+tanzania,Tropical,S,AMIS
+thailand,Tropical,N,AMIS
+togo,Tropical,N,EWCM
+tunisia,Temperate,N,EWCM
+turkey,Temperate,N,AMIS
+turkmenistan,Temperate,N,EWCM
+u.k. of great britain and northern ireland,Temperate,N,AMIS
+uganda,Tropical,N,EWCM
+ukraine,Temperate,N,AMIS
+united republic of tanzania,Tropical,S,EWCM
+united states of america,Temperate,N,AMIS
+uruguay,Temperate,S,AMIS
+uzbekistan,Temperate,N,AMIS
+viet nam,Tropical,N,AMIS
+viet_nam,Tropical,N,AMIS
+vietnam,Tropical,N,AMIS
+yemen,Tropical,S,EWCM
+zambia,Tropical,S,EWCM
+zimbabwe,Tropical,S,EWCM

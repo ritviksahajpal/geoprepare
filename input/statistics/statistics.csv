@@ -1,0 +1,1490 @@
+country,admin_1,admin_2,year,growing_season,crop,production,area,yield,calendar_region,category
+Kenya,Central,Kiambu,1983,1,mz,56700,21000,2.7,Central,EWCM
+Kenya,Central,Kiambu,1984,1,mz,59940,37000,1.62,Central,EWCM
+Kenya,Central,Kiambu,1985,1,mz,45579,19813,2.300459294,Central,EWCM
+Kenya,Central,Kiambu,1986,1,mz,76460,30584,2.5,Central,EWCM
+Kenya,Central,Kiambu,1987,1,mz,66130,26457,2.499527535,Central,EWCM
+Kenya,Central,Kiambu,1988,1,mz,26257,25207,1.041655096,Central,EWCM
+Kenya,Central,Kiambu,1989,1,mz,26705,15709,1.699980903,Central,EWCM
+Kenya,Central,Kiambu,1990,1,mz,29784,25702,1.158820325,Central,EWCM
+Kenya,Central,Kiambu,1991,1,mz,31320,26100,1.2,Central,EWCM
+Kenya,Central,Kiambu,1992,1,mz,31736.25,14105,2.25,Central,EWCM
+Kenya,Central,Kiambu,1993,1,mz,13990.86,11958,1.17,Central,EWCM
+Kenya,Central,Kiambu,1994,1,mz,40899.6,16230,2.52,Central,EWCM
+Kenya,Central,Kiambu,1995,1,mz,21240,11800,1.8,Central,EWCM
+Kenya,Central,Kiambu,1996,1,mz,18289.8,10161,1.8,Central,EWCM
+Kenya,Central,Kiambu,1997,1,mz,18333.09,11285,1.624553833,Central,EWCM
+Kenya,Central,Kiambu,1998,1,mz,12645,11240,1.125,Central,EWCM
+Kenya,Central,Kiambu,1999,1,mz,10260,9500,1.08,Central,EWCM
+Kenya,Central,Kiambu,2000,1,mz,1556.1,8640,0.180104167,Central,EWCM
+Kenya,Central,Kiambu,2001,1,mz,12074.4,11180,1.08,Central,EWCM
+Kenya,Central,Kiambu,2003,1,mz,25408,18750,1.355093333,Central,EWCM
+Kenya,Central,Kiambu,2004,1,mz,28620,21200,1.35,Central,EWCM
+Kenya,Central,Kiambu,2005,1,mz,11844,14664,0.807692308,Central,EWCM
+Kenya,Central,Kiambu,2006,1,mz,29599,22140,1.336901536,Central,EWCM
+Kenya,Central,Kiambu,2007,1,mz,29660,23391,1.268009063,Central,EWCM
+Kenya,Central,Kiambu,2008,1,mz,17616.511,26293.3,0.67,Central,EWCM
+Kenya,Central,Kiambu,2009,1,mz,23976.9,30603,0.783482012,Central,EWCM
+Kenya,Central,Kiambu,2010,1,mz,20000.16,41984,0.476375762,Central,EWCM
+Kenya,Central,Kiambu,2011,1,mz,30193.29,39523,0.763942261,Central,EWCM
+Kenya,Central,Kiambu,2012,1,mz,43041.66,45789,0.94,Central,EWCM
+Kenya,Central,Kiambu,2013,1,mz,56474.46,44821,1.26,Central,EWCM
+Kenya,Central,Kiambu,2014,1,mz,43944.57,43210,1.017,Central,EWCM
+Kenya,Central,Kiambu,2015,1,mz,14963.4,24450,0.612,Central,EWCM
+Kenya,Central,Kirinyaga,1983,1,mz,51746,32855,1.574980977,Central,EWCM
+Kenya,Central,Kirinyaga,1984,1,mz,52073,28929,1.800027654,Central,EWCM
+Kenya,Central,Kirinyaga,1985,1,mz,32278,32046,1.007239593,Central,EWCM
+Kenya,Central,Kirinyaga,1986,1,mz,36475,27425,1.329990884,Central,EWCM
+Kenya,Central,Kirinyaga,1987,1,mz,49388,33479,1.475193405,Central,EWCM
+Kenya,Central,Kirinyaga,1988,1,mz,33523,24832,1.349991946,Central,EWCM
+Kenya,Central,Kirinyaga,1989,1,mz,56310,31284,1.799961642,Central,EWCM
+Kenya,Central,Kirinyaga,1990,1,mz,45624,29820,1.529979879,Central,EWCM
+Kenya,Central,Kirinyaga,1991,1,mz,43170,25980,1.661662818,Central,EWCM
+Kenya,Central,Kirinyaga,1992,1,mz,15877.35,11761,1.35,Central,EWCM
+Kenya,Central,Kirinyaga,1993,1,mz,27179.1,23230,1.17,Central,EWCM
+Kenya,Central,Kirinyaga,1994,1,mz,20736,12800,1.62,Central,EWCM
+Kenya,Central,Kirinyaga,1995,1,mz,19611.99,14016,1.399257277,Central,EWCM
+Kenya,Central,Kirinyaga,1996,1,mz,15528.24,14378,1.08,Central,EWCM
+Kenya,Central,Kirinyaga,1997,1,mz,23440.05,14335,1.63516219,Central,EWCM
+Kenya,Central,Kirinyaga,1998,1,mz,23697,13165,1.8,Central,EWCM
+Kenya,Central,Kirinyaga,1999,1,mz,15503.4,14355,1.08,Central,EWCM
+Kenya,Central,Kirinyaga,2000,1,mz,2430,13500,0.18,Central,EWCM
+Kenya,Central,Kirinyaga,2001,1,mz,10800,15000,0.72,Central,EWCM
+Kenya,Central,Kirinyaga,2003,1,mz,26193,26700,0.981011236,Central,EWCM
+Kenya,Central,Kirinyaga,2004,1,mz,24552,27100,0.90597786,Central,EWCM
+Kenya,Central,Kirinyaga,2005,1,mz,19465,25355,0.767698679,Central,EWCM
+Kenya,Central,Kirinyaga,2006,1,mz,19892,25000,0.79568,Central,EWCM
+Kenya,Central,Kirinyaga,2007,1,mz,31503,24224,1.30048712,Central,EWCM
+Kenya,Central,Kirinyaga,2008,1,mz,43075,18932,2.275248257,Central,EWCM
+Kenya,Central,Kirinyaga,2009,1,mz,8217.205,23545,0.349,Central,EWCM
+Kenya,Central,Kirinyaga,2010,1,mz,54778.77,31935,1.715320808,Central,EWCM
+Kenya,Central,Kirinyaga,2011,1,mz,21289.5,17530,1.214460924,Central,EWCM
+Kenya,Central,Kirinyaga,2012,1,mz,18848.25,16730,1.126613867,Central,EWCM
+Kenya,Central,Kirinyaga,2013,1,mz,54608.85,31935,1.71,Central,EWCM
+Kenya,Central,Kirinyaga,2014,1,mz,56665.539,40103,1.413,Central,EWCM
+Kenya,Central,Kirinyaga,2015,1,mz,43648.416,32992,1.323,Central,EWCM
+Kenya,Central,Murang'a,1983,1,mz,41040,38000,1.08,Central,EWCM
+Kenya,Central,Murang'a,1984,1,mz,39154,43504,0.900009195,Central,EWCM
+Kenya,Central,Murang'a,1985,1,mz,42143,38022,1.108384619,Central,EWCM
+Kenya,Central,Murang'a,1986,1,mz,61373,47210,1.3,Central,EWCM
+Kenya,Central,Murang'a,1987,1,mz,73197,47841,1.530005644,Central,EWCM
+Kenya,Central,Murang'a,1988,1,mz,45400,45860,0.989969472,Central,EWCM
+Kenya,Central,Murang'a,1989,1,mz,70783,46300,1.528790497,Central,EWCM
+Kenya,Central,Murang'a,1990,1,mz,78880,46400,1.7,Central,EWCM
+Kenya,Central,Murang'a,1991,1,mz,71680,44800,1.6,Central,EWCM
+Kenya,Central,Murang'a,1992,1,mz,20976.84,19423,1.08,Central,EWCM
+Kenya,Central,Murang'a,1993,1,mz,39366,24300,1.62,Central,EWCM
+Kenya,Central,Murang'a,1994,1,mz,65243,25890,2.520007725,Central,EWCM
+Kenya,Central,Murang'a,1995,1,mz,10265.4,9505,1.08,Central,EWCM
+Kenya,Central,Murang'a,1996,1,mz,22950,17000,1.35,Central,EWCM
+Kenya,Central,Murang'a,1997,1,mz,18792,11600,1.62,Central,EWCM
+Kenya,Central,Murang'a,1998,1,mz,15840,11000,1.44,Central,EWCM
+Kenya,Central,Murang'a,1999,1,mz,4212,7800,0.54,Central,EWCM
+Kenya,Central,Murang'a,2000,1,mz,405,8900,0.045505618,Central,EWCM
+Kenya,Central,Murang'a,2001,1,mz,9504,8800,1.08,Central,EWCM
+Kenya,Central,Murang'a,2003,1,mz,36410,27551,1.321549127,Central,EWCM
+Kenya,Central,Murang'a,2004,1,mz,23517,34548,0.680705106,Central,EWCM
+Kenya,Central,Murang'a,2005,1,mz,15235,32054,0.475291695,Central,EWCM
+Kenya,Central,Murang'a,2006,1,mz,23056,25066,0.919811697,Central,EWCM
+Kenya,Central,Murang'a,2007,1,mz,30486,35100,0.868547009,Central,EWCM
+Kenya,Central,Murang'a,2008,1,mz,31230.9,35680,0.875305493,Central,EWCM
+Kenya,Central,Murang'a,2009,1,mz,8251.02,34425,0.239681046,Central,EWCM
+Kenya,Central,Murang'a,2010,1,mz,10593.24,50444,0.21,Central,EWCM
+Kenya,Central,Murang'a,2011,1,mz,50151.87,58717,0.854128617,Central,EWCM
+Kenya,Central,Murang'a,2012,1,mz,58803.57,50900,1.155276424,Central,EWCM
+Kenya,Central,Murang'a,2013,1,mz,71384.04,56654,1.26,Central,EWCM
+Kenya,Central,Murang'a,2014,1,mz,79042.392,61416,1.287,Central,EWCM
+Kenya,Central,Murang'a,2015,1,mz,72559.197,61543,1.179,Central,EWCM
+Kenya,Central,Nyandarua,1983,1,mz,13703,12703,1.078721562,Central,EWCM
+Kenya,Central,Nyandarua,1984,1,mz,28072,15596,1.799948705,Central,EWCM
+Kenya,Central,Nyandarua,1985,1,mz,16935,18817,0.899984057,Central,EWCM
+Kenya,Central,Nyandarua,1986,1,mz,25808,19816,1.302381914,Central,EWCM
+Kenya,Central,Nyandarua,1987,1,mz,51282,20350,2.52,Central,EWCM
+Kenya,Central,Nyandarua,1988,1,mz,11570,17800,0.65,Central,EWCM
+Kenya,Central,Nyandarua,1989,1,mz,65240,18640,3.5,Central,EWCM
+Kenya,Central,Nyandarua,1990,1,mz,52704,19520,2.7,Central,EWCM
+Kenya,Central,Nyandarua,1991,1,mz,32010,20010,1.59970015,Central,EWCM
+Kenya,Central,Nyandarua,1992,1,mz,42570,21500,1.98,Central,EWCM
+Kenya,Central,Nyandarua,1993,1,mz,20001.6,22224,0.9,Central,EWCM
+Kenya,Central,Nyandarua,1994,1,mz,52408.62,17646,2.97,Central,EWCM
+Kenya,Central,Nyandarua,1995,1,mz,30843.99,18144,1.699955357,Central,EWCM
+Kenya,Central,Nyandarua,1996,1,mz,21989.88,13574,1.62,Central,EWCM
+Kenya,Central,Nyandarua,1997,1,mz,23211.9,17194,1.35,Central,EWCM
+Kenya,Central,Nyandarua,1998,1,mz,23068.8,14420,1.599778086,Central,EWCM
+Kenya,Central,Nyandarua,1999,1,mz,12600,14000,0.9,Central,EWCM
+Kenya,Central,Nyandarua,2000,1,mz,10339.2,14360,0.72,Central,EWCM
+Kenya,Central,Nyandarua,2001,1,mz,27414,15490,1.769786959,Central,EWCM
+Kenya,Central,Nyandarua,2003,1,mz,21530,14950,1.440133779,Central,EWCM
+Kenya,Central,Nyandarua,2004,1,mz,26190,14550,1.8,Central,EWCM
+Kenya,Central,Nyandarua,2005,1,mz,12601,14000,0.900071429,Central,EWCM
+Kenya,Central,Nyandarua,2006,1,mz,28713,15590,1.841757537,Central,EWCM
+Kenya,Central,Nyandarua,2007,1,mz,19307,14300,1.35013986,Central,EWCM
+Kenya,Central,Nyandarua,2008,1,mz,27822.6,20900,1.33122488,Central,EWCM
+Kenya,Central,Nyandarua,2009,1,mz,8965.809,14031,0.639,Central,EWCM
+Kenya,Central,Nyandarua,2010,1,mz,16707.6,10055,1.661621084,Central,EWCM
+Kenya,Central,Nyandarua,2011,1,mz,21775.05,10005,2.176416792,Central,EWCM
+Kenya,Central,Nyandarua,2012,1,mz,33250.5,10855,3.063150622,Central,EWCM
+Kenya,Central,Nyandarua,2013,1,mz,42310.08,19588,2.16,Central,EWCM
+Kenya,Central,Nyandarua,2014,1,mz,24168.96,10490,2.304,Central,EWCM
+Kenya,Central,Nyandarua,2015,1,mz,20151.504,10366,1.944,Central,EWCM
+Kenya,Central,Nyeri,1983,1,mz,43011,23895,1.8,Central,EWCM
+Kenya,Central,Nyeri,1984,1,mz,43295,25556,1.694122711,Central,EWCM
+Kenya,Central,Nyeri,1985,1,mz,23056,20180,1.142517344,Central,EWCM
+Kenya,Central,Nyeri,1986,1,mz,28798,21332,1.349990624,Central,EWCM
+Kenya,Central,Nyeri,1987,1,mz,35135,23973,1.465607141,Central,EWCM
+Kenya,Central,Nyeri,1988,1,mz,21380,22742,0.940110808,Central,EWCM
+Kenya,Central,Nyeri,1989,1,mz,34655,21483,1.613135968,Central,EWCM
+Kenya,Central,Nyeri,1990,1,mz,27397,19565,1.40030667,Central,EWCM
+Kenya,Central,Nyeri,1991,1,mz,33150,22100,1.5,Central,EWCM
+Kenya,Central,Nyeri,1992,1,mz,17550,13000,1.35,Central,EWCM
+Kenya,Central,Nyeri,1993,1,mz,25234.2,23365,1.08,Central,EWCM
+Kenya,Central,Nyeri,1994,1,mz,17595.36,12219,1.44,Central,EWCM
+Kenya,Central,Nyeri,1995,1,mz,16494.21,13090,1.260061879,Central,EWCM
+Kenya,Central,Nyeri,1996,1,mz,17569.44,12201,1.44,Central,EWCM
+Kenya,Central,Nyeri,1997,1,mz,17820,11200,1.591071429,Central,EWCM
+Kenya,Central,Nyeri,1998,1,mz,13068,12100,1.08,Central,EWCM
+Kenya,Central,Nyeri,1999,1,mz,7686,12200,0.63,Central,EWCM
+Kenya,Central,Nyeri,2000,1,mz,2322,12900,0.18,Central,EWCM
+Kenya,Central,Nyeri,2001,1,mz,13896,13200,1.052727273,Central,EWCM
+Kenya,Central,Nyeri,2003,1,mz,24086,22300,1.080089686,Central,EWCM
+Kenya,Central,Nyeri,2004,1,mz,26370,24475,1.077425945,Central,EWCM
+Kenya,Central,Nyeri,2005,1,mz,8636,22750,0.379604396,Central,EWCM
+Kenya,Central,Nyeri,2006,1,mz,16873,26076,0.647070103,Central,EWCM
+Kenya,Central,Nyeri,2007,1,mz,27003,27947,0.966221777,Central,EWCM
+Kenya,Central,Nyeri,2008,1,mz,65875,38075,1.730137886,Central,EWCM
+Kenya,Central,Nyeri,2009,1,mz,26993.7,18835,1.433166976,Central,EWCM
+Kenya,Central,Nyeri,2010,1,mz,23734.8,20124,1.179427549,Central,EWCM
+Kenya,Central,Nyeri,2011,1,mz,28991.88,32272,0.898360188,Central,EWCM
+Kenya,Central,Nyeri,2012,1,mz,31140.135,35433,0.878845568,Central,EWCM
+Kenya,Central,Nyeri,2013,1,mz,42327.18,33593,1.26,Central,EWCM
+Kenya,Central,Nyeri,2014,1,mz,79042.392,61416,1.287,Central,EWCM
+Kenya,Central,Nyeri,2015,1,mz,72559.197,61543,1.179,Central,EWCM
+Kenya,Coast,Kilifi,1983,1,mz,8050,26450,0.304347826,Coast,EWCM
+Kenya,Coast,Kilifi,1984,1,mz,16830,26046,0.646164478,Coast,EWCM
+Kenya,Coast,Kilifi,1985,1,mz,26605,37241,0.714400795,Coast,EWCM
+Kenya,Coast,Kilifi,1986,1,mz,36500,36500,1,Coast,EWCM
+Kenya,Coast,Kilifi,1987,1,mz,48000,40000,1.2,Coast,EWCM
+Kenya,Coast,Kilifi,1988,1,mz,56850,37900,1.5,Coast,EWCM
+Kenya,Coast,Kilifi,1989,1,mz,74702,49801,1.50001004,Coast,EWCM
+Kenya,Coast,Kilifi,1990,1,mz,57600,38400,1.5,Coast,EWCM
+Kenya,Coast,Kilifi,1991,1,mz,62411,45800,1.36268559,Coast,EWCM
+Kenya,Coast,Kilifi,1992,1,mz,31485.96,30688,1.026002346,Coast,EWCM
+Kenya,Coast,Kilifi,1993,1,mz,49887,49887,1,Coast,EWCM
+Kenya,Coast,Kilifi,1994,1,mz,20250,25000,0.81,Coast,EWCM
+Kenya,Coast,Kilifi,1995,1,mz,24300,30000,0.81,Coast,EWCM
+Kenya,Coast,Kilifi,1996,1,mz,19999.98,20000,0.999999,Coast,EWCM
+Kenya,Coast,Kilifi,1997,1,mz,1113.03,21821,0.051007287,Coast,EWCM
+Kenya,Coast,Kilifi,1998,1,mz,9107.28,7784,1.17,Coast,EWCM
+Kenya,Coast,Kilifi,1999,1,mz,19544.58,19742,0.99,Coast,EWCM
+Kenya,Coast,Kilifi,2000,1,mz,16362.72,16528,0.99,Coast,EWCM
+Kenya,Coast,Kilifi,2001,1,mz,18037.8,18220,0.99,Coast,EWCM
+Kenya,Coast,Kilifi,2003,1,mz,22239.15392,27453,0.810081008,Coast,EWCM
+Kenya,Coast,Kilifi,2004,1,mz,27950,38231,0.731082106,Coast,EWCM
+Kenya,Coast,Kilifi,2005,1,mz,31556.43564,31872,0.99009901,Coast,EWCM
+Kenya,Coast,Kilifi,2006,1,mz,28436.27363,49216,0.577785144,Coast,EWCM
+Kenya,Coast,Kilifi,2007,1,mz,33457.15572,42169,0.793406429,Coast,EWCM
+Kenya,Coast,Kilifi,2008,1,mz,22625.928,37836,0.598,Coast,EWCM
+Kenya,Coast,Kilifi,2009,1,mz,69543.173,39864.8,1.744475653,Coast,EWCM
+Kenya,Coast,Kilifi,2010,1,mz,32800.59,49554,0.661916092,Coast,EWCM
+Kenya,Coast,Kilifi,2011,1,mz,74874.78,56500,1.325217345,Coast,EWCM
+Kenya,Coast,Kilifi,2012,1,mz,39509.5185,79832,0.494908289,Coast,EWCM
+Kenya,Coast,Kilifi,2013,1,mz,23533.776,70672,0.333,Coast,EWCM
+Kenya,Coast,Kilifi,2014,1,mz,39014.1,64700,0.603,Coast,EWCM
+Kenya,Coast,Kilifi,2015,1,mz,37612.8,65300,0.576,Coast,EWCM
+Kenya,Coast,Kwale,1983,1,mz,8321,11557,0.719996539,Coast,EWCM
+Kenya,Coast,Kwale,1984,1,mz,9832,13656,0.719976567,Coast,EWCM
+Kenya,Coast,Kwale,1985,1,mz,24558,28198,0.870912831,Coast,EWCM
+Kenya,Coast,Kwale,1986,1,mz,37080,20600,1.8,Coast,EWCM
+Kenya,Coast,Kwale,1987,1,mz,29858,19263,1.55001817,Coast,EWCM
+Kenya,Coast,Kwale,1988,1,mz,11167,18610,0.600053735,Coast,EWCM
+Kenya,Coast,Kwale,1989,1,mz,16850,11233,1.500044512,Coast,EWCM
+Kenya,Coast,Kwale,1990,1,mz,44395,22254,1.994922261,Coast,EWCM
+Kenya,Coast,Kwale,1991,1,mz,44869,16800,2.67077381,Coast,EWCM
+Kenya,Coast,Kwale,1992,1,mz,15937.92,11630,1.370414445,Coast,EWCM
+Kenya,Coast,Kwale,1993,1,mz,6747.3,7497,0.9,Coast,EWCM
+Kenya,Coast,Kwale,1994,1,mz,8748,10800,0.81,Coast,EWCM
+Kenya,Coast,Kwale,1995,1,mz,10530,13000,0.81,Coast,EWCM
+Kenya,Coast,Kwale,1996,1,mz,7290,9000,0.81,Coast,EWCM
+Kenya,Coast,Kwale,1997,1,mz,16020,14400,1.1125,Coast,EWCM
+Kenya,Coast,Kwale,1998,1,mz,8190.09,5353,1.53,Coast,EWCM
+Kenya,Coast,Kwale,1999,1,mz,9204.48,9298,0.989941923,Coast,EWCM
+Kenya,Coast,Kwale,2000,1,mz,14893.56,13445,1.10773968,Coast,EWCM
+Kenya,Coast,Kwale,2001,1,mz,10315.26,10419,0.99004319,Coast,EWCM
+Kenya,Coast,Kwale,2003,1,mz,9121.512151,11260,0.810081008,Coast,EWCM
+Kenya,Coast,Kwale,2004,1,mz,7760.80108,10839.4,0.715980689,Coast,EWCM
+Kenya,Coast,Kwale,2005,1,mz,9962.286229,10062,0.990090064,Coast,EWCM
+Kenya,Coast,Kwale,2006,1,mz,7365.616562,14146.9,0.520652338,Coast,EWCM
+Kenya,Coast,Kwale,2007,1,mz,9791.539154,13203,0.74161472,Coast,EWCM
+Kenya,Coast,Kwale,2008,1,mz,4939.8,8233,0.6,Coast,EWCM
+Kenya,Coast,Kwale,2009,1,mz,16856.0486,11296.86,1.492100336,Coast,EWCM
+Kenya,Coast,Kwale,2010,1,mz,44912.79,31315,1.43422609,Coast,EWCM
+Kenya,Coast,Kwale,2011,1,mz,47638.44,42443,1.12240982,Coast,EWCM
+Kenya,Coast,Kwale,2012,1,mz,54732.825,52242,1.047678592,Coast,EWCM
+Kenya,Coast,Kwale,2013,1,mz,17770.5,39490,0.45,Coast,EWCM
+Kenya,Coast,Kwale,2014,1,mz,17600.31,39910,0.441,Coast,EWCM
+Kenya,Coast,Kwale,2015,1,mz,42092.46,34644,1.215,Coast,EWCM
+Kenya,Coast,Lamu,1983,1,mz,3228,2960,1.090540541,Coast,EWCM
+Kenya,Coast,Lamu,1984,1,mz,1987,1412,1.407223796,Coast,EWCM
+Kenya,Coast,Lamu,1985,1,mz,1824,1520,1.2,Coast,EWCM
+Kenya,Coast,Lamu,1986,1,mz,2024,1687,1.199762893,Coast,EWCM
+Kenya,Coast,Lamu,1987,1,mz,2686,1819,1.476635514,Coast,EWCM
+Kenya,Coast,Lamu,1988,1,mz,1595,1450,1.1,Coast,EWCM
+Kenya,Coast,Lamu,1989,1,mz,2025,1620,1.25,Coast,EWCM
+Kenya,Coast,Lamu,1990,1,mz,1924,1641,1.17245582,Coast,EWCM
+Kenya,Coast,Lamu,1991,1,mz,1598,1547,1.032967033,Coast,EWCM
+Kenya,Coast,Lamu,1992,1,mz,2513.07,2157,1.165076495,Coast,EWCM
+Kenya,Coast,Lamu,1993,1,mz,804.6,894,0.9,Coast,EWCM
+Kenya,Coast,Lamu,1994,1,mz,1656,2300,0.72,Coast,EWCM
+Kenya,Coast,Lamu,1995,1,mz,1458,1800,0.81,Coast,EWCM
+Kenya,Coast,Lamu,1996,1,mz,1717.2,2120,0.81,Coast,EWCM
+Kenya,Coast,Lamu,1997,1,mz,3243.96,3244,0.99998767,Coast,EWCM
+Kenya,Coast,Lamu,1998,1,mz,2820.87,2411,1.17,Coast,EWCM
+Kenya,Coast,Lamu,1999,1,mz,4545.9,4591,0.990176432,Coast,EWCM
+Kenya,Coast,Lamu,2000,1,mz,6044.31,6105,0.990058968,Coast,EWCM
+Kenya,Coast,Lamu,2001,1,mz,4996.53,5047,0.99,Coast,EWCM
+Kenya,Coast,Lamu,2003,1,mz,4158.505851,5133,0.81015115,Coast,EWCM
+Kenya,Coast,Lamu,2004,1,mz,3006.480648,5161,0.582538393,Coast,EWCM
+Kenya,Coast,Lamu,2005,1,mz,4559.225923,4604,0.990274961,Coast,EWCM
+Kenya,Coast,Lamu,2006,1,mz,8648.334833,6901,1.253200237,Coast,EWCM
+Kenya,Coast,Lamu,2007,1,mz,10180.018,9425,1.080108011,Coast,EWCM
+Kenya,Coast,Lamu,2008,1,mz,9139.2,7140,1.28,Coast,EWCM
+Kenya,Coast,Lamu,2009,1,mz,10301.61,6646.2,1.55,Coast,EWCM
+Kenya,Coast,Lamu,2010,1,mz,24539.67,16039,1.53,Coast,EWCM
+Kenya,Coast,Lamu,2011,1,mz,24431.87,12659,1.93,Coast,EWCM
+Kenya,Coast,Lamu,2012,1,mz,16945,21161.8,0.800735287,Coast,EWCM
+Kenya,Coast,Lamu,2013,1,mz,21737.16,20127,1.08,Coast,EWCM
+Kenya,Coast,Lamu,2014,1,mz,37231.704,21324,1.746,Coast,EWCM
+Kenya,Coast,Lamu,2015,1,mz,39351.276,35261,1.116,Coast,EWCM
+Kenya,Coast,Mombasa,1983,1,mz,700,1000,0.7,Coast,EWCM
+Kenya,Coast,Mombasa,1984,1,mz,816,1020,0.8,Coast,EWCM
+Kenya,Coast,Mombasa,1985,1,mz,1924,1480,1.3,Coast,EWCM
+Kenya,Coast,Mombasa,1986,1,mz,880,800,1.1,Coast,EWCM
+Kenya,Coast,Mombasa,1987,1,mz,700,700,1,Coast,EWCM
+Kenya,Coast,Mombasa,1988,1,mz,592,630,0.93968254,Coast,EWCM
+Kenya,Coast,Mombasa,1989,1,mz,999,847,1.179456907,Coast,EWCM
+Kenya,Coast,Mombasa,1990,1,mz,808,661,1.222390318,Coast,EWCM
+Kenya,Coast,Mombasa,1991,1,mz,749,700,1.07,Coast,EWCM
+Kenya,Coast,Mombasa,1992,1,mz,551.97,497,1.110603622,Coast,EWCM
+Kenya,Coast,Mombasa,1993,1,mz,127.89,203,0.63,Coast,EWCM
+Kenya,Coast,Mombasa,1994,1,mz,372.6,460,0.81,Coast,EWCM
+Kenya,Coast,Mombasa,1995,1,mz,428.67,433,0.99,Coast,EWCM
+Kenya,Coast,Mombasa,1996,1,mz,119.07,147,0.81,Coast,EWCM
+Kenya,Coast,Mombasa,1997,1,mz,516.96,434,1.191152074,Coast,EWCM
+Kenya,Coast,Mombasa,1998,1,mz,188.37,161,1.17,Coast,EWCM
+Kenya,Coast,Mombasa,1999,1,mz,164.07,166,0.988373494,Coast,EWCM
+Kenya,Coast,Mombasa,2000,1,mz,557.01,562,0.991120996,Coast,EWCM
+Kenya,Coast,Mombasa,2001,1,mz,706.86,714,0.99,Coast,EWCM
+Kenya,Coast,Mombasa,2003,1,mz,418.0018002,516,0.810081008,Coast,EWCM
+Kenya,Coast,Mombasa,2004,1,mz,446.039604,690,0.646434209,Coast,EWCM
+Kenya,Coast,Mombasa,2005,1,mz,168.4968497,171,0.985361694,Coast,EWCM
+Kenya,Coast,Mombasa,2006,1,mz,429.7029703,759,0.566143571,Coast,EWCM
+Kenya,Coast,Mombasa,2007,1,mz,412.3312331,861,0.478898064,Coast,EWCM
+Kenya,Coast,Mombasa,2008,1,mz,281,281,1,Coast,EWCM
+Kenya,Coast,Mombasa,2009,1,mz,853.3141314,552.4,1.544739557,Coast,EWCM
+Kenya,Coast,Mombasa,2010,1,mz,382.59,1335.5,0.286476975,Coast,EWCM
+Kenya,Coast,Mombasa,2011,1,mz,532.8,1188.9,0.448145344,Coast,EWCM
+Kenya,Coast,Mombasa,2012,1,mz,1063.314,1203.3,0.883664921,Coast,EWCM
+Kenya,Coast,Mombasa,2013,1,mz,541.62,1003,0.54,Coast,EWCM
+Kenya,Coast,Mombasa,2014,1,mz,450.45,1001,0.45,Coast,EWCM
+Kenya,Coast,Mombasa,2015,1,mz,334.989,653,0.513,Coast,EWCM
+Kenya,Coast,Taita Taveta,1983,1,mz,8888,8080,1.1,Coast,EWCM
+Kenya,Coast,Taita Taveta,1984,1,mz,6966,3870,1.8,Coast,EWCM
+Kenya,Coast,Taita Taveta,1985,1,mz,7876,3511,2.243235545,Coast,EWCM
+Kenya,Coast,Taita Taveta,1986,1,mz,12956,7198,1.799944429,Coast,EWCM
+Kenya,Coast,Taita Taveta,1987,1,mz,12556,7715,1.627478937,Coast,EWCM
+Kenya,Coast,Taita Taveta,1988,1,mz,7271,5187,1.401773665,Coast,EWCM
+Kenya,Coast,Taita Taveta,1989,1,mz,20308,6089,3.335194613,Coast,EWCM
+Kenya,Coast,Taita Taveta,1990,1,mz,10282,4545,2.262266227,Coast,EWCM
+Kenya,Coast,Taita Taveta,1991,1,mz,7586,4109,1.846191287,Coast,EWCM
+Kenya,Coast,Taita Taveta,1992,1,mz,4048.02,3706,1.092288181,Coast,EWCM
+Kenya,Coast,Taita Taveta,1993,1,mz,6427.08,6492,0.99,Coast,EWCM
+Kenya,Coast,Taita Taveta,1994,1,mz,2430,3000,0.81,Coast,EWCM
+Kenya,Coast,Taita Taveta,1995,1,mz,1071.6,3230,0.331764706,Coast,EWCM
+Kenya,Coast,Taita Taveta,1996,1,mz,4899.96,3500,1.399988571,Coast,EWCM
+Kenya,Coast,Taita Taveta,1997,1,mz,4479.93,3200,1.399978125,Coast,EWCM
+Kenya,Coast,Taita Taveta,1998,1,mz,2790.72,1824,1.53,Coast,EWCM
+Kenya,Coast,Taita Taveta,1999,1,mz,2754.72,2782,0.990194105,Coast,EWCM
+Kenya,Coast,Taita Taveta,2000,1,mz,5043.06,5094,0.99,Coast,EWCM
+Kenya,Coast,Taita Taveta,2001,1,mz,4154.04,4196,0.99,Coast,EWCM
+Kenya,Coast,Taita Taveta,2003,1,mz,5875.517552,7253,0.810081008,Coast,EWCM
+Kenya,Coast,Taita Taveta,2004,1,mz,3487.39874,8718,0.400022796,Coast,EWCM
+Kenya,Coast,Taita Taveta,2005,1,mz,8494.509451,13482,0.630063006,Coast,EWCM
+Kenya,Coast,Taita Taveta,2006,1,mz,3797.569757,17464,0.217451315,Coast,EWCM
+Kenya,Coast,Taita Taveta,2007,1,mz,15441.94419,21445,0.720072007,Coast,EWCM
+Kenya,Coast,Taita Taveta,2008,1,mz,24798.88,17464,1.42,Coast,EWCM
+Kenya,Coast,Taita Taveta,2009,1,mz,14682.48443,15714.6,0.934321232,Coast,EWCM
+Kenya,Coast,Taita Taveta,2010,1,mz,6287.49,11934,0.526855204,Coast,EWCM
+Kenya,Coast,Taita Taveta,2011,1,mz,17109.63,17076,1.001969431,Coast,EWCM
+Kenya,Coast,Taita Taveta,2012,1,mz,15990.9255,16837.5,0.949720891,Coast,EWCM
+Kenya,Coast,Taita Taveta,2013,1,mz,6293.7,13986,0.45,Coast,EWCM
+Kenya,Coast,Taita Taveta,2014,1,mz,19645.92,15592,1.26,Coast,EWCM
+Kenya,Coast,Taita Taveta,2015,1,mz,18242.64,15592,1.17,Coast,EWCM
+Kenya,Coast,Tana River,1983,1,mz,3688,2649,1.392223481,Coast,EWCM
+Kenya,Coast,Tana River,1984,1,mz,3102,1410,2.2,Coast,EWCM
+Kenya,Coast,Tana River,1985,1,mz,6000,5400,1.111111111,Coast,EWCM
+Kenya,Coast,Tana River,1986,1,mz,5000,2840,1.76056338,Coast,EWCM
+Kenya,Coast,Tana River,1987,1,mz,4049,3912,1.03502045,Coast,EWCM
+Kenya,Coast,Tana River,1988,1,mz,3100,3016,1.027851459,Coast,EWCM
+Kenya,Coast,Tana River,1989,1,mz,4493,3209,1.400124649,Coast,EWCM
+Kenya,Coast,Tana River,1990,1,mz,4261,4072,1.046414538,Coast,EWCM
+Kenya,Coast,Tana River,1991,1,mz,1925,2620,0.734732824,Coast,EWCM
+Kenya,Coast,Tana River,1992,1,mz,1578.96,1281,1.232599532,Coast,EWCM
+Kenya,Coast,Tana River,1993,1,mz,289.98,290,0.999931034,Coast,EWCM
+Kenya,Coast,Tana River,1994,1,mz,49.14,78,0.63,Coast,EWCM
+Kenya,Coast,Tana River,1995,1,mz,594,660,0.9,Coast,EWCM
+Kenya,Coast,Tana River,1996,1,mz,135,100,1.35,Coast,EWCM
+Kenya,Coast,Tana River,1997,1,mz,1222.92,874,1.399221968,Coast,EWCM
+Kenya,Coast,Tana River,1998,1,mz,810,600,1.35,Coast,EWCM
+Kenya,Coast,Tana River,1999,1,mz,473.22,478,0.99,Coast,EWCM
+Kenya,Coast,Tana River,2000,1,mz,754.38,762,0.99,Coast,EWCM
+Kenya,Coast,Tana River,2001,1,mz,732.6,740,0.99,Coast,EWCM
+Kenya,Coast,Tana River,2003,1,mz,653.7353735,807,0.810081008,Coast,EWCM
+Kenya,Coast,Tana River,2004,1,mz,2125.211521,1518,1.40000759,Coast,EWCM
+Kenya,Coast,Tana River,2005,1,mz,806,1328,0.606927711,Coast,EWCM
+Kenya,Coast,Tana River,2006,1,mz,1141.584158,1624,0.70294591,Coast,EWCM
+Kenya,Coast,Tana River,2007,1,mz,988.2988299,1372,0.720334424,Coast,EWCM
+Kenya,Coast,Tana River,2008,1,mz,683.2,976,0.7,Coast,EWCM
+Kenya,Coast,Tana River,2009,1,mz,2378.618902,1363.6,1.744367045,Coast,EWCM
+Kenya,Coast,Tana River,2010,1,mz,12083,8164,1.480034297,Coast,EWCM
+Kenya,Coast,Tana River,2011,1,mz,9755,7086,1.376658199,Coast,EWCM
+Kenya,Coast,Tana River,2012,1,mz,12201.21,8222,1.483971053,Coast,EWCM
+Kenya,Coast,Tana River,2013,1,mz,6206.31,6269,0.99,Coast,EWCM
+Kenya,Coast,Tana River,2014,1,mz,10594.62,8290,1.278,Coast,EWCM
+Kenya,Coast,Tana River,2015,1,mz,12676.986,9582,1.323,Coast,EWCM
+Kenya,Eastern,Embu,1983,1,mz,66196,54752,1.209015196,Eastern,EWCM
+Kenya,Eastern,Embu,1984,1,mz,11850,39500,0.3,Eastern,EWCM
+Kenya,Eastern,Embu,1985,1,mz,27100,56000,0.483928571,Eastern,EWCM
+Kenya,Eastern,Embu,1986,1,mz,33792,43000,0.785860465,Eastern,EWCM
+Kenya,Eastern,Embu,1987,1,mz,30240,42000,0.72,Eastern,EWCM
+Kenya,Eastern,Embu,1988,1,mz,52815,46156,1.144271601,Eastern,EWCM
+Kenya,Eastern,Embu,1989,1,mz,75400,46300,1.628509719,Eastern,EWCM
+Kenya,Eastern,Embu,1990,1,mz,75900,50600,1.5,Eastern,EWCM
+Kenya,Eastern,Embu,1991,1,mz,82050,41507,1.976775002,Eastern,EWCM
+Kenya,Eastern,Embu,1992,1,mz,7740,28383,0.272698446,Eastern,EWCM
+Kenya,Eastern,Embu,1993,1,mz,35910,28500,1.26,Eastern,EWCM
+Kenya,Eastern,Embu,1994,1,mz,24300,27000,0.9,Eastern,EWCM
+Kenya,Eastern,Embu,1995,1,mz,33228,28400,1.17,Eastern,EWCM
+Kenya,Eastern,Embu,1996,1,mz,31752,25200,1.26,Eastern,EWCM
+Kenya,Eastern,Embu,1997,1,mz,9000,10000,0.9,Eastern,EWCM
+Kenya,Eastern,Embu,1998,1,mz,9000,10000,0.9,Eastern,EWCM
+Kenya,Eastern,Embu,1999,1,mz,7200,8000,0.9,Eastern,EWCM
+Kenya,Eastern,Embu,2000,1,mz,468,2600,0.18,Eastern,EWCM
+Kenya,Eastern,Embu,2001,1,mz,22893.75,11875,1.927894737,Eastern,EWCM
+Kenya,Eastern,Embu,2003,1,mz,52594.05941,39200,1.341685189,Eastern,EWCM
+Kenya,Eastern,Embu,2004,1,mz,48002.10621,38980,1.231454751,Eastern,EWCM
+Kenya,Eastern,Embu,2005,1,mz,19446.44464,29650,0.655866598,Eastern,EWCM
+Kenya,Eastern,Embu,2006,1,mz,35103.51035,50500,0.695119017,Eastern,EWCM
+Kenya,Eastern,Embu,2007,1,mz,49493.24932,46072,1.074258754,Eastern,EWCM
+Kenya,Eastern,Embu,2008,1,mz,54987,46072,1.193501476,Eastern,EWCM
+Kenya,Eastern,Embu,2009,1,mz,13944.084,42254.8,0.33,Eastern,EWCM
+Kenya,Eastern,Embu,2010,1,mz,57778.56,52209,1.106678159,Eastern,EWCM
+Kenya,Eastern,Embu,2011,1,mz,38224.26,41678,0.91713278,Eastern,EWCM
+Kenya,Eastern,Embu,2012,1,mz,33842.97,45086,0.75063146,Eastern,EWCM
+Kenya,Eastern,Embu,2013,1,mz,47611.395,45215,1.053,Eastern,EWCM
+Kenya,Eastern,Embu,2014,1,mz,35724.24,26820,1.332,Eastern,EWCM
+Kenya,Eastern,Embu,2015,1,mz,27174.24,26720,1.017,Eastern,EWCM
+Kenya,Eastern,Isiolo,1983,1,mz,704,815,0.863803681,Eastern,EWCM
+Kenya,Eastern,Isiolo,1984,1,mz,647,653,0.990811639,Eastern,EWCM
+Kenya,Eastern,Isiolo,1985,1,mz,590,413,1.428571429,Eastern,EWCM
+Kenya,Eastern,Isiolo,1986,1,mz,861,689,1.249637155,Eastern,EWCM
+Kenya,Eastern,Isiolo,1987,1,mz,674,749,0.899866489,Eastern,EWCM
+Kenya,Eastern,Isiolo,1988,1,mz,525,525,1,Eastern,EWCM
+Kenya,Eastern,Isiolo,1989,1,mz,1200,313,3.833865815,Eastern,EWCM
+Kenya,Eastern,Isiolo,1990,1,mz,780,650,1.2,Eastern,EWCM
+Kenya,Eastern,Isiolo,1991,1,mz,572,431,1.327146172,Eastern,EWCM
+Kenya,Eastern,Isiolo,1992,1,mz,350.01,320,1.09378125,Eastern,EWCM
+Kenya,Eastern,Isiolo,1993,1,mz,0,0,,Eastern,EWCM
+Kenya,Eastern,Isiolo,1994,1,mz,32.4,60,0.54,Eastern,EWCM
+Kenya,Eastern,Isiolo,1995,1,mz,217.44,145,1.499586207,Eastern,EWCM
+Kenya,Eastern,Isiolo,1996,1,mz,270,600,0.45,Eastern,EWCM
+Kenya,Eastern,Isiolo,1997,1,mz,850.5,1350,0.63,Eastern,EWCM
+Kenya,Eastern,Isiolo,1998,1,mz,352.8,700,0.504,Eastern,EWCM
+Kenya,Eastern,Isiolo,1999,1,mz,28.8,400,0.072,Eastern,EWCM
+Kenya,Eastern,Isiolo,2000,1,mz,0,110,0,Eastern,EWCM
+Kenya,Eastern,Isiolo,2001,1,mz,699.93,700,0.9999,Eastern,EWCM
+Kenya,Eastern,Isiolo,2003,1,mz,857.9657966,1148,0.747356966,Eastern,EWCM
+Kenya,Eastern,Isiolo,2004,1,mz,2992,2226,1.344115004,Eastern,EWCM
+Kenya,Eastern,Isiolo,2005,1,mz,154.8154816,1100,0.140741347,Eastern,EWCM
+Kenya,Eastern,Isiolo,2006,1,mz,235.9135914,956,0.246771539,Eastern,EWCM
+Kenya,Eastern,Isiolo,2007,1,mz,477.0477048,700,0.681496721,Eastern,EWCM
+Kenya,Eastern,Isiolo,2008,1,mz,560,700,0.8,Eastern,EWCM
+Kenya,Eastern,Isiolo,2009,1,mz,750.024,1136.4,0.66,Eastern,EWCM
+Kenya,Eastern,Isiolo,2010,1,mz,240.768,577,0.417275563,Eastern,EWCM
+Kenya,Eastern,Isiolo,2011,1,mz,200.925,555,0.362027027,Eastern,EWCM
+Kenya,Eastern,Isiolo,2012,1,mz,288.0899937,824,0.349623779,Eastern,EWCM
+Kenya,Eastern,Isiolo,2013,1,mz,1003.779,987,1.017,Eastern,EWCM
+Kenya,Eastern,Isiolo,2014,1,mz,274,1015,0.269950739,Eastern,EWCM
+Kenya,Eastern,Isiolo,2015,1,mz,673.11,1385,0.486,Eastern,EWCM
+Kenya,Eastern,Kitui,1983,1,mz,57623,64060,0.899516079,Eastern,EWCM
+Kenya,Eastern,Kitui,1984,1,mz,32517,45163,0.719992029,Eastern,EWCM
+Kenya,Eastern,Kitui,1985,1,mz,26728,45690,0.584985774,Eastern,EWCM
+Kenya,Eastern,Kitui,1986,1,mz,16665,53670,0.310508664,Eastern,EWCM
+Kenya,Eastern,Kitui,1987,1,mz,49975,60530,0.825623658,Eastern,EWCM
+Kenya,Eastern,Kitui,1988,1,mz,1056,59036,0.017887391,Eastern,EWCM
+Kenya,Eastern,Kitui,1989,1,mz,98827,54991,1.797148624,Eastern,EWCM
+Kenya,Eastern,Kitui,1990,1,mz,70827,55958,1.265717145,Eastern,EWCM
+Kenya,Eastern,Kitui,1991,1,mz,57677,51151,1.127583038,Eastern,EWCM
+Kenya,Eastern,Kitui,1992,1,mz,2272.05,25000,0.090882,Eastern,EWCM
+Kenya,Eastern,Kitui,1993,1,mz,1890,21000,0.09,Eastern,EWCM
+Kenya,Eastern,Kitui,1994,1,mz,5400,20000,0.27,Eastern,EWCM
+Kenya,Eastern,Kitui,1995,1,mz,2880,32000,0.09,Eastern,EWCM
+Kenya,Eastern,Kitui,1996,1,mz,6660,37000,0.18,Eastern,EWCM
+Kenya,Eastern,Kitui,1997,1,mz,8892,24700,0.36,Eastern,EWCM
+Kenya,Eastern,Kitui,1998,1,mz,5040,14000,0.36,Eastern,EWCM
+Kenya,Eastern,Kitui,1999,1,mz,4860,27000,0.18,Eastern,EWCM
+Kenya,Eastern,Kitui,2000,1,mz,0,30000,0,Eastern,EWCM
+Kenya,Eastern,Kitui,2001,1,mz,0,28000,0,Eastern,EWCM
+Kenya,Eastern,Kitui,2003,1,mz,56995.13951,74620.027,0.763804863,Eastern,EWCM
+Kenya,Eastern,Kitui,2004,1,mz,33632.11431,77939,0.431518422,Eastern,EWCM
+Kenya,Eastern,Kitui,2005,1,mz,28158.77588,79602.16022,0.353743866,Eastern,EWCM
+Kenya,Eastern,Kitui,2006,1,mz,8462.646265,43720.52205,0.193562333,Eastern,EWCM
+Kenya,Eastern,Kitui,2007,1,mz,24519.44194,89713.18812,0.273309225,Eastern,EWCM
+Kenya,Eastern,Kitui,2008,1,mz,54891,40583.2,1.352554752,Eastern,EWCM
+Kenya,Eastern,Kitui,2009,1,mz,28736.59568,39361.37408,0.730070948,Eastern,EWCM
+Kenya,Eastern,Kitui,2010,1,mz,92841.48,95863.38,0.968477014,Eastern,EWCM
+Kenya,Eastern,Kitui,2011,1,mz,33856.2,65485.4,0.51700379,Eastern,EWCM
+Kenya,Eastern,Kitui,2012,1,mz,28089.9,67033.9,0.419040217,Eastern,EWCM
+Kenya,Eastern,Kitui,2013,1,mz,56980.98,77210,0.738,Eastern,EWCM
+Kenya,Eastern,Kitui,2014,1,mz,38750.4,93600,0.414,Eastern,EWCM
+Kenya,Eastern,Kitui,2015,1,mz,31277.547,84763,0.369,Eastern,EWCM
+Kenya,Eastern,Machakos,1983,1,mz,180698,154443,1.169997993,Eastern,EWCM
+Kenya,Eastern,Machakos,1984,1,mz,121942,135491,0.900000738,Eastern,EWCM
+Kenya,Eastern,Machakos,1985,1,mz,38380,106000,0.362075472,Eastern,EWCM
+Kenya,Eastern,Machakos,1986,1,mz,174000,230000,0.756521739,Eastern,EWCM
+Kenya,Eastern,Machakos,1987,1,mz,178783,178853,0.999608617,Eastern,EWCM
+Kenya,Eastern,Machakos,1988,1,mz,182010,178000,1.02252809,Eastern,EWCM
+Kenya,Eastern,Machakos,1989,1,mz,319000,172000,1.854651163,Eastern,EWCM
+Kenya,Eastern,Machakos,1990,1,mz,228143,172000,1.326412791,Eastern,EWCM
+Kenya,Eastern,Machakos,1991,1,mz,254034,256962,0.988605319,Eastern,EWCM
+Kenya,Eastern,Machakos,1992,1,mz,20385,61255,0.33278916,Eastern,EWCM
+Kenya,Eastern,Machakos,1993,1,mz,5940,66000,0.09,Eastern,EWCM
+Kenya,Eastern,Machakos,1994,1,mz,18530.1,68630,0.27,Eastern,EWCM
+Kenya,Eastern,Machakos,1995,1,mz,53070.3,58967,0.9,Eastern,EWCM
+Kenya,Eastern,Machakos,1996,1,mz,1620,72000,0.0225,Eastern,EWCM
+Kenya,Eastern,Machakos,1997,1,mz,29428.56,81746,0.36,Eastern,EWCM
+Kenya,Eastern,Machakos,1998,1,mz,27000,75000,0.36,Eastern,EWCM
+Kenya,Eastern,Machakos,1999,1,mz,6336,88000,0.072,Eastern,EWCM
+Kenya,Eastern,Machakos,2000,1,mz,0,53100,0,Eastern,EWCM
+Kenya,Eastern,Machakos,2001,1,mz,13320,74000,0.18,Eastern,EWCM
+Kenya,Eastern,Machakos,2003,1,mz,115632.0432,149700,0.772425138,Eastern,EWCM
+Kenya,Eastern,Machakos,2004,1,mz,59850,145000,0.412758621,Eastern,EWCM
+Kenya,Eastern,Machakos,2005,1,mz,42340.23402,160500,0.263802081,Eastern,EWCM
+Kenya,Eastern,Machakos,2006,1,mz,27002.70027,108300,0.249332412,Eastern,EWCM
+Kenya,Eastern,Machakos,2007,1,mz,118152.1152,186190,0.634578201,Eastern,EWCM
+Kenya,Eastern,Machakos,2008,1,mz,131267,186190,0.705016381,Eastern,EWCM
+Kenya,Eastern,Machakos,2009,1,mz,75722.4099,157236,0.481584433,Eastern,EWCM
+Kenya,Eastern,Machakos,2010,1,mz,108582.066,114202,0.950789531,Eastern,EWCM
+Kenya,Eastern,Machakos,2011,1,mz,96208.2,120139,0.800807398,Eastern,EWCM
+Kenya,Eastern,Machakos,2012,1,mz,109000.98,171060,0.637209049,Eastern,EWCM
+Kenya,Eastern,Machakos,2013,1,mz,98115.066,149338,0.657,Eastern,EWCM
+Kenya,Eastern,Machakos,2014,1,mz,99655.776,133408,0.747,Eastern,EWCM
+Kenya,Eastern,Machakos,2015,1,mz,67597.74,139090,0.486,Eastern,EWCM
+Kenya,Eastern,Makueni,1992,1,mz,10894.05,40350,0.269988848,Eastern,EWCM
+Kenya,Eastern,Makueni,1993,1,mz,0,0,,Eastern,EWCM
+Kenya,Eastern,Makueni,1994,1,mz,8640,32000,0.27,Eastern,EWCM
+Kenya,Eastern,Makueni,1995,1,mz,12276,35700,0.343865546,Eastern,EWCM
+Kenya,Eastern,Makueni,1996,1,mz,6030,67000,0.09,Eastern,EWCM
+Kenya,Eastern,Makueni,1997,1,mz,17667,33000,0.535363636,Eastern,EWCM
+Kenya,Eastern,Makueni,1998,1,mz,15120,21000,0.72,Eastern,EWCM
+Kenya,Eastern,Makueni,1999,1,mz,8100,40000,0.2025,Eastern,EWCM
+Kenya,Eastern,Makueni,2000,1,mz,450,25000,0.018,Eastern,EWCM
+Kenya,Eastern,Makueni,2001,1,mz,1800,25000,0.072,Eastern,EWCM
+Kenya,Eastern,Makueni,2003,1,mz,47654.9955,91500,0.520819623,Eastern,EWCM
+Kenya,Eastern,Makueni,2004,1,mz,24462,88000,0.277977273,Eastern,EWCM
+Kenya,Eastern,Makueni,2005,1,mz,39603.9604,100000,0.396039604,Eastern,EWCM
+Kenya,Eastern,Makueni,2006,1,mz,11251.12511,87000,0.129323277,Eastern,EWCM
+Kenya,Eastern,Makueni,2007,1,mz,26552.0252,85487,0.310597228,Eastern,EWCM
+Kenya,Eastern,Makueni,2008,1,mz,52618.5,85487,0.61551464,Eastern,EWCM
+Kenya,Eastern,Makueni,2009,1,mz,36569.868,89194.8,0.41,Eastern,EWCM
+Kenya,Eastern,Makueni,2010,1,mz,65081.8908,81354,0.799983907,Eastern,EWCM
+Kenya,Eastern,Makueni,2011,1,mz,47538.9,86360,0.550473599,Eastern,EWCM
+Kenya,Eastern,Makueni,2012,1,mz,52030.8,113395,0.458845628,Eastern,EWCM
+Kenya,Eastern,Makueni,2013,1,mz,73108.575,102825,0.711,Eastern,EWCM
+Kenya,Eastern,Makueni,2014,1,mz,84152.142,183338,0.459,Eastern,EWCM
+Kenya,Eastern,Makueni,2015,1,mz,79860.249,181089,0.441,Eastern,EWCM
+Kenya,Eastern,Marsabit,1983,1,mz,3515,4130,0.851089588,Eastern,EWCM
+Kenya,Eastern,Marsabit,1984,1,mz,2520,2800,0.9,Eastern,EWCM
+Kenya,Eastern,Marsabit,1985,1,mz,5468,5468,1,Eastern,EWCM
+Kenya,Eastern,Marsabit,1986,1,mz,9075,6722,1.35004463,Eastern,EWCM
+Kenya,Eastern,Marsabit,1987,1,mz,9833,7284,1.349945085,Eastern,EWCM
+Kenya,Eastern,Marsabit,1988,1,mz,9038,6695,1.349962659,Eastern,EWCM
+Kenya,Eastern,Marsabit,1989,1,mz,8450,6880,1.228197674,Eastern,EWCM
+Kenya,Eastern,Marsabit,1990,1,mz,7236,8400,0.861428571,Eastern,EWCM
+Kenya,Eastern,Marsabit,1991,1,mz,14084,11733,1.200375011,Eastern,EWCM
+Kenya,Eastern,Marsabit,1992,1,mz,450,1250,0.36,Eastern,EWCM
+Kenya,Eastern,Marsabit,1993,1,mz,0,0,,Eastern,EWCM
+Kenya,Eastern,Marsabit,1994,1,mz,972,2700,0.36,Eastern,EWCM
+Kenya,Eastern,Marsabit,1995,1,mz,180,1000,0.18,Eastern,EWCM
+Kenya,Eastern,Marsabit,1996,1,mz,540,2000,0.27,Eastern,EWCM
+Kenya,Eastern,Marsabit,1997,1,mz,432,800,0.54,Eastern,EWCM
+Kenya,Eastern,Marsabit,1998,1,mz,918,1700,0.54,Eastern,EWCM
+Kenya,Eastern,Marsabit,1999,1,mz,1026,1900,0.54,Eastern,EWCM
+Kenya,Eastern,Marsabit,2000,1,mz,0,100,0,Eastern,EWCM
+Kenya,Eastern,Marsabit,2001,1,mz,180,2000,0.09,Eastern,EWCM
+Kenya,Eastern,Marsabit,2003,1,mz,5264.968497,5000,1.052993699,Eastern,EWCM
+Kenya,Eastern,Marsabit,2004,1,mz,4860,6800,0.714705882,Eastern,EWCM
+Kenya,Eastern,Marsabit,2005,1,mz,2937.893789,7560,0.38861029,Eastern,EWCM
+Kenya,Eastern,Marsabit,2006,1,mz,7980.19802,10100,0.790118616,Eastern,EWCM
+Kenya,Eastern,Marsabit,2007,1,mz,2083.117912,7920,0.263019938,Eastern,EWCM
+Kenya,Eastern,Marsabit,2008,1,mz,1541.28,5928,0.26,Eastern,EWCM
+Kenya,Eastern,Marsabit,2009,1,mz,6700.241944,7661.6,0.874522547,Eastern,EWCM
+Kenya,Eastern,Marsabit,2010,1,mz,120.483,827,0.14568682,Eastern,EWCM
+Kenya,Eastern,Marsabit,2011,1,mz,74.07,252,0.293928571,Eastern,EWCM
+Kenya,Eastern,Marsabit,2012,1,mz,69.03,539,0.128070501,Eastern,EWCM
+Kenya,Eastern,Marsabit,2013,1,mz,219.474,274,0.801,Eastern,EWCM
+Kenya,Eastern,Marsabit,2014,1,mz,1006.83,990,1.017,Eastern,EWCM
+Kenya,Eastern,Marsabit,2015,1,mz,1611.846,1571,1.026,Eastern,EWCM
+Kenya,Eastern,Meru,1983,1,mz,178200,99000,1.8,Eastern,EWCM
+Kenya,Eastern,Meru,1984,1,mz,93500,100000,0.935,Eastern,EWCM
+Kenya,Eastern,Meru,1985,1,mz,47310,47928,0.987105658,Eastern,EWCM
+Kenya,Eastern,Meru,1986,1,mz,81433,78379,1.038964519,Eastern,EWCM
+Kenya,Eastern,Meru,1987,1,mz,23748,66563,0.356774785,Eastern,EWCM
+Kenya,Eastern,Meru,1988,1,mz,101411,57943,1.750185527,Eastern,EWCM
+Kenya,Eastern,Meru,1989,1,mz,162000,53815,3.01031311,Eastern,EWCM
+Kenya,Eastern,Meru,1990,1,mz,97100,53585,1.812074275,Eastern,EWCM
+Kenya,Eastern,Meru,1991,1,mz,108914,68705,1.585241249,Eastern,EWCM
+Kenya,Eastern,Meru,1992,1,mz,13500,27000,0.5,Eastern,EWCM
+Kenya,Eastern,Meru,1993,1,mz,21527.1,34170,0.63,Eastern,EWCM
+Kenya,Eastern,Meru,1994,1,mz,15840,22000,0.72,Eastern,EWCM
+Kenya,Eastern,Meru,1995,1,mz,36666,13580,2.7,Eastern,EWCM
+Kenya,Eastern,Meru,1996,1,mz,22932,18200,1.26,Eastern,EWCM
+Kenya,Eastern,Meru,2002,1,mz,113337.0837,116565,0.972308014,Eastern,EWCM
+Kenya,Eastern,Meru,2003,1,mz,126899.0099,110732,1.146001245,Eastern,EWCM
+Kenya,Eastern,Meru,2004,1,mz,147716,112485,1.313206205,Eastern,EWCM
+Kenya,Eastern,Meru,2005,1,mz,77501.35014,111515,0.694985878,Eastern,EWCM
+Kenya,Eastern,Meru,2006,1,mz,97435.82358,118285,0.823737782,Eastern,EWCM
+Kenya,Eastern,Meru,2007,1,mz,74304.05041,83827,0.886397586,Eastern,EWCM
+Kenya,Eastern,Meru,2008,1,mz,35142.61,81727,0.43,Eastern,EWCM
+Kenya,Eastern,Meru,2009,1,mz,48752.544,101567.8,0.48,Eastern,EWCM
+Kenya,Eastern,Meru,2010,1,mz,214982.226,110333,1.948485276,Eastern,EWCM
+Kenya,Eastern,Meru,2011,1,mz,132088.5,102272,1.291541184,Eastern,EWCM
+Kenya,Eastern,Meru,2012,1,mz,186179.4907,125192,1.48715166,Eastern,EWCM
+Kenya,Eastern,Meru,2013,1,mz,145520.928,96244,1.512,Eastern,EWCM
+Kenya,Eastern,Meru,2014,1,mz,94638.06,95594,0.99,Eastern,EWCM
+Kenya,Eastern,Meru,2015,1,mz,114356.115,110489,1.035,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,1992,1,mz,4455,6165,0.722627737,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,1993,1,mz,0,0,,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,1994,1,mz,9810,10900,0.9,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,1995,1,mz,17640,9800,1.8,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,1996,1,mz,12492,13880,0.9,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2002,1,mz,456.0756076,5846,0.078014986,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2003,1,mz,2560.036004,4227,0.605638988,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2004,1,mz,2449,3741,0.654637797,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2005,1,mz,2587.758776,6530,0.396287715,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2006,1,mz,2611.881188,3746,0.697245379,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2007,1,mz,3493.609361,4886,0.715024429,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2008,1,mz,3840,4886,0.785918952,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2009,1,mz,5138.424,4757.8,1.08,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2010,1,mz,11904.624,9504,1.252590909,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2011,1,mz,12483,13240,0.942824773,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2012,1,mz,13286.69834,11191,1.187266405,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2013,1,mz,39043.782,26779,1.458,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2014,1,mz,24861.528,30026,0.828,Eastern,EWCM
+Kenya,Eastern,Tharaka Nithi,2015,1,mz,25847.424,29916,0.864,Eastern,EWCM
+Kenya,North Eastern,Garissa,1983,1,mz,56.178,62.42,0.9,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1984,1,mz,87.75,97.5,0.9,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1985,1,mz,360,200,1.8,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1986,1,mz,243.6,225.5,1.080266075,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1987,1,mz,334.6534654,371.4,0.901059411,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1988,1,mz,27.45274527,93,0.295190809,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1989,1,mz,240.0540054,300,0.800180018,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1990,1,mz,45.00450045,65,0.69237693,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1991,1,mz,224.82,210,1.070571429,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1992,1,mz,324.72,180,1.804,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1993,1,mz,101,138,0.731884058,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1997,1,mz,676.98,390,1.735846154,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1998,1,mz,464.94,310,1.499806452,North Eastern,EWCM
+Kenya,North Eastern,Garissa,1999,1,mz,149.94,200,0.7497,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2000,1,mz,69.93,150,0.4662,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2001,1,mz,43.92,80,0.549,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2003,1,mz,105,180,0.583333333,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2004,1,mz,704,788,0.893401015,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2005,1,mz,208,280,0.742857143,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2006,1,mz,376.2376238,525,0.716643093,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2007,1,mz,180.9180918,670,0.270027003,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2008,1,mz,422.1621622,990,0.426426426,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2009,1,mz,378.2635756,1050.6,0.360045284,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2010,1,mz,90.72,375,0.24192,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2011,1,mz,131.4,612,0.214705882,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2012,1,mz,212.85,518,0.410907336,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2013,1,mz,416.979,433,0.963,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2014,1,mz,201.105,205,0.981,North Eastern,EWCM
+Kenya,North Eastern,Garissa,2015,1,mz,200.655,245,0.819,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1983,1,mz,855,950,0.9,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1984,1,mz,189.25,425.3,0.444980014,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1985,1,mz,978.5,645,1.517054264,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1986,1,mz,506,1113,0.454627134,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1987,1,mz,538.0738074,1216,0.442494907,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1988,1,mz,684.0684068,1216,0.562556256,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1989,1,mz,431,1874,0.229989328,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1990,1,mz,393,1874,0.209711846,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1991,1,mz,1429.56,1060,1.348641509,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1992,1,mz,1048.95,824,1.272997573,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1993,1,mz,323.2,320,1.01,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1997,1,mz,1231,1368,0.899853801,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1998,1,mz,699.93,965,0.725316062,North Eastern,EWCM
+Kenya,North Eastern,Mandera,1999,1,mz,259.92,365,0.712109589,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2000,1,mz,559.98,600,0.9333,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2001,1,mz,1008,1400,0.72,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2003,1,mz,3069.9,3101,0.989970977,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2004,1,mz,3002,2670,1.124344569,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2005,1,mz,533,430,1.239534884,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2006,1,mz,369.0369037,1350,0.273360669,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2007,1,mz,299.729973,1500,0.199819982,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2008,1,mz,1984.414414,1695,1.170745967,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2009,1,mz,1237.636258,1529,0.809441634,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2010,1,mz,0,1025,0,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2011,1,mz,434.7,2499,0.17394958,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2012,1,mz,399.6,1811,0.220651574,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2013,1,mz,0,215,0,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2014,1,mz,1323.342,1987,0.666,North Eastern,EWCM
+Kenya,North Eastern,Mandera,2015,1,mz,1617.246,2682,0.603,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1983,1,mz,616.5,685,0.9,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1984,1,mz,465.5,648,0.718364198,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1985,1,mz,292.5,325,0.9,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1986,1,mz,539,835,0.645508982,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1987,1,mz,322.7722772,883.8,0.365209637,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1988,1,mz,224.4824482,828.5,0.270950451,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1989,1,mz,227.1827183,806,0.281864415,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1990,1,mz,108.0108011,1238,0.087246204,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1991,1,mz,494.55,482,1.026037344,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1992,1,mz,241.02,316,0.762721519,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1993,1,mz,329.67,550,0.5994,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1994,1,mz,315,350,0.9,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1997,1,mz,819,1300,0.63,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1998,1,mz,315.99,527,0.599601518,North Eastern,EWCM
+Kenya,North Eastern,Wajir,1999,1,mz,49.95,400,0.124875,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2000,1,mz,0,750,0,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2001,1,mz,129.6,720,0.18,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2003,1,mz,1420,1775,0.8,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2004,1,mz,1875,2050,0.914634146,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2005,1,mz,150,1200,0.125,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2006,1,mz,108.0108011,2100,0.051433715,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2007,1,mz,393.3393339,1960,0.200683334,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2008,1,mz,289.172,2158,0.134,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2009,1,mz,1083.991899,2277.6,0.475936029,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2010,1,mz,0,785,0,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2011,1,mz,261,1340,0.194776119,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2012,1,mz,197.1,801,0.246067416,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2013,1,mz,202.608,268,0.756,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2014,1,mz,396,550,0.72,North Eastern,EWCM
+Kenya,North Eastern,Wajir,2015,1,mz,118.8,660,0.18,North Eastern,EWCM
+Kenya,Nyanza,Homa Bay,1991,1,mz,81180,45100,1.8,West,EWCM
+Kenya,Nyanza,Homa Bay,1992,1,mz,79992,35552,2.25,West,EWCM
+Kenya,Nyanza,Homa Bay,1993,1,mz,16650,37000,0.45,West,EWCM
+Kenya,Nyanza,Homa Bay,1994,1,mz,38496.6,21387,1.8,West,EWCM
+Kenya,Nyanza,Homa Bay,1996,1,mz,31699.8,17611,1.8,West,EWCM
+Kenya,Nyanza,Homa Bay,1997,1,mz,10437.84,10253,1.018027894,West,EWCM
+Kenya,Nyanza,Homa Bay,1998,1,mz,13583.16,9172,1.480937636,West,EWCM
+Kenya,Nyanza,Homa Bay,1999,1,mz,18387,11350,1.62,West,EWCM
+Kenya,Nyanza,Homa Bay,2000,1,mz,24985.44,17351,1.44,West,EWCM
+Kenya,Nyanza,Homa Bay,2001,1,mz,25821.81,16877,1.53,West,EWCM
+Kenya,Nyanza,Homa Bay,2003,1,mz,46309.63096,38550,1.201287444,West,EWCM
+Kenya,Nyanza,Homa Bay,2004,1,mz,30682.2,39071,0.78529344,West,EWCM
+Kenya,Nyanza,Homa Bay,2005,1,mz,13882.44,42068,0.33,West,EWCM
+Kenya,Nyanza,Homa Bay,2006,1,mz,16505.3,43435,0.38,West,EWCM
+Kenya,Nyanza,Homa Bay,2007,1,mz,47500,36110,1.31542509,West,EWCM
+Kenya,Nyanza,Homa Bay,2008,1,mz,78423.5,47345,1.656426233,West,EWCM
+Kenya,Nyanza,Homa Bay,2009,1,mz,28869.38,41605.8,0.693878738,West,EWCM
+Kenya,Nyanza,Homa Bay,2010,1,mz,58363.2,43614,1.338175815,West,EWCM
+Kenya,Nyanza,Homa Bay,2011,1,mz,71131.68,49853,1.426828476,West,EWCM
+Kenya,Nyanza,Homa Bay,2012,1,mz,68697,49170,1.397132398,West,EWCM
+Kenya,Nyanza,Homa Bay,2013,1,mz,104972.94,67420,1.557,West,EWCM
+Kenya,Nyanza,Homa Bay,2014,1,mz,118453.887,74359,1.593,West,EWCM
+Kenya,Nyanza,Homa Bay,2015,1,mz,134079.561,79667,1.683,West,EWCM
+Kenya,Nyanza,Kisii,1983,1,mz,192114,64820,2.963807467,West,EWCM
+Kenya,Nyanza,Kisii,1984,1,mz,151758,42155,3.6,West,EWCM
+Kenya,Nyanza,Kisii,1985,1,mz,163800,57720,2.837837838,West,EWCM
+Kenya,Nyanza,Kisii,1986,1,mz,181080,50300,3.6,West,EWCM
+Kenya,Nyanza,Kisii,1987,1,mz,192024,53340,3.6,West,EWCM
+Kenya,Nyanza,Kisii,1988,1,mz,189385,52607,3.599996198,West,EWCM
+Kenya,Nyanza,Kisii,1989,1,mz,189042,53858,3.510007798,West,EWCM
+Kenya,Nyanza,Kisii,1990,1,mz,0,0,,West,EWCM
+Kenya,Nyanza,Kisii,1991,1,mz,138362,34359,4.026950726,West,EWCM
+Kenya,Nyanza,Kisii,1992,1,mz,48991.5,18145,2.7,West,EWCM
+Kenya,Nyanza,Kisii,1993,1,mz,135432,68400,1.98,West,EWCM
+Kenya,Nyanza,Kisii,1994,1,mz,68913,20150,3.42,West,EWCM
+Kenya,Nyanza,Kisii,1996,1,mz,74844,19800,3.78,West,EWCM
+Kenya,Nyanza,Kisii,1997,1,mz,24396.75,7745,3.15,West,EWCM
+Kenya,Nyanza,Kisii,1998,1,mz,22500,7100,3.169014085,West,EWCM
+Kenya,Nyanza,Kisii,1999,1,mz,29565,7300,4.05,West,EWCM
+Kenya,Nyanza,Kisii,2000,1,mz,22680,7200,3.15,West,EWCM
+Kenya,Nyanza,Kisii,2001,1,mz,28044,8200,3.42,West,EWCM
+Kenya,Nyanza,Kisii,2003,1,mz,72464.44644,48730,1.487060259,West,EWCM
+Kenya,Nyanza,Kisii,2004,1,mz,153355,49555,3.094642317,West,EWCM
+Kenya,Nyanza,Kisii,2005,1,mz,148645,49250,3.018172589,West,EWCM
+Kenya,Nyanza,Kisii,2006,1,mz,113879,48035,2.370750494,West,EWCM
+Kenya,Nyanza,Kisii,2007,1,mz,112961.2961,50200,2.250225023,West,EWCM
+Kenya,Nyanza,Kisii,2008,1,mz,155025,48750,3.18,West,EWCM
+Kenya,Nyanza,Kisii,2009,1,mz,41784.3,49158,0.85,West,EWCM
+Kenya,Nyanza,Kisii,2010,1,mz,112597.65,54380,2.070570982,West,EWCM
+Kenya,Nyanza,Kisii,2011,1,mz,122737.5,55820,2.198808671,West,EWCM
+Kenya,Nyanza,Kisii,2012,1,mz,124124.4,56790,2.185673534,West,EWCM
+Kenya,Nyanza,Kisii,2013,1,mz,151353.63,59635,2.538,West,EWCM
+Kenya,Nyanza,Kisii,2014,1,mz,141053.94,63710,2.214,West,EWCM
+Kenya,Nyanza,Kisii,2015,1,mz,128774.7,62210,2.07,West,EWCM
+Kenya,Nyanza,Kisumu,1983,1,mz,29250,13000,2.25,West,EWCM
+Kenya,Nyanza,Kisumu,1984,1,mz,26449,9796,2.699979584,West,EWCM
+Kenya,Nyanza,Kisumu,1985,1,mz,22310,13772,1.619953529,West,EWCM
+Kenya,Nyanza,Kisumu,1986,1,mz,23091,14254,1.619966325,West,EWCM
+Kenya,Nyanza,Kisumu,1987,1,mz,29506,16393,1.799914598,West,EWCM
+Kenya,Nyanza,Kisumu,1988,1,mz,30600,17441,1.754486555,West,EWCM
+Kenya,Nyanza,Kisumu,1989,1,mz,31484,15901,1.980001258,West,EWCM
+Kenya,Nyanza,Kisumu,1990,1,mz,0,0,,West,EWCM
+Kenya,Nyanza,Kisumu,1991,1,mz,47368,15138,3.129079139,West,EWCM
+Kenya,Nyanza,Kisumu,1992,1,mz,20250,15000,1.35,West,EWCM
+Kenya,Nyanza,Kisumu,1993,1,mz,8564.4,15860,0.54,West,EWCM
+Kenya,Nyanza,Kisumu,1994,1,mz,40556.7,15021,2.7,West,EWCM
+Kenya,Nyanza,Kisumu,1995,1,mz,5916.96,2348,2.52,West,EWCM
+Kenya,Nyanza,Kisumu,1996,1,mz,33357.24,13237,2.52,West,EWCM
+Kenya,Nyanza,Kisumu,1997,1,mz,22414.5,13701,1.635975476,West,EWCM
+Kenya,Nyanza,Kisumu,1998,1,mz,29700,12386,2.397868561,West,EWCM
+Kenya,Nyanza,Kisumu,1999,1,mz,15939,6122,2.603560928,West,EWCM
+Kenya,Nyanza,Kisumu,2000,1,mz,5269.5,5832,0.903549383,West,EWCM
+Kenya,Nyanza,Kisumu,2001,1,mz,10979.55,8533,1.286716278,West,EWCM
+Kenya,Nyanza,Kisumu,2003,1,mz,27920.07201,20841,1.339670458,West,EWCM
+Kenya,Nyanza,Kisumu,2004,1,mz,34466,18519,1.861115611,West,EWCM
+Kenya,Nyanza,Kisumu,2005,1,mz,24661,17356,1.420891911,West,EWCM
+Kenya,Nyanza,Kisumu,2006,1,mz,32338,17367,1.862037197,West,EWCM
+Kenya,Nyanza,Kisumu,2007,1,mz,35996.84968,18750,1.919831983,West,EWCM
+Kenya,Nyanza,Kisumu,2008,1,mz,42314,22450,1.88481069,West,EWCM
+Kenya,Nyanza,Kisumu,2009,1,mz,10955.272,18888.4,0.58,West,EWCM
+Kenya,Nyanza,Kisumu,2010,1,mz,37736.28,26013,1.45067005,West,EWCM
+Kenya,Nyanza,Kisumu,2011,1,mz,35435.16,27624,1.282767159,West,EWCM
+Kenya,Nyanza,Kisumu,2012,1,mz,38767.5,26790,1.447088466,West,EWCM
+Kenya,Nyanza,Kisumu,2013,1,mz,49591.575,33395,1.485,West,EWCM
+Kenya,Nyanza,Kisumu,2014,1,mz,66094.209,32069,2.061,West,EWCM
+Kenya,Nyanza,Kisumu,2015,1,mz,58644,27150,2.16,West,EWCM
+Kenya,Nyanza,Migori,1992,1,mz,35804.25,15913,2.25,West,EWCM
+Kenya,Nyanza,Migori,1993,1,mz,25218,14010,1.8,West,EWCM
+Kenya,Nyanza,Migori,1994,1,mz,71280,26400,2.7,West,EWCM
+Kenya,Nyanza,Migori,1996,1,mz,42660,15800,2.7,West,EWCM
+Kenya,Nyanza,Migori,1997,1,mz,33700.32,15602,2.16,West,EWCM
+Kenya,Nyanza,Migori,1998,1,mz,32130,13331,2.41017178,West,EWCM
+Kenya,Nyanza,Migori,1999,1,mz,38450.25,17089,2.25,West,EWCM
+Kenya,Nyanza,Migori,2000,1,mz,39375,17500,2.25,West,EWCM
+Kenya,Nyanza,Migori,2001,1,mz,32625,14500,2.25,West,EWCM
+Kenya,Nyanza,Migori,2003,1,mz,90774.07741,42910,2.115452748,West,EWCM
+Kenya,Nyanza,Migori,2004,1,mz,85209,41155,2.070441016,West,EWCM
+Kenya,Nyanza,Migori,2005,1,mz,29440,46000,0.64,West,EWCM
+Kenya,Nyanza,Migori,2006,1,mz,31184.8,45860,0.68,West,EWCM
+Kenya,Nyanza,Migori,2007,1,mz,92421,45280,2.041099823,West,EWCM
+Kenya,Nyanza,Migori,2008,1,mz,74552.4,31860,2.34,West,EWCM
+Kenya,Nyanza,Migori,2009,1,mz,30682.63,42031,0.73,West,EWCM
+Kenya,Nyanza,Migori,2010,1,mz,94747.5,65550,1.445423341,West,EWCM
+Kenya,Nyanza,Migori,2011,1,mz,94889.52,65838,1.441257632,West,EWCM
+Kenya,Nyanza,Migori,2012,1,mz,131473.35,73047,1.79984599,West,EWCM
+Kenya,Nyanza,Migori,2013,1,mz,161246.16,78580,2.052,West,EWCM
+Kenya,Nyanza,Migori,2014,1,mz,45518.472,54974,0.828,West,EWCM
+Kenya,Nyanza,Migori,2015,1,mz,89890.02,67485,1.332,West,EWCM
+Kenya,Nyanza,Nyamira,1992,1,mz,71568,22720,3.15,West,EWCM
+Kenya,Nyanza,Nyamira,1993,1,mz,19462.5,8650,2.25,West,EWCM
+Kenya,Nyanza,Nyamira,1994,1,mz,78660,23000,3.42,West,EWCM
+Kenya,Nyanza,Nyamira,1996,1,mz,81445.5,20110,4.05,West,EWCM
+Kenya,Nyanza,Nyamira,1997,1,mz,51309,20600,2.490728155,West,EWCM
+Kenya,Nyanza,Nyamira,1998,1,mz,49979.97,20223,2.471441923,West,EWCM
+Kenya,Nyanza,Nyamira,1999,1,mz,58068,20225,2.871100124,West,EWCM
+Kenya,Nyanza,Nyamira,2000,1,mz,51375.24,20387,2.52,West,EWCM
+Kenya,Nyanza,Nyamira,2001,1,mz,52967.34,20294,2.61,West,EWCM
+Kenya,Nyanza,Nyamira,2003,1,mz,84286.22862,32424,2.599501253,West,EWCM
+Kenya,Nyanza,Nyamira,2004,1,mz,74072,22285,3.323850123,West,EWCM
+Kenya,Nyanza,Nyamira,2005,1,mz,76237,32450,2.349368259,West,EWCM
+Kenya,Nyanza,Nyamira,2006,1,mz,115592,56365,2.050776191,West,EWCM
+Kenya,Nyanza,Nyamira,2007,1,mz,95247.9748,51185,1.860857181,West,EWCM
+Kenya,Nyanza,Nyamira,2008,1,mz,98363,48030,2.047949198,West,EWCM
+Kenya,Nyanza,Nyamira,2009,1,mz,26895.79496,42063,0.639416945,West,EWCM
+Kenya,Nyanza,Nyamira,2010,1,mz,96715.8,56572,1.709605459,West,EWCM
+Kenya,Nyanza,Nyamira,2011,1,mz,179739,71310,2.52053008,West,EWCM
+Kenya,Nyanza,Nyamira,2012,1,mz,140537.25,63825,2.201915394,West,EWCM
+Kenya,Nyanza,Nyamira,2013,1,mz,110517.12,54820,2.016,West,EWCM
+Kenya,Nyanza,Nyamira,2014,1,mz,67120.2,53270,1.26,West,EWCM
+Kenya,Nyanza,Nyamira,2015,1,mz,44151.858,35549,1.242,West,EWCM
+Kenya,Nyanza,Siaya,1983,1,mz,75802,42112,1.800009498,West,EWCM
+Kenya,Nyanza,Siaya,1984,1,mz,82100,42222,1.944483918,West,EWCM
+Kenya,Nyanza,Siaya,1985,1,mz,65023,36124,1.799994464,West,EWCM
+Kenya,Nyanza,Siaya,1986,1,mz,66528,36834,1.806157355,West,EWCM
+Kenya,Nyanza,Siaya,1987,1,mz,80235,44574,1.800040382,West,EWCM
+Kenya,Nyanza,Siaya,1988,1,mz,58823,43574,1.349956396,West,EWCM
+Kenya,Nyanza,Siaya,1989,1,mz,66257,49079,1.350007131,West,EWCM
+Kenya,Nyanza,Siaya,1990,1,mz,0,0,,West,EWCM
+Kenya,Nyanza,Siaya,1991,1,mz,54057,35000,1.544485714,West,EWCM
+Kenya,Nyanza,Siaya,1992,1,mz,34587,25620,1.35,West,EWCM
+Kenya,Nyanza,Siaya,1993,1,mz,16686,30900,0.54,West,EWCM
+Kenya,Nyanza,Siaya,1994,1,mz,49500,22000,2.25,West,EWCM
+Kenya,Nyanza,Siaya,1996,1,mz,30600,17000,1.8,West,EWCM
+Kenya,Nyanza,Siaya,1997,1,mz,33559.2,29669,1.131120024,West,EWCM
+Kenya,Nyanza,Siaya,1998,1,mz,19014.3,27203,0.698978054,West,EWCM
+Kenya,Nyanza,Siaya,1999,1,mz,26221.05,19423,1.35,West,EWCM
+Kenya,Nyanza,Siaya,2000,1,mz,28395.9,21034,1.35,West,EWCM
+Kenya,Nyanza,Siaya,2001,1,mz,32051.52,22258,1.44,West,EWCM
+Kenya,Nyanza,Siaya,2003,1,mz,85421.69217,68799,1.24161241,West,EWCM
+Kenya,Nyanza,Siaya,2004,1,mz,89393,61044,1.464402726,West,EWCM
+Kenya,Nyanza,Siaya,2005,1,mz,51446,57896,0.88859334,West,EWCM
+Kenya,Nyanza,Siaya,2006,1,mz,60863.34473,59544,1.022157476,West,EWCM
+Kenya,Nyanza,Siaya,2007,1,mz,82530.15302,71530,1.153783769,West,EWCM
+Kenya,Nyanza,Siaya,2008,1,mz,117049,67870,1.724605864,West,EWCM
+Kenya,Nyanza,Siaya,2009,1,mz,29094.49955,63576.8,0.457627618,West,EWCM
+Kenya,Nyanza,Siaya,2010,1,mz,75555,64200,1.176869159,West,EWCM
+Kenya,Nyanza,Siaya,2011,1,mz,88190.55,82065,1.074642661,West,EWCM
+Kenya,Nyanza,Siaya,2012,1,mz,120784.05,75413,1.601634334,West,EWCM
+Kenya,Nyanza,Siaya,2013,1,mz,120993.84,76385,1.584,West,EWCM
+Kenya,Nyanza,Siaya,2014,1,mz,124606.08,72110,1.728,West,EWCM
+Kenya,Nyanza,Siaya,2015,1,mz,132902.532,78132,1.701,West,EWCM
+Kenya,Rift Valley,Baringo,1983,1,mz,29203,10016,2.915634984,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1984,1,mz,39690,10000,3.969,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1985,1,mz,14175,4500,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1986,1,mz,31586,11406,2.769244257,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1987,1,mz,31291,13907,2.250017977,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1988,1,mz,24705,17134,1.441869966,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1989,1,mz,51975,16500,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1990,1,mz,44500,15295,2.909447532,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1991,1,mz,24197,13443,1.799970245,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1992,1,mz,29747,15024,1.979965389,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1993,1,mz,7605,16900,0.45,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1994,1,mz,34312.5,15250,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1995,1,mz,38173.68,17673,2.16,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1996,1,mz,6345,4700,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1997,1,mz,11861.1,10052,1.179974135,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1998,1,mz,17820,8000,2.2275,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,1999,1,mz,7407,7400,1.000945946,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2000,1,mz,1170,2550,0.458823529,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2001,1,mz,22446,10400,2.158269231,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2003,1,mz,27614,19650,1.405292621,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2004,1,mz,26385.07671,18151.66651,1.453589768,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2005,1,mz,31926,23996,1.330471745,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2006,1,mz,54904.1,13795,3.98,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2007,1,mz,46242,20550,2.250218978,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2008,1,mz,76518,28340,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2009,1,mz,47193.61534,20966.5333,2.250902172,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2010,1,mz,33066.99,27231,1.214314201,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2011,1,mz,65247.165,27645,2.360179598,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2012,1,mz,55784.7,31720,1.758660151,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2013,1,mz,74059.839,39753,1.863,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2014,1,mz,57389.607,29117,1.971,Rift Valley,EWCM
+Kenya,Rift Valley,Baringo,2015,1,mz,34925.04,34960,0.999,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1993,1,mz,70101,38945,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1994,1,mz,121542.75,38585,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1995,1,mz,89640,33200,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1996,1,mz,104265,33100,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1997,1,mz,55777.5,37185,1.5,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1998,1,mz,87192,34600,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,1999,1,mz,46260,25500,1.814117647,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2000,1,mz,46413,28600,1.622832168,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2001,1,mz,50400,28000,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2003,1,mz,52205,29000,1.800172414,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2004,1,mz,49881.68791,26788.71902,1.862040804,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2005,1,mz,52319,28759,1.819221809,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2006,1,mz,67822,30141,2.250157593,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2007,1,mz,81908,27457,2.983137269,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2008,1,mz,71058.6,26310,2.700820981,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2009,1,mz,64597.85758,27891.1438,2.316070579,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2010,1,mz,90094.05,41672,2.161980467,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2011,1,mz,102543.75,38625,2.654854369,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2012,1,mz,107750.7,40670,2.649390214,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2013,1,mz,73273.977,32697,2.241,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2014,1,mz,72201.96,30620,2.358,Rift Valley,EWCM
+Kenya,Rift Valley,Bomet,2015,1,mz,53185.86,30940,1.719,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1983,1,mz,58898,21814,2.700009168,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1984,1,mz,59400,21118,2.81276636,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1985,1,mz,14300,23005,0.621603999,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1986,1,mz,50104,18557,2.700005389,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1987,1,mz,60075,22250,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1988,1,mz,38610,24600,1.569512195,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1989,1,mz,57240,21200,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1990,1,mz,84105,26700,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1991,1,mz,37260,20700,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1992,1,mz,76795.2,21332,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1993,1,mz,37485,24500,1.53,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1994,1,mz,70056,27800,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1995,1,mz,22360.32,10352,2.16,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1996,1,mz,15480,8600,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1997,1,mz,9954,7910,1.25840708,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1998,1,mz,30937.5,12500,2.475,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,1999,1,mz,33750,12500,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2000,1,mz,31410,14500,2.166206897,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2001,1,mz,46332,14500,3.195310345,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2003,1,mz,62124,29300,2.120273038,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2004,1,mz,59359.25638,27065.8437,2.193142658,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2005,1,mz,64765,33330,1.943144314,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2006,1,mz,101153,33579,3.012388695,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2007,1,mz,111363,35835,3.107660109,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2008,1,mz,118145.7,34250,3.449509489,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2009,1,mz,90957.19128,32811.96874,2.772073569,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2010,1,mz,57179.07,35766,1.598699044,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2011,1,mz,88238.7,30120,2.929571713,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2012,1,mz,86432.49,158411,0.545621769,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2013,1,mz,95071.995,31533,3.015,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2014,1,mz,104593.005,32015,3.267,Rift Valley,EWCM
+Kenya,Rift Valley,Elgeyo-Marakwet,2015,1,mz,106889.4,27620,3.87,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1983,1,mz,10013,3589,2.789913625,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1984,1,mz,11340,13652,0.830647524,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1985,1,mz,4454,3299,1.350106093,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1986,1,mz,32396,17848,1.815105334,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1987,1,mz,34054,18919,1.799989429,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1988,1,mz,29241,31660,0.923594441,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1989,1,mz,7441,4134,1.799951621,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1990,1,mz,63857,28960,2.205006906,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1991,1,mz,52783,29324,1.79999318,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1992,1,mz,4891.59,2013,2.43,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1993,1,mz,40209.75,29785,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1994,1,mz,64440,28640,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1995,1,mz,60401.25,26845,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1996,1,mz,8624.97,23450,0.367802559,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1997,1,mz,1945.8,24800,0.078459677,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1998,1,mz,9270,3680,2.519021739,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,1999,1,mz,1440,5300,0.271698113,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2000,1,mz,72,3050,0.023606557,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2001,1,mz,648,3600,0.18,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2003,1,mz,53978,36300,1.486997245,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2004,1,mz,51575.78297,33532.08622,1.53810242,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2005,1,mz,49280.47332,36700,1.342792188,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2006,1,mz,47087.31328,36300,1.297171165,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2007,1,mz,26103,35920,0.726698218,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2008,1,mz,66825,35900,1.861420613,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2009,1,mz,48174.31391,35670.41724,1.350539681,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2010,1,mz,6073.38,7357,0.825523991,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2011,1,mz,17432.55,14590,1.19482865,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2012,1,mz,35797.3,23245,1.54,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2013,1,mz,32170.44,30145,1.067189915,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2014,1,mz,64372.734,34721,1.854,Rift Valley,EWCM
+Kenya,Rift Valley,Kajiado,2015,1,mz,74541.06,31020,2.403,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1983,1,mz,187920,72000,2.61,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1984,1,mz,266400,72000,3.7,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1985,1,mz,181530,72000,2.52125,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1986,1,mz,199800,74000,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1987,1,mz,233100,74000,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1988,1,mz,247086,74200,3.33,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1989,1,mz,288698,80194,3.599995012,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1990,1,mz,307562,85434,3.599995318,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1991,1,mz,257580,78500,3.281273885,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1992,1,mz,242236.8,67288,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1993,1,mz,80289,40550,1.98,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1994,1,mz,154170,40800,3.778676471,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1995,1,mz,129150,41000,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1996,1,mz,144000,40000,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1997,1,mz,103617,39700,2.61,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1998,1,mz,136800,40000,3.42,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,1999,1,mz,93015,30500,3.049672131,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2000,1,mz,79650,29500,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2001,1,mz,92673,31000,2.989451613,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2003,1,mz,121962,50900,2.39611002,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2004,1,mz,116534.2481,47018.82062,2.478459615,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2005,1,mz,146593,53600,2.73494403,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2006,1,mz,161055,54190,2.972042812,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2007,1,mz,146731.2,41685,3.52,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2008,1,mz,224838,63895,3.518866891,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2009,1,mz,167501.2496,52077.76412,3.216367915,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2010,1,mz,102205.8,48223,2.119440931,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2011,1,mz,131450.4,50600,2.597833992,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2012,1,mz,116992.8,48035,2.435574061,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2013,1,mz,127986,41971,3.049391246,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2014,1,mz,103748.4,41170,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,Kericho,2015,1,mz,89387.298,41041,2.178,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1983,1,mz,24746,9820,2.519959267,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1984,1,mz,34560,12500,2.7648,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1985,1,mz,6302,12638,0.49865485,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1986,1,mz,41823,15490,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1987,1,mz,48600,18000,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1988,1,mz,25358,16574,1.529986726,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1989,1,mz,37292,16574,2.250030168,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1990,1,mz,32400,18000,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1991,1,mz,34401,18106,1.899977908,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1992,1,mz,28154.25,20855,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1993,1,mz,23188.23,19819,1.17,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1994,1,mz,49275,21900,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1995,1,mz,36900,20500,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1996,1,mz,23760,13200,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1997,1,mz,30978,20250,1.529777778,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1998,1,mz,37800,19900,1.899497487,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,1999,1,mz,22995,19200,1.19765625,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2000,1,mz,19440,18000,1.08,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2001,1,mz,44712,21600,2.07,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2003,1,mz,23879,21400,1.115841121,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2004,1,mz,22816.29778,19768.22714,1.154190389,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2005,1,mz,30702,21650,1.418106236,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2006,1,mz,46535,28000,1.661964286,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2007,1,mz,45209,33903,1.333480813,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2008,1,mz,65340,36300,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2009,1,mz,42120.45956,27924.24543,1.508383088,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2010,1,mz,6969.96,8365,0.83322893,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2011,1,mz,104590.98,41154,2.541453565,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2012,1,mz,70067.43,36635,1.912581684,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2013,1,mz,121724.658,36163,3.366,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2014,1,mz,5047.515,5665,0.891,Rift Valley,EWCM
+Kenya,Rift Valley,Laikipia,2015,1,mz,6557.85,6175,1.062,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1983,1,mz,66510,45805,1.452024888,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1984,1,mz,158445,44480,3.56216277,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1985,1,mz,227051,48085,4.721867526,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1986,1,mz,166050,61500,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1987,1,mz,167130,61900,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1988,1,mz,104247,64350,1.62,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1989,1,mz,179869,66618,2.700006004,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1990,1,mz,154395,61244,2.520981647,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1991,1,mz,136068,60475,2.249987598,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1992,1,mz,125170.92,49671,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1993,1,mz,37522.8,59560,0.63,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1994,1,mz,138998.25,61777,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1995,1,mz,141097.5,62710,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1996,1,mz,91774.8,50986,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1997,1,mz,101160,65540,1.543484895,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1998,1,mz,138393,59100,2.341675127,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,1999,1,mz,67077,64700,1.036738794,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2000,1,mz,22950,51000,0.45,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2001,1,mz,147762,59300,2.491770658,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2003,1,mz,95059,60320.80524,1.575890766,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2004,1,mz,90828.52927,55721.2794,1.630051037,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2005,1,mz,105288,60170,1.749842114,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2006,1,mz,174502,68025,2.565262771,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2007,1,mz,148180,66451,2.229913771,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2008,1,mz,169767.63,69881,2.429381806,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2009,1,mz,137713.2319,64049.65588,2.150101042,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2010,1,mz,68171.94,71038.6,0.959646446,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2011,1,mz,248274.27,78925,3.145698701,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2012,1,mz,263425.05,90740,2.90307527,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2013,1,mz,302565.375,89649,3.375,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2014,1,mz,234252.27,90690,2.583,Rift Valley,EWCM
+Kenya,Rift Valley,Nakuru,2015,1,mz,160378.416,86504,1.854,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1983,1,mz,141636,80523,1.758950859,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1984,1,mz,175500,59496,2.949778136,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1985,1,mz,136125,60500,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1986,1,mz,164918,52278,3.154634837,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1987,1,mz,209004,77409,2.699996124,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1988,1,mz,192960,60289,3.200583854,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1989,1,mz,197300,62635,3.149996009,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1990,1,mz,286894,70828,4.05057322,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1991,1,mz,183662,68073,2.698015366,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1992,1,mz,192002,60953,3.15000082,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1993,1,mz,0,0,,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1994,1,mz,246024,68340,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1995,1,mz,215460,63000,3.42,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1996,1,mz,121500,45000,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1997,1,mz,123660,59740,2.069969869,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1998,1,mz,205200,60000,3.42,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,1999,1,mz,160596,59500,2.699092437,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2000,1,mz,154350,61200,2.522058824,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2001,1,mz,171756,63600,2.700566038,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2003,1,mz,147300,61000,2.414754098,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2004,1,mz,140744.615,56348.68484,2.497744454,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2005,1,mz,95208,40720,2.338113949,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2006,1,mz,114221,42300,2.700260047,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2007,1,mz,123420,36780,3.355628059,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2008,1,mz,266454.9,77946,3.418455084,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2009,1,mz,148009.703,50818.93697,2.912491127,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2010,1,mz,187582.95,79952,2.346194592,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2011,1,mz,233115.3,83245,2.800351973,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2012,1,mz,185674.86,75075,2.473191608,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2013,1,mz,237646.512,73552,3.231,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2014,1,mz,185958.603,70519,2.637,Rift Valley,EWCM
+Kenya,Rift Valley,Nandi,2015,1,mz,182594.97,74045,2.466,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1983,1,mz,36056,16025,2.249984399,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1984,1,mz,41067,12769,3.216148485,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1985,1,mz,13500,10986,1.228836701,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1986,1,mz,25432,15699,1.619975795,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1987,1,mz,55521,24676,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1988,1,mz,28541,25949,1.099888242,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1989,1,mz,95850,35500,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1990,1,mz,116280,32300,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1991,1,mz,81743,36330,2.250013763,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1992,1,mz,90630,26500,3.42,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1993,1,mz,55080,34000,1.62,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1994,1,mz,98172,36360,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1995,1,mz,55553.4,22045,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1996,1,mz,37575,16700,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1997,1,mz,27765,22850,1.215098468,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1998,1,mz,66150,22200,2.97972973,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,1999,1,mz,17829,30000,0.5943,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2000,1,mz,14670,27300,0.537362637,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2001,1,mz,53028,29500,1.797559322,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2003,1,mz,96751,55555.59776,1.741516677,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2004,1,mz,92445.22913,51319.42408,1.801369185,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2005,1,mz,190639,84720,2.250224268,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2006,1,mz,158920,85310,1.862853124,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2007,1,mz,166588,88040,1.89218537,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2008,1,mz,238248,75520,3.154766949,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2009,1,mz,169368.0458,76981.88482,2.200102612,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2010,1,mz,212485.5,91856,2.313245732,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2011,1,mz,421841.7,114290,3.690976463,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2012,1,mz,214150.05,86775,2.467877269,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2013,1,mz,187007.94,109940,1.701,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2014,1,mz,318848.4,113550,2.808,Rift Valley,EWCM
+Kenya,Rift Valley,Narok,2015,1,mz,271343.259,112079,2.421,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1983,1,mz,648,600,1.08,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1984,1,mz,1391,1288,1.079968944,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1985,1,mz,0,0,,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1986,1,mz,1485,1100,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1987,1,mz,3575,1986,1.800100705,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1988,1,mz,2493,1085,2.297695853,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1989,1,mz,3240,1200,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1990,1,mz,2808,1300,2.16,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1991,1,mz,1590,1060,1.5,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1992,1,mz,2700,1500,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1993,1,mz,1629,1810,0.9,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1994,1,mz,3339,1855,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1995,1,mz,3618,2010,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1996,1,mz,2520,1400,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1997,1,mz,1764,2000,0.882,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1998,1,mz,1800,1000,1.8,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,1999,1,mz,0,0,,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2000,1,mz,1350,1500,0.9,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2003,1,mz,3114,2400,1.2975,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2004,1,mz,2975.415691,2216.997436,1.342092527,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2005,1,mz,1067,2370,0.45021097,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2006,1,mz,3726,2360,1.578813559,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2007,1,mz,1232,1369,0.899926954,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2008,1,mz,5940,2200,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2009,1,mz,2988.083138,2103.199487,1.420732154,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2010,1,mz,404.55,493,0.820588235,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2011,1,mz,2390.22,961,2.487221644,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2012,1,mz,1170,500,2.34,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2013,1,mz,1026.999,1227,0.837,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2014,1,mz,1650.825,1265,1.305,Rift Valley,EWCM
+Kenya,Rift Valley,Samburu,2015,1,mz,2059.812,1973,1.044,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1983,1,mz,166944,51526,3.239995342,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1984,1,mz,145323,48441,3,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1985,1,mz,133659,49502,2.700072724,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1986,1,mz,174759,55479,3.150002704,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1987,1,mz,181383,51529,3.520017854,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1988,1,mz,151710,52314,2.899988531,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1989,1,mz,245088,68080,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1990,1,mz,276818,68350,4.050007315,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1991,1,mz,177431,59741,2.97000385,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1992,1,mz,213840,58190,3.674858223,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1993,1,mz,165503.52,65676,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1994,1,mz,299376,69300,4.32,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1995,1,mz,228960,63600,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1996,1,mz,157500,50000,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1997,1,mz,159282,63400,2.512334385,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1998,1,mz,232560,64600,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,1999,1,mz,179424,62300,2.88,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2000,1,mz,172260,63800,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2001,1,mz,240408,78500,3.062522293,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2003,1,mz,208902,89300,2.339328108,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2004,1,mz,199605.1023,82490.7796,2.41972622,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2005,1,mz,266915,95657,2.790334215,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2006,1,mz,383573,94700,4.050401267,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2007,1,mz,392574,95400,4.115031447,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2008,1,mz,456750,101500,4.5,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2009,1,mz,339883.4205,93949.55592,3.61772248,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2010,1,mz,258357.6,101490,2.545645876,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2011,1,mz,465789.6,101960,4.568356218,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2012,1,mz,417325.05,97215,4.292805123,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2013,1,mz,440761.041,104421,4.221,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2014,1,mz,434087.82,105310,4.122,Rift Valley,EWCM
+Kenya,Rift Valley,Trans Nzoia,2015,1,mz,460319.958,106778,4.311,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1983,1,mz,585,650,0.9,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1984,1,mz,585,650,0.9,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1985,1,mz,0,0,,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1986,1,mz,90,200,0.45,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1987,1,mz,144,200,0.72,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1988,1,mz,552,613,0.900489396,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1992,1,mz,289.17,189,1.53,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1993,1,mz,243,450,0.54,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1994,1,mz,675,500,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1995,1,mz,405,300,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1996,1,mz,135,100,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1997,1,mz,225,480,0.46875,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1998,1,mz,252,300,0.84,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,1999,1,mz,1386,800,1.7325,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2000,1,mz,702,600,1.17,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2001,1,mz,1026,900,1.14,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2003,1,mz,351,300,1.17,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2004,1,mz,335.3792253,277.1246795,1.210210602,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2005,1,mz,1110,1203,0.922693267,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2006,1,mz,4044,2827,1.430491687,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2007,1,mz,3227,2590,1.245945946,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2008,1,mz,3825,2200,1.738636364,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2009,1,mz,2508.275845,1819.424936,1.378609139,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2010,1,mz,1107,1234,0.897082658,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2011,1,mz,1791.45,1020,1.756323529,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2012,1,mz,2330.1,1880,1.239414894,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2013,1,mz,3587.436,2252,1.593,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2014,1,mz,3087.774,1626,1.899,Rift Valley,EWCM
+Kenya,Rift Valley,Turkana,2015,1,mz,2192.94,1310,1.674,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1983,1,mz,134347,46648,2.880016292,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1984,1,mz,181913,47144,3.858667063,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1985,1,mz,35640,39600,0.9,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1986,1,mz,169560,62800,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1987,1,mz,192240,61030,3.149926266,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1988,1,mz,199367,59870,3.32999833,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1989,1,mz,215388,59830,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1990,1,mz,248014,61238,4.050001633,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1991,1,mz,177861,59886,2.969992987,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1992,1,mz,194400,45000,4.32,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1993,1,mz,84853.8,55640,1.525050324,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1994,1,mz,194670,61800,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1995,1,mz,171990,54600,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1996,1,mz,135450,43000,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1997,1,mz,101812.5,52500,1.939285714,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1998,1,mz,183654,53700,3.42,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,1999,1,mz,165510,61300,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2000,1,mz,156510,58000,2.698448276,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2001,1,mz,177984,61800,2.88,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2003,1,mz,123492,49000,2.520244898,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2004,1,mz,117996.1575,45263.69765,2.606860765,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2005,1,mz,188866,63585,2.970291735,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2006,1,mz,254509,65758,3.870388394,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2007,1,mz,267327,66000,4.050409091,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2008,1,mz,385677,85706,4.5,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2009,1,mz,242875.0315,65262.53953,3.721507518,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2010,1,mz,234415.8,85002,2.757768053,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2011,1,mz,400187.25,86683,4.616675127,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2012,1,mz,343938.6,83605,4.113852042,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2013,1,mz,258042.06,91310,2.826,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2014,1,mz,363595.05,88790,4.095,Rift Valley,EWCM
+Kenya,Rift Valley,Uasin Gishu,2015,1,mz,380140.182,96654,3.933,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1983,1,mz,40320,12800,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1984,1,mz,51300,13200,3.886363636,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1985,1,mz,0,0,,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1986,1,mz,33102,14712,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1987,1,mz,28463,12650,2.250039526,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1988,1,mz,28013,12450,2.250040161,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1989,1,mz,72367,21160,3.419990548,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1990,1,mz,67302,18698,3.599422398,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1991,1,mz,31712,13788,2.299970989,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1992,1,mz,61574.4,17104,3.6,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1993,1,mz,26298,19480,1.35,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1994,1,mz,73631.25,23375,3.15,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1995,1,mz,53928,21400,2.52,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1996,1,mz,34200,15200,2.25,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1997,1,mz,34596,24000,1.4415,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1998,1,mz,62100,23000,2.7,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,1999,1,mz,18144,11200,1.62,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2000,1,mz,18180,21300,0.853521127,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2001,1,mz,36657,22500,1.6292,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2003,1,mz,21368,18600,1.148817204,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2004,1,mz,20417.0464,17181.73013,1.188299795,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2005,1,mz,28731,22800,1.260131579,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2006,1,mz,40676,23785,1.710153458,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2007,1,mz,34450,24108,1.428986229,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2008,1,mz,55836,24150,2.312049689,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2009,1,mz,36022.00928,22404.94603,1.607770411,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2010,1,mz,23686.65,18057,1.311771058,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2011,1,mz,51394.05,22120,2.323419982,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2012,1,mz,44127,20450,2.157799511,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2013,1,mz,112979.7,33035,3.42,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2014,1,mz,55814.4,19380,2.88,Rift Valley,EWCM
+Kenya,Rift Valley,West Pokot,2015,1,mz,47276.712,19748,2.394,Rift Valley,EWCM
+Kenya,Western,Bungoma,1983,1,mz,179628,66528,2.700036075,West,EWCM
+Kenya,Western,Bungoma,1984,1,mz,138546,66000,2.099181818,West,EWCM
+Kenya,Western,Bungoma,1985,1,mz,143640,78000,1.841538462,West,EWCM
+Kenya,Western,Bungoma,1986,1,mz,248663,84690,2.93615539,West,EWCM
+Kenya,Western,Bungoma,1987,1,mz,261100,93000,2.807526882,West,EWCM
+Kenya,Western,Bungoma,1988,1,mz,250538,98766,2.536682664,West,EWCM
+Kenya,Western,Bungoma,1989,1,mz,188030,83570,2.249970085,West,EWCM
+Kenya,Western,Bungoma,1990,1,mz,162470,72210,2.249965379,West,EWCM
+Kenya,Western,Bungoma,1991,1,mz,179950,78248,2.29973929,West,EWCM
+Kenya,Western,Bungoma,1992,1,mz,178749.99,71500,2.49999986,West,EWCM
+Kenya,Western,Bungoma,1993,1,mz,75996,42220,1.8,West,EWCM
+Kenya,Western,Bungoma,1994,1,mz,149620.5,55415,2.7,West,EWCM
+Kenya,Western,Bungoma,1995,1,mz,141225.03,56490,2.500000531,West,EWCM
+Kenya,Western,Bungoma,1996,1,mz,182039.4,59490,3.06,West,EWCM
+Kenya,Western,Bungoma,1997,1,mz,153173.7,56731,2.7,West,EWCM
+Kenya,Western,Bungoma,1998,1,mz,144163.35,54577,2.641467102,West,EWCM
+Kenya,Western,Bungoma,1999,1,mz,158039.55,56645,2.79,West,EWCM
+Kenya,Western,Bungoma,2000,1,mz,153225,56750,2.7,West,EWCM
+Kenya,Western,Bungoma,2001,1,mz,150858,57800,2.61,West,EWCM
+Kenya,Western,Bungoma,2003,1,mz,178673.0873,72770,2.455312454,West,EWCM
+Kenya,Western,Bungoma,2004,1,mz,208846.4553,69381.92852,3.010098735,West,EWCM
+Kenya,Western,Bungoma,2005,1,mz,195135.6436,72257,2.70057771,West,EWCM
+Kenya,Western,Bungoma,2006,1,mz,245188.1188,82356,2.977173719,West,EWCM
+Kenya,Western,Bungoma,2007,1,mz,264076.1476,82742,3.191561089,West,EWCM
+Kenya,Western,Bungoma,2008,1,mz,213560.55,76545,2.79,West,EWCM
+Kenya,Western,Bungoma,2009,1,mz,226136.3378,76656.3857,2.95,West,EWCM
+Kenya,Western,Bungoma,2010,1,mz,186493.5,93915,1.985769046,West,EWCM
+Kenya,Western,Bungoma,2011,1,mz,257184,96861,2.655186298,West,EWCM
+Kenya,Western,Bungoma,2012,1,mz,258893.46,95373,2.714536189,West,EWCM
+Kenya,Western,Bungoma,2013,1,mz,282277.206,96209,2.934,West,EWCM
+Kenya,Western,Bungoma,2014,1,mz,238622.67,92705,2.574,West,EWCM
+Kenya,Western,Bungoma,2015,1,mz,287749.116,98074,2.934,West,EWCM
+Kenya,Western,Busia,1983,1,mz,51398,29600,1.736418919,West,EWCM
+Kenya,Western,Busia,1984,1,mz,38880,28000,1.388571429,West,EWCM
+Kenya,Western,Busia,1985,1,mz,48717,31000,1.571516129,West,EWCM
+Kenya,Western,Busia,1986,1,mz,53550,33000,1.622727273,West,EWCM
+Kenya,Western,Busia,1987,1,mz,59400,33000,1.8,West,EWCM
+Kenya,Western,Busia,1988,1,mz,60884,35063,1.736417306,West,EWCM
+Kenya,Western,Busia,1989,1,mz,26890,24900,1.079919679,West,EWCM
+Kenya,Western,Busia,1990,1,mz,29485,27300,1.08003663,West,EWCM
+Kenya,Western,Busia,1991,1,mz,29475,25630,1.150019508,West,EWCM
+Kenya,Western,Busia,1992,1,mz,22635,13315,1.699962448,West,EWCM
+Kenya,Western,Busia,1993,1,mz,6120,6800,0.9,West,EWCM
+Kenya,Western,Busia,1994,1,mz,21504.96,12650,1.699996838,West,EWCM
+Kenya,Western,Busia,1995,1,mz,23017.5,13545,1.699335548,West,EWCM
+Kenya,Western,Busia,1996,1,mz,27838.8,16280,1.71,West,EWCM
+Kenya,Western,Busia,1997,1,mz,20284.02,12521,1.62,West,EWCM
+Kenya,Western,Busia,1998,1,mz,15255,11300,1.35,West,EWCM
+Kenya,Western,Busia,1999,1,mz,15435,10290,1.5,West,EWCM
+Kenya,Western,Busia,2000,1,mz,14566.5,12450,1.17,West,EWCM
+Kenya,Western,Busia,2001,1,mz,15210,13000,1.17,West,EWCM
+Kenya,Western,Busia,2003,1,mz,37265.16652,27588,1.350774486,West,EWCM
+Kenya,Western,Busia,2004,1,mz,43558.31115,26303.54052,1.655986619,West,EWCM
+Kenya,Western,Busia,2005,1,mz,22815.66157,17323,1.317073346,West,EWCM
+Kenya,Western,Busia,2006,1,mz,47848.78488,24352,1.964881114,West,EWCM
+Kenya,Western,Busia,2007,1,mz,51865.43654,39570,1.31072622,West,EWCM
+Kenya,Western,Busia,2008,1,mz,45088.88,36362,1.24,West,EWCM
+Kenya,Western,Busia,2009,1,mz,12376.30649,28782.1081,0.43,West,EWCM
+Kenya,Western,Busia,2010,1,mz,31707.36,25229,1.256782274,West,EWCM
+Kenya,Western,Busia,2011,1,mz,55897.56,47300,1.181766596,West,EWCM
+Kenya,Western,Busia,2012,1,mz,47205,38865,1.214588962,West,EWCM
+Kenya,Western,Busia,2013,1,mz,55174.86,41990,1.314,West,EWCM
+Kenya,Western,Busia,2014,1,mz,69397.776,45898,1.512,West,EWCM
+Kenya,Western,Busia,2015,1,mz,79833.6,50400,1.584,West,EWCM
+Kenya,Western,Kakamega,1983,1,mz,231264,110420,2.094403188,West,EWCM
+Kenya,Western,Kakamega,1984,1,mz,176401,84225,2.0944019,West,EWCM
+Kenya,Western,Kakamega,1985,1,mz,213629,102000,2.094401961,West,EWCM
+Kenya,Western,Kakamega,1986,1,mz,229501,109286,2.10000366,West,EWCM
+Kenya,Western,Kakamega,1987,1,mz,245795,117045,2.100004272,West,EWCM
+Kenya,Western,Kakamega,1988,1,mz,263264,125355,2.100147581,West,EWCM
+Kenya,Western,Kakamega,1989,1,mz,208620,122000,1.71,West,EWCM
+Kenya,Western,Kakamega,1990,1,mz,310040,134800,2.3,West,EWCM
+Kenya,Western,Kakamega,1991,1,mz,310500,135000,2.3,West,EWCM
+Kenya,Western,Kakamega,1992,1,mz,212253.03,70751,3.000000424,West,EWCM
+Kenya,Western,Kakamega,1993,1,mz,162900,72400,2.25,West,EWCM
+Kenya,Western,Kakamega,1994,1,mz,138537.54,62200,2.22729164,West,EWCM
+Kenya,Western,Kakamega,1995,1,mz,194492.97,64831,2.999999537,West,EWCM
+Kenya,Western,Kakamega,1996,1,mz,210879.9,68915,3.06,West,EWCM
+Kenya,Western,Kakamega,1997,1,mz,65227.68,30198,2.16,West,EWCM
+Kenya,Western,Kakamega,1998,1,mz,81000,30000,2.7,West,EWCM
+Kenya,Western,Kakamega,1999,1,mz,56500.02,28250,2.000000708,West,EWCM
+Kenya,Western,Kakamega,2000,1,mz,50400,28000,1.8,West,EWCM
+Kenya,Western,Kakamega,2001,1,mz,58788,28400,2.07,West,EWCM
+Kenya,Western,Kakamega,2003,1,mz,147493.6094,66445,2.219784925,West,EWCM
+Kenya,Western,Kakamega,2004,1,mz,172401.5516,63351.41185,2.721352952,West,EWCM
+Kenya,Western,Kakamega,2005,1,mz,207240.7741,69000,3.003489479,West,EWCM
+Kenya,Western,Kakamega,2006,1,mz,174909.991,68884,2.539196199,West,EWCM
+Kenya,Western,Kakamega,2007,1,mz,185822.6823,70747,2.626580382,West,EWCM
+Kenya,Western,Kakamega,2008,1,mz,199261,50084,3.978536059,West,EWCM
+Kenya,Western,Kakamega,2009,1,mz,54686.87673,64413.28237,0.849,West,EWCM
+Kenya,Western,Kakamega,2010,1,mz,160347.15,82317,1.947922665,West,EWCM
+Kenya,Western,Kakamega,2011,1,mz,155339.55,70185,2.213287027,West,EWCM
+Kenya,Western,Kakamega,2012,1,mz,129396.78,66672,1.940796436,West,EWCM
+Kenya,Western,Kakamega,2013,1,mz,181253.16,76285,2.376,West,EWCM
+Kenya,Western,Kakamega,2014,1,mz,181820.925,73463,2.475,West,EWCM
+Kenya,Western,Kakamega,2015,1,mz,191681.1,70993,2.7,West,EWCM
+Kenya,Western,Vihiga,1992,1,mz,3006,16700,0.18,West,EWCM
+Kenya,Western,Vihiga,1993,1,mz,15606,10200,1.53,West,EWCM
+Kenya,Western,Vihiga,1994,1,mz,2025,13500,0.15,West,EWCM
+Kenya,Western,Vihiga,1995,1,mz,22012.47,14675,1.499997956,West,EWCM
+Kenya,Western,Vihiga,1996,1,mz,33367.14,20597,1.62,West,EWCM
+Kenya,Western,Vihiga,1997,1,mz,26820,14900,1.8,West,EWCM
+Kenya,Western,Vihiga,1998,1,mz,19665,11500,1.71,West,EWCM
+Kenya,Western,Vihiga,1999,1,mz,26100,14500,1.8,West,EWCM
+Kenya,Western,Vihiga,2000,1,mz,20196,13200,1.53,West,EWCM
+Kenya,Western,Vihiga,2001,1,mz,21546,13300,1.62,West,EWCM
+Kenya,Western,Vihiga,2003,1,mz,34052.20522,22700,1.500097146,West,EWCM
+Kenya,Western,Vihiga,2004,1,mz,39802.76191,21643.11911,1.839049248,West,EWCM
+Kenya,Western,Vihiga,2005,1,mz,39416.74167,23100,1.706352453,West,EWCM
+Kenya,Western,Vihiga,2006,1,mz,37443.74437,20820,1.798450738,West,EWCM
+Kenya,Western,Vihiga,2007,1,mz,26993.69937,22100,1.221434361,West,EWCM
+Kenya,Western,Vihiga,2008,1,mz,22240,13900,1.6,West,EWCM
+Kenya,Western,Vihiga,2009,1,mz,7312.544576,20312.62382,0.36,West,EWCM
+Kenya,Western,Vihiga,2010,1,mz,28721.52,25242,1.137846446,West,EWCM
+Kenya,Western,Vihiga,2011,1,mz,29612.88,18034,1.642058334,West,EWCM
+Kenya,Western,Vihiga,2012,1,mz,35869.95,22764,1.575731418,West,EWCM
+Kenya,Western,Vihiga,2013,1,mz,29662.47,18010,1.647,West,EWCM
+Kenya,Western,Vihiga,2014,1,mz,38542.635,24195,1.593,West,EWCM
+Kenya,Western,Vihiga,2015,1,mz,38938.536,23772,1.638,West,EWCM
+Kenya,Central,,2002,1,mz,133627,110251,1.212,Central,EWCM
+Kenya,Central,,2003,1,mz,129249,121873,1.061,Central,EWCM
+Kenya,Central,,2004,1,mz,67781,108823,0.623,Central,EWCM
+Kenya,Central,,2005,1,mz,118133,113872,1.037,Central,EWCM
+Kenya,Central,,2006,1,mz,137959,124962,1.104,Central,EWCM
+Kenya,Central,,2007,1,mz,185620.011,139880.3,1.327,Central,EWCM
+Kenya,Central,,2008,1,mz,76404.634,121439,0.629,Central,EWCM
+Kenya,Central,,2009,1,mz,125814.57,154542,0.814,Central,EWCM
+Kenya,Central,,2010,1,mz,152401.59,158047,0.964,Central,EWCM
+Kenya,Central,,2011,1,mz,185084.115,159707,1.159,Central,EWCM
+Kenya,Central,,2012,1,mz,267104.61,186591,1.431,Central,EWCM
+Kenya,Central,,2013,1,mz,282863.853,216635,1.306,Central,EWCM
+Kenya,Central,,2014,1,mz,223881.714,190894,1.173,Central,EWCM
+Kenya,Central,,2015,1,mz,200347,135504,1.479,Central,EWCM
+Kenya,Central,,2016,1,mz,171433.8,114670,1.495,Central,EWCM
+Kenya,Coast,,2002,1,mz,42466.42664,52422,0.81,Coast,EWCM
+Kenya,Coast,,2003,1,mz,44775.93159,65157.4,0.687,Coast,EWCM
+Kenya,Coast,,2004,1,mz,55546.9541,61519,0.903,Coast,EWCM
+Kenya,Coast,,2005,1,mz,49819.08191,90110.9,0.553,Coast,EWCM
+Kenya,Coast,,2006,1,mz,70271.28713,88475,0.794,Coast,EWCM
+Kenya,Coast,,2007,1,mz,62468.008,71930,0.868,Coast,EWCM
+Kenya,Coast,,2008,1,mz,114615.2491,75438.46,1.519,Coast,EWCM
+Kenya,Coast,,2009,1,mz,121006.13,118341.5,1.023,Coast,EWCM
+Kenya,Coast,,2010,1,mz,174342.52,136952.9,1.273,Coast,EWCM
+Kenya,Coast,,2011,1,mz,140442.793,179498.6,0.782,Coast,EWCM
+Kenya,Coast,,2012,1,mz,76083.066,151547,0.502,Coast,EWCM
+Kenya,Coast,,2013,1,mz,124537.104,150817,0.826,Coast,EWCM
+Kenya,Coast,,2014,1,mz,150311.151,161032,0.933,Coast,EWCM
+Kenya,Coast,,2015,1,mz,293637,193680,1.516,Coast,EWCM
+Kenya,Coast,,2016,1,mz,106956,145040,0.737,Coast,EWCM
+Kenya,Eastern,,2002,1,mz,408458.2178,476127.027,0.858,Eastern,EWCM
+Kenya,Eastern,,2003,1,mz,323963.2205,475171,0.682,Eastern,EWCM
+Kenya,Eastern,,2004,1,mz,212731.2331,496457.1602,0.428,Eastern,EWCM
+Kenya,Eastern,,2005,1,mz,190083.7984,422607.5221,0.45,Eastern,EWCM
+Kenya,Eastern,,2006,1,mz,299074.6571,504795.1881,0.592,Eastern,EWCM
+Kenya,Eastern,,2007,1,mz,334847.39,451573.2,0.742,Eastern,EWCM
+Kenya,Eastern,,2008,1,mz,216314.1915,443170.5741,0.488,Eastern,EWCM
+Kenya,Eastern,,2009,1,mz,551532.0978,464869.38,1.186,Eastern,EWCM
+Kenya,Eastern,,2010,1,mz,360674.055,429981.4,0.839,Eastern,EWCM
+Kenya,Eastern,,2011,1,mz,422787.959,534320.9,0.791,Eastern,EWCM
+Kenya,Eastern,,2012,1,mz,461603.979,498872,0.925,Eastern,EWCM
+Kenya,Eastern,,2013,1,mz,379062.976,564791,0.671,Eastern,EWCM
+Kenya,Eastern,,2014,1,mz,348398.271,575023,0.606,Eastern,EWCM
+Kenya,Eastern,,2015,1,mz,461465,388767,1.187,Eastern,EWCM
+Kenya,Eastern,,2016,1,mz,178358.85,287150,0.621,Eastern,EWCM
+Kenya,North Eastern,,2002,1,mz,4594.9,5056,0.909,North Eastern,EWCM
+Kenya,North Eastern,,2003,1,mz,5581,5508,1.013,North Eastern,EWCM
+Kenya,North Eastern,,2004,1,mz,891,1910,0.466,North Eastern,EWCM
+Kenya,North Eastern,,2005,1,mz,853.2853285,3975,0.215,North Eastern,EWCM
+Kenya,North Eastern,,2006,1,mz,873.9873987,4130,0.212,North Eastern,EWCM
+Kenya,North Eastern,,2007,1,mz,2695.748577,4843,0.557,North Eastern,EWCM
+Kenya,North Eastern,,2008,1,mz,2699.891733,4857.2,0.556,North Eastern,EWCM
+Kenya,North Eastern,,2009,1,mz,90.72,2185,0.042,North Eastern,EWCM
+Kenya,North Eastern,,2010,1,mz,827.1,4451,0.186,North Eastern,EWCM
+Kenya,North Eastern,,2011,1,mz,809.55,3130,0.259,North Eastern,EWCM
+Kenya,North Eastern,,2012,1,mz,619.587,916,0.676,North Eastern,EWCM
+Kenya,North Eastern,,2013,1,mz,1920.447,2742,0.7,North Eastern,EWCM
+Kenya,North Eastern,,2014,1,mz,1936.701,3587,0.54,North Eastern,EWCM
+Kenya,North Eastern,,2015,1,mz,,,,North Eastern,EWCM
+Kenya,North Eastern,,2016,1,mz,,,,North Eastern,EWCM
+Kenya,Nyanza,,2002,1,mz,407176.1476,252254,1.614,West,EWCM
+Kenya,Nyanza,,2003,1,mz,467177.2,231629,2.017,West,EWCM
+Kenya,Nyanza,,2004,1,mz,344311.44,245020,1.405,West,EWCM
+Kenya,Nyanza,,2005,1,mz,370362.4447,270606,1.369,West,EWCM
+Kenya,Nyanza,,2006,1,mz,466657.2736,273055,1.709,West,EWCM
+Kenya,Nyanza,,2007,1,mz,565726.9,266305,2.124,West,EWCM
+Kenya,Nyanza,,2008,1,mz,168281.8765,257323,0.654,West,EWCM
+Kenya,Nyanza,,2009,1,mz,475715.43,310329,1.533,West,EWCM
+Kenya,Nyanza,,2010,1,mz,592123.41,352510,1.68,West,EWCM
+Kenya,Nyanza,,2011,1,mz,624383.55,345035,1.81,West,EWCM
+Kenya,Nyanza,,2012,1,mz,698675.265,370235,1.887,West,EWCM
+Kenya,Nyanza,,2013,1,mz,562846.788,350492,1.606,West,EWCM
+Kenya,Nyanza,,2014,1,mz,588442.671,350193,1.68,West,EWCM
+Kenya,Nyanza,,2015,1,mz,541365,277754,1.949,West,EWCM
+Kenya,Nyanza,,2016,1,mz,319257.63,257966,1.238,West,EWCM
+Kenya,Rift Valley,,2002,1,mz,1038099,523026.403,1.985,Rift Valley,EWCM
+Kenya,Rift Valley,,2003,1,mz,991899.8244,483145.081,2.053,Rift Valley,EWCM
+Kenya,Rift Valley,,2004,1,mz,1253409.473,569260,2.202,Rift Valley,EWCM
+Kenya,Rift Valley,,2005,1,mz,1612727.413,581070,2.775,Rift Valley,EWCM
+Kenya,Rift Valley,,2006,1,mz,1594554.2,576088,2.768,Rift Valley,EWCM
+Kenya,Rift Valley,,2007,1,mz,2205223.83,664098,3.321,Rift Valley,EWCM
+Kenya,Rift Valley,,2008,1,mz,1539912.488,574732.2162,2.679,Rift Valley,EWCM
+Kenya,Rift Valley,,2009,1,mz,1281801.24,617736.6,2.075,Rift Valley,EWCM
+Kenya,Rift Valley,,2010,1,mz,2334287.385,691938,3.374,Rift Valley,EWCM
+Kenya,Rift Valley,,2011,1,mz,1944966.13,794956,2.447,Rift Valley,EWCM
+Kenya,Rift Valley,,2012,1,mz,2067903.972,717648,2.882,Rift Valley,EWCM
+Kenya,Rift Valley,,2013,1,mz,2004648.363,664438,3.017,Rift Valley,EWCM
+Kenya,Rift Valley,,2014,1,mz,1871792.757,670847,2.79,Rift Valley,EWCM
+Kenya,Rift Valley,,2015,1,mz,1846413,697624,2.647,Rift Valley,EWCM
+Kenya,Rift Valley,,2016,1,mz,1640643.21,639650,2.565,Rift Valley,EWCM
+Kenya,Western,,2002,1,mz,397484.0684,189503,2.098,West,EWCM
+Kenya,Western,,2003,1,mz,464609.08,180680,2.571,West,EWCM
+Kenya,Western,,2004,1,mz,464608.8209,181680,2.557,West,EWCM
+Kenya,Western,,2005,1,mz,505390.6391,196412,2.573,West,EWCM
+Kenya,Western,,2006,1,mz,528757.9658,215159,2.458,West,EWCM
+Kenya,Western,,2007,1,mz,480150.43,176891,2.714,West,EWCM
+Kenya,Western,,2008,1,mz,300512.0656,190164.4,1.58,West,EWCM
+Kenya,Western,,2009,1,mz,407269.53,226703,1.796,West,EWCM
+Kenya,Western,,2010,1,mz,498033.99,232380,2.143,West,EWCM
+Kenya,Western,,2011,1,mz,471365.19,223674,2.107,West,EWCM
+Kenya,Western,,2012,1,mz,548367.696,232494,2.359,West,EWCM
+Kenya,Western,,2013,1,mz,528384.006,236261,2.236,West,EWCM
+Kenya,Western,,2014,1,mz,598202.352,243239,2.459,West,EWCM
+Kenya,Western,,2015,1,mz,661505,267858,2.47,West,EWCM
+Kenya,Western,,2016,1,mz,587503.26,242300,2.425,West,EWCM
