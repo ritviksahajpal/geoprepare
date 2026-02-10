@@ -5,6 +5,7 @@ private/
 *$py.class
 .tmp.driveupload/
 .idea/*.*
+geoprepare/.idea/*.xml
 geoprepare/playground/*.*
 *.xml
 
