@@ -81,7 +81,7 @@ def qa_extraction(qa_infile):
     mask = (qa_array & 3) == 0
 
     # mask pixels without good LST quality as NaN
-    mask[mask == 0.0] = np.NaN
+    mask[mask == 0.0] = np.nan
 
     return mask
 
@@ -153,7 +153,7 @@ def lst_tiff_qa(all_params):
             out_ds.SetGeoTransform(GeoTransform)
             out_ds.SetProjection(Projection)
             out_ds.GetRasterBand(1).WriteArray(outdata)
-            out_ds.GetRasterBand(1).SetNoDataValue(np.NaN)
+            out_ds.GetRasterBand(1).SetNoDataValue(np.nan)
             out_ds = None
 
 

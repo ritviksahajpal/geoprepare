@@ -135,7 +135,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -153,7 +153,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -162,7 +162,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -171,7 +171,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -180,7 +180,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -189,7 +189,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -198,7 +198,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -207,7 +207,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -216,7 +216,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -225,7 +225,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -234,7 +234,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -243,7 +243,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -252,7 +252,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -261,7 +261,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -270,7 +270,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -279,7 +279,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -288,7 +288,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -297,7 +297,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -306,7 +306,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -315,7 +315,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -324,7 +324,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -333,7 +333,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -342,7 +342,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -352,7 +352,7 @@ scales = ['admin_1']
 crops = ['mz', 'ww']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 
 [south_sudan]
@@ -360,7 +360,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -369,7 +369,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -378,7 +378,7 @@ category = EWCM
 scales = ['admin_1']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -387,7 +387,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -396,7 +396,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -405,7 +405,7 @@ category = EWCM
 scales = ['admin_2']
 growing_seasons = [1]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
@@ -442,10 +442,11 @@ mask = cropland_v9.tif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 [EWCM]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.shp
+shp_boundary = adm_shapefile.gpkg
 calendar_file = EWCM_2024-10-16.xlsx
 crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
+eo_model = ['nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
 
 [AMIS]
 calendar_file = AMISCM_2024-11-11.xlsx
@@ -459,8 +460,8 @@ redo = False
 threshold = True
 floor = 20
 ceil = 90
-countries = ['angola']
-crops = ['ww', 'sb', 'sw', 'rc', 'mz']
+countries = ['malawi']
+crops = ['mz']
 shp_boundary = gaul1_asap_v04.shp
 category = AMIS
 scales = ['admin_1']
@@ -471,6 +472,7 @@ use_cropland_mask = False
 statistics_file = statistics.csv
 zone_file = countries.csv
 calendar_file = crop_calendar.csv
+shp_region = EWCM_Regions_v39.shp
 eo_model = ['nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

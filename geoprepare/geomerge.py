@@ -115,14 +115,12 @@ class GeoMerge(base.BaseGeo):
 
     def merge_eo_files(self):
         """
-
-        Args:
-
-        Returns:
-
+        Merge all per-region/year EO CSV files into a single DataFrame.
+        For each EO variable, concatenates all CSV files, then merges across
+        variables on the static columns (country, region, region_id, year, doy).
         """
-        frames = []
-        # For each element in vars, create a list of files to be merged
+        df_result = None
+
         for var in self.eo_model:
             crop_folder_name = "cr" if self.use_cropland_mask else self.crop
             path_var_files = (
@@ -134,31 +132,35 @@ class GeoMerge(base.BaseGeo):
                 / var
             )
 
-            # Find all the files for a given EO variable for a given country x crop x scale combination
             var_files = list(path_var_files.rglob("*.csv"))
+            if not var_files:
+                continue
 
-            # Create a dataframe for each file and append to a list
-            for fl in var_files:
-                frames.append(pd.read_csv(fl, usecols=self.static_columns + [var]))
+            # Read and concat all files for this variable in one shot
+            var_frames = [
+                pd.read_csv(fl, usecols=self.static_columns + [var])
+                for fl in var_files
+            ]
+            df_var = pd.concat(var_frames, ignore_index=True)
 
-        # Merge files into dataframe
-        df_result = None
-        pbar = tqdm(frames, total=len(frames), leave=False)
-        for df in pbar:
-            pbar.set_description(f"Merging files")
-            pbar.update()
+            # Drop duplicate rows (same region/year/doy), keeping first non-NaN
+            df_var = (
+                df_var.groupby(self.static_columns, as_index=False)
+                .first()
+            )
 
-            # Set index for the current DataFrame
-            df = df.set_index(self.static_columns)
-
-            # Merge the current DataFrame into the result
+            # Merge into result
             if df_result is None:
-                df_result = df
+                df_result = df_var
             else:
-                df_result = df_result.combine_first(df)
+                df_result = pd.merge(
+                    df_result, df_var,
+                    on=self.static_columns,
+                    how="outer",
+                )
 
-        # Reset index to get the right format
-        df_result = df_result.reset_index()
+        if df_result is None:
+            df_result = pd.DataFrame(columns=self.static_columns)
 
         # Harmonize by converting to lower case and replacing space by _
         df_result = utils.harmonize_df(df_result)
@@ -397,7 +399,7 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs = self.df_ccs.reset_index(drop=True)
 
         # TODO: Add a dictionary for the growing season so that we can accomodate multiple types of growth stages
-        # 5. Set growing_season to np.NaN when crop_calendar is 1, 2 or 3
+        # 5. Set growing_season to np.nan when crop_calendar is 1, 2 or 3
         self.df_ccs.loc[
             ~self.df_ccs["crop_calendar"].isin([1, 2, 3]), "growing_season"
         ] = np.nan
@@ -455,7 +457,7 @@ def process_combination(combination, path_config_file):
     # gm.df_ccs = gm.add_statistics()
 
     # Assign calendar_region from spatial overlay of admin units → EWCM regions
-    path_admin_shp = gm.dir_regions_shp / gm.parser.get(country, "boundary_file")
+    path_admin_shp = gm.dir_regions_shp / gm.parser.get(country, "shp_boundary")
     path_region_shp = gm.dir_regions_shp / gm.parser.get(country, "shp_region")
     region_lookup = georegion.get_region_lookup(
         path_admin_shp=path_admin_shp,
@@ -483,7 +485,7 @@ def run(path_config_file=["geobase.txt", "geocif.txt"]):
     Main function that can run either sequentially or in parallel,
     depending on the `parallel` argument.
     """
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from concurrent.futures import ProcessPoolExecutor, as_completed
 
     # 1. Instantiate GeoMerge just to parse the config and create run combos
     gm_master = GeoMerge(path_config_file)
@@ -507,7 +509,7 @@ def run(path_config_file=["geobase.txt", "geocif.txt"]):
     else:
         # -- PARALLEL EXECUTION --
         results = []
-        with ThreadPoolExecutor() as executor:
+        with ProcessPoolExecutor() as executor:
             # Submit tasks
             future_to_combo = {
                 executor.submit(process_combination, combo, path_config_file): combo

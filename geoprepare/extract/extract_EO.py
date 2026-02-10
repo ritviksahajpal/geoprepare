@@ -19,6 +19,57 @@ from functools import lru_cache
 
 from .. import utils
 
+import logging as _logging
+
+
+class _PickleSafeLogger:
+    """
+    A minimal logger that uses stdlib logging instead of logzero,
+    so it can be pickled and sent to multiprocessing workers.
+    """
+
+    def __init__(self, name="geoprepare.extract_EO", level=_logging.INFO):
+        self._name = name
+        self._level = level
+        self._logger = _logging.getLogger(name)
+        if not self._logger.handlers:
+            handler = _logging.StreamHandler()
+            handler.setFormatter(_logging.Formatter("[%(asctime)s] %(message)s"))
+            self._logger.addHandler(handler)
+        self._logger.setLevel(level)
+
+    def __getstate__(self):
+        return {"_name": self._name, "_level": self._level}
+
+    def __setstate__(self, state):
+        self._name = state["_name"]
+        self._level = state["_level"]
+        self._logger = _logging.getLogger(self._name)
+        if not self._logger.handlers:
+            handler = _logging.StreamHandler()
+            handler.setFormatter(_logging.Formatter("[%(asctime)s] %(message)s"))
+            self._logger.addHandler(handler)
+        self._logger.setLevel(self._level)
+
+    def debug(self, msg):
+        self._logger.debug(msg)
+
+    def info(self, msg):
+        self._logger.info(msg)
+
+    def warning(self, msg):
+        self._logger.warning(msg)
+
+    def error(self, msg):
+        self._logger.error(msg)
+
+
+def _swap_logger_for_parallel(params):
+    """Replace the logzero-based logger with a pickle-safe stdlib logger."""
+    original_logger = params.logger
+    params.logger = _PickleSafeLogger(level=params.compute_logging_level())
+    return original_logger
+
 
 # ========================
 #         UTILITIES
@@ -112,10 +163,17 @@ def get_var_fname(params, var, year, doy):
         "nsidc_rootzone": f"nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_rootzone_global.tif",
         "lai": f"MCD15A2H.A{year_doy}_Lai_500m_mosaic_0p05.tif",
         "fpar": f"MCD15A2H.A{year_doy}_Fpar_500m_mosaic_0p05.tif",
-        "chirps": f"global/chirps_v2.0.{year_doy}_global.tif",
         "chirps_gefs": f"data.{year}.{month:02d}{day_of_month:02d}.tif",
         "lst": f"MOD11C1.A{year_doy}_global.tif"
     }
+
+    # CHIRPS needs version-aware path to match download output structure:
+    #   dir_interim/chirps/{version}/global/{year}/chirps_{version_str}_{year}{doy}_global.tif
+    # get_var_fname returns the path relative to dir_interim/chirps/
+    if var == "chirps":
+        chirps_version = params.parser.get("CHIRPS", "version", fallback="v2")
+        version_str = "v2.0" if chirps_version == "v2" else "v3.0"
+        return f"{chirps_version}/global/{year}/chirps_{version_str}_{year_doy}_global.tif"
 
     # Return filename if in dictionary
     if var in variable_fnames:
@@ -238,7 +296,7 @@ def get_default_empty_str(country: str, region: str, region_id: str, date_part: 
     Return a CSV line with NaN placeholders if no data was found.
     """
     # You mentioned 6 numeric columns: mean, counts, etc.
-    empty_values = ",".join([str(np.NaN)] * 6)
+    empty_values = ",".join([str(np.nan)] * 6)
     return f"{country},{region},{region_id},{date_part},{empty_values}"
 
 
@@ -295,11 +353,12 @@ def write_daily_stats_to_csv(daily_stats: list[str], path_output: Path, var: str
     if not daily_stats:
         return
 
-    # Example CSV header with 6 numeric columns for your var + counts
+    # CSV header matching geom_extract output: stats(mean) + counts(total, valid_data,
+    # valid_data_after_masking, weight_sum, weight_sum_used)
     header = (
-        f"country,region,region_id,year,doy,{var},num_pixels,"
-        "average_crop_percentage,median_crop_percentage,"
-        "min_crop_percentage,max_crop_percentage"
+        f"country,region,region_id,year,doy,{var},"
+        "total_pixels,valid_data,valid_data_after_masking,"
+        "weight_sum,weight_sum_used"
     )
     daily_stats.insert(0, header)
 
@@ -343,7 +402,13 @@ def process_chirps_gefs(
             daily_stats.append(empty_str)
             continue
 
-        values_str = extract_stats(row["geometry"], var, fl_var, afi_ds, limit)
+        # Open indicator raster via cache
+        indicator_ds = raster_cache.get(fl_var)
+        if indicator_ds is None:
+            daily_stats.append(empty_str)
+            continue
+
+        values_str = extract_stats(row["geometry"], var, indicator_ds, afi_ds, limit)
         if values_str:
             daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
         else:
@@ -401,8 +466,14 @@ def process_regular_var(
                 daily_stats.append(existing_line)
                 continue
 
-        # Extract stats - note: we pass afi_ds which is already an open dataset
-        values_str = extract_stats(row["geometry"], var, fl_var, afi_ds, limit)
+        # Open indicator raster via cache to avoid repeated opens across regions
+        indicator_ds = raster_cache.get(fl_var)
+        if indicator_ds is None:
+            daily_stats.append(empty_str)
+            continue
+
+        # Extract stats - pass open datasets for both indicator and AFI
+        values_str = extract_stats(row["geometry"], var, indicator_ds, afi_ds, limit)
         if values_str:
             daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
         else:
@@ -553,14 +624,28 @@ def build_combinations(params):
                 "ADMIN0": "ADM0_NAME",
                 "ADMIN1": "ADM1_NAME",
                 "ADMIN2": "ADM2_NAME",
-                "name1": "ADM1_NAME",
                 "name0": "ADM0_NAME",
+                "name1": "ADM1_NAME",
+                "name2": "ADM2_NAME",
                 "FNID": "ADM_ID",
                 "asap1_id": "ADM_ID",
                 "asap0_id": "ADM0_ID",
             },
             inplace=True,
         )
+
+        # Validate that required columns exist after rename
+        required_cols = ["ADM0_NAME", "ADM1_NAME", "ADM_ID"]
+        for scale in scales:
+            if scale == "admin_2":
+                required_cols.append("ADM2_NAME")
+        missing_cols = [c for c in required_cols if c not in df_cmask.columns]
+        if missing_cols:
+            params.logger.error(
+                f"Shapefile for {country} is missing columns after rename: "
+                f"{missing_cols}. Available columns: {list(df_cmask.columns)}"
+            )
+            continue
 
         # Filter GeoDataFrame for the specific country
         mask_country = country.lower().replace(" ", "_")
@@ -628,6 +713,8 @@ def run(params):
     params.logger.error(msg)
 
     if params.parallel_extract:
+        # Swap to pickle-safe logger for multiprocessing
+        original_logger = _swap_logger_for_parallel(params)
         with Pool(num_cpus) as p:
             with tqdm(total=len(list_combinations)) as pbar:
                 for i, _ in enumerate(p.imap_unordered(process, list_combinations)):
@@ -638,6 +725,8 @@ def run(params):
                     )
                     pbar.set_description(desc)
                     pbar.update()
+        # Restore original logger
+        params.logger = original_logger
     else:
         pbar = tqdm(list_combinations)
         for i, val in enumerate(pbar):

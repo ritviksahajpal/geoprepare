@@ -94,6 +94,9 @@ def harmonize_df(df, columns=None):
     Returns:
 
     """
+    # Lowercase and underscore column names
+    df.columns = df.columns.str.lower().str.replace(" ", "_")
+
     if columns is None:
         columns = df.columns
 
@@ -213,7 +216,7 @@ def extended_dataframe(df, eo_vars):
     df_extended = df[df["year"] == select_year]
 
     # Fill in dataframe with NaNs for missing values
-    df_extended.loc[:, df_extended.columns.difference(columns)] = np.NaN
+    df_extended.loc[:, df_extended.columns.difference(columns)] = np.nan
     df_extended.loc[:, "year"] = df["year"].max() + 1
     df_extended.index = pd.to_datetime(
         df_extended["year"].astype(int), format="%Y"
