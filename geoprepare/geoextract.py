@@ -49,6 +49,19 @@ def run(path_config_file="geoextract.txt"):
 
     ee.run(obj)
 
+    # Generate region-assignment plots for all EWCM countries
+    from . import georegion
+
+    dir_plots = obj.dir_output / "region_plots"
+    georegion.plot_all_countries(
+        path_config_file=path_config_file,
+        dir_regions_shp=obj.dir_regions_shp,
+        dir_regions=obj.dir_regions,
+        dir_output=dir_plots,
+        dir_cache=obj.dir_interim / "region_cache",
+        redo=obj.redo,
+    )
+
 
 if __name__ == "__main__":
     run()

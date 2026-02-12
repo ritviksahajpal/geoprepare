@@ -341,6 +341,7 @@ def plot_region_assignments(
     scale="admin_1",
     dir_cache=None,
     path_output=None,
+    redo=False,
     ncols=3,
     figsize_per_subplot=(5, 5),
     label_fontsize=5,
@@ -361,6 +362,8 @@ def plot_region_assignments(
         Same as assign_admin_to_regions.
     path_output : str or Path, optional
         If provided, save the figure to this path (e.g. PNG or PDF).
+    redo : bool
+        If False and path_output already exists, skip regeneration.
     ncols : int
         Number of columns in the subplot grid.
     figsize_per_subplot : tuple of (width, height)
@@ -372,8 +375,16 @@ def plot_region_assignments(
 
     Returns
     -------
-    matplotlib.figure.Figure
+    matplotlib.figure.Figure or None
+        None if the plot was skipped (already exists and redo=False).
     """
+    # Skip if output already exists and redo is False
+    if path_output and not redo:
+        path_output = Path(path_output)
+        if path_output.is_file():
+            log.info(f"Plot already exists, skipping (redo=False): {path_output}")
+            return None
+
     import matplotlib.pyplot as plt
 
     # Get assignment mapping (may hit cache)
@@ -478,31 +489,39 @@ def plot_region_assignments(
 
 def plot_all_countries(
     path_config_file,
-    path_admin_shp,
-    path_region_shp,
+    dir_regions_shp,
+    dir_regions,
     dir_output,
     dir_cache=None,
+    redo=False,
     country_default="malawi",
     **plot_kwargs,
 ):
     """
     Generate region-assignment plots for all EWCM countries in the config.
 
-    Reads country names and scales from the config file (e.g. geoextract.txt).
-    Only countries with ``category = EWCM`` are included.
+    Reads country names, scales, and per-country shapefile paths from the
+    config file (e.g. geoextract.txt).  Only countries with
+    ``category = EWCM`` are included.
+
+    Path construction matches geomerge.py:
+        path_admin_shp  = dir_regions_shp / parser.get(country, "shp_boundary")
+        path_region_shp = dir_regions     / parser.get(country, "shp_region")
 
     Parameters
     ----------
     path_config_file : str or list of str
         Path(s) to the config file(s) (e.g. ["geobase.txt", "geoextract.txt"]).
-    path_admin_shp : str or Path
-        Path to the admin-level shapefile.
-    path_region_shp : str or Path
-        Path to the EWCM regions shapefile.
+    dir_regions_shp : str or Path
+        Base directory for admin shapefiles (e.g. dir_regions/Shps).
+    dir_regions : str or Path
+        Base directory for EWCM region shapefiles.
     dir_output : str or Path
         Directory where per-country PNGs are saved.
     dir_cache : str or Path, optional
         Cache directory for region lookups.
+    redo : bool
+        If False, skip countries whose output PNG already exists.
     country_default : str
         Country processed first (useful for quick sanity-check).
     **plot_kwargs
@@ -521,12 +540,14 @@ def plot_all_countries(
 
     from . import utils
 
+    dir_regions_shp = Path(dir_regions_shp)
+    dir_regions = Path(dir_regions)
     dir_output = Path(dir_output)
     os.makedirs(dir_output, exist_ok=True)
 
     parser = utils.read_config(path_config_file)
 
-    # Collect EWCM countries and their scales from config
+    # Collect EWCM countries with their scale and shapefile paths
     ewcm_countries = {}
     for section in parser.sections():
         try:
@@ -535,13 +556,23 @@ def plot_all_countries(
             continue
         if _normalize(category) != "ewcm":
             continue
-        # Read the scale; default to admin_1
+
+        # Scale (first entry in the scales list)
         try:
             scales = ast.literal_eval(parser.get(section, "scales"))
             scale = scales[0] if scales else "admin_1"
         except Exception:
             scale = "admin_1"
-        ewcm_countries[section] = scale
+
+        # Per-country shapefile paths (same construction as geomerge.py)
+        shp_boundary = parser.get(section, "shp_boundary")
+        shp_region = parser.get(section, "shp_region")
+
+        ewcm_countries[section] = {
+            "scale": scale,
+            "path_admin_shp": dir_regions_shp / shp_boundary,
+            "path_region_shp": dir_regions / shp_region,
+        }
 
     if not ewcm_countries:
         log.warning("No EWCM countries found in config.")
@@ -555,17 +586,18 @@ def plot_all_countries(
 
     results = {}
     for country in ordered:
-        scale = ewcm_countries[country]
+        info = ewcm_countries[country]
         out_path = dir_output / f"region_assignments_{country}.png"
-        log.info(f"Plotting {country} (scale={scale}) → {out_path}")
+        log.info(f"Plotting {country} (scale={info['scale']}) → {out_path}")
         try:
             fig = plot_region_assignments(
-                path_admin_shp=path_admin_shp,
-                path_region_shp=path_region_shp,
+                path_admin_shp=info["path_admin_shp"],
+                path_region_shp=info["path_region_shp"],
                 country=country,
-                scale=scale,
+                scale=info["scale"],
                 dir_cache=dir_cache,
                 path_output=out_path,
+                redo=redo,
                 **plot_kwargs,
             )
             if fig is not None:
