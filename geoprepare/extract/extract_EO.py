@@ -18,57 +18,14 @@ from contextlib import contextmanager
 from functools import lru_cache
 
 from .. import utils
+from .. import log as _log
 
 import logging as _logging
 
 
-class _PickleSafeLogger:
-    """
-    A minimal logger that uses stdlib logging instead of logzero,
-    so it can be pickled and sent to multiprocessing workers.
-    """
-
-    def __init__(self, name="geoprepare.extract_EO", level=_logging.INFO):
-        self._name = name
-        self._level = level
-        self._logger = _logging.getLogger(name)
-        if not self._logger.handlers:
-            handler = _logging.StreamHandler()
-            handler.setFormatter(_logging.Formatter("[%(asctime)s] %(message)s"))
-            self._logger.addHandler(handler)
-        self._logger.setLevel(level)
-
-    def __getstate__(self):
-        return {"_name": self._name, "_level": self._level}
-
-    def __setstate__(self, state):
-        self._name = state["_name"]
-        self._level = state["_level"]
-        self._logger = _logging.getLogger(self._name)
-        if not self._logger.handlers:
-            handler = _logging.StreamHandler()
-            handler.setFormatter(_logging.Formatter("[%(asctime)s] %(message)s"))
-            self._logger.addHandler(handler)
-        self._logger.setLevel(self._level)
-
-    def debug(self, msg):
-        self._logger.debug(msg)
-
-    def info(self, msg):
-        self._logger.info(msg)
-
-    def warning(self, msg):
-        self._logger.warning(msg)
-
-    def error(self, msg):
-        self._logger.error(msg)
-
-
 def _swap_logger_for_parallel(params):
-    """Replace the logzero-based logger with a pickle-safe stdlib logger."""
-    original_logger = params.logger
-    params.logger = _PickleSafeLogger(level=params.compute_logging_level())
-    return original_logger
+    """Replace the logzero-based logger with a process-safe stdlib logger."""
+    return _log.swap_for_parallel(params)
 
 
 # ========================

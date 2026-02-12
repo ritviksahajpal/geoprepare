@@ -101,6 +101,12 @@ def harmonize_df(df, columns=None):
         for c in df.columns
     ]
 
+    # Drop stale index columns (created when a CSV is saved with index=True
+    # and then re-read — pandas names them "unnamed: 0", "unnamed: 1", etc.)
+    unnamed_cols = [c for c in df.columns if str(c).startswith("unnamed")]
+    if unnamed_cols:
+        df = df.drop(columns=unnamed_cols)
+
     if columns is None:
         columns = df.columns
 

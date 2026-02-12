@@ -17,6 +17,7 @@ import geopandas as gp
 from . import base
 from . import utils
 from . import georegion
+from . import log
 
 
 class GeoMerge(base.BaseGeo):
@@ -429,7 +430,7 @@ class GeoMerge(base.BaseGeo):
         ]
 
 
-def process_combination(combination, path_config_file):
+def process_combination(combination, path_config_file, parallel=False):
     """
     Worker function for a single combination of (country, scale, crop, growing_season).
     Returns (combination, success_boolean) for reporting.
@@ -440,6 +441,14 @@ def process_combination(combination, path_config_file):
     gm = GeoMerge(path_config_file)
     gm.parse_config("DEFAULT")
 
+    # In parallel mode, swap to a process-safe logger to avoid
+    # file contention on the shared logzero RotatingFileHandler
+    if parallel:
+        gm.logger = log.SafeLogger(
+            name=f"geoprepare.merge.{country}.{crop}",
+            level=gm.compute_logging_level(),
+        )
+
     # 1. Read statistics (you can pass read_all=True if needed)
     gm.read_statistics(country, crop, growing_season, read_all=True)
 
@@ -448,9 +457,9 @@ def process_combination(combination, path_config_file):
     gm.pretty_print(info="country_information")
 
     # 3. Set up output directory and output file
-    dir_output = gm.dir_output / gm.dir_threshold / country
+    dir_output = gm.dir_output / gm.dir_threshold / country / scale
     os.makedirs(dir_output, exist_ok=True)
-    output_file = dir_output / f"{country}_{crop}_s{growing_season}.csv"
+    output_file = dir_output / f"{crop}_s{growing_season}.csv"
 
     # 4. Check if crop calendar info exists
     df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
@@ -522,7 +531,7 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
         with ProcessPoolExecutor(max_workers=num_cpus) as executor:
             # Submit tasks
             future_to_combo = {
-                executor.submit(process_combination, combo, path_config_file): combo
+                executor.submit(process_combination, combo, path_config_file, True): combo
                 for combo in all_combinations
             }
 
