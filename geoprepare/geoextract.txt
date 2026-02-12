@@ -128,7 +128,8 @@ growing_seasons = [1]
 use_cropland_mask = True
 shp_boundary = gaul1_asap_v04.shp
 calendar_file = EWCM_2025-04-21.xlsx
-crops = ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
+crops = ['ww']
+; ['mz', 'sr', 'ml', 'rc', 'ww', 'tf']
 
 [angola]
 category = EWCM

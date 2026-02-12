@@ -94,22 +94,30 @@ def _load_country_data(path_admin_shp, path_region_shp, country):
     gdf_region = gp.read_file(Path(path_region_shp), engine="pyogrio")
 
     # Standardise column names coming from different shapefile variants
-    gdf_admin.rename(
-        columns={
-            "ADMIN0": ADM_COUNTRY_COL,
-            "ADMIN1": ADM_ADMIN1_COL,
-            "ADMIN2": ADM_ADMIN2_COL,
-            "FNID": ADM_ID_COL,
-            "name0": ADM_COUNTRY_COL,
-            "name1": ADM_ADMIN1_COL,
-            "asap1_id": ADM_ID_COL,
-        },
-        inplace=True,
-    )
+    # Use case-insensitive matching to handle varying column casing across files
+    _alias_map = {
+        "adm0_name": ADM_COUNTRY_COL,
+        "admin0": ADM_COUNTRY_COL,
+        "adm1_name": ADM_ADMIN1_COL,
+        "admin1": ADM_ADMIN1_COL,
+        "adm2_name": ADM_ADMIN2_COL,
+        "admin2": ADM_ADMIN2_COL,
+        "fnid": ADM_ID_COL,
+        "num_id": ADM_ID_COL,
+        "name0": ADM_COUNTRY_COL,
+        "name1": ADM_ADMIN1_COL,
+        "asap1_id": ADM_ID_COL,
+    }
+
+    col_rename = {}
+    for col in gdf_admin.columns:
+        target = _alias_map.get(col.lower())
+        if target and col != target:
+            col_rename[col] = target
+    gdf_admin.rename(columns=col_rename, inplace=True)
 
     # Filter to the requested country
     country_norm = _normalize(country)
-
     mask_admin = gdf_admin[ADM_COUNTRY_COL].apply(_normalize) == country_norm
     gdf_admin = gdf_admin[mask_admin].copy()
 

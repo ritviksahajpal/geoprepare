@@ -349,7 +349,7 @@ class GeoMerge(base.BaseGeo):
         group = group.reset_index(drop=True)
 
         # replace 4 by 0 in crop calendar, 4 represents out of season values
-        group_calendar = group["crop_calendar"].values
+        group_calendar = group["crop_calendar"].values.copy()
         group_calendar[group_calendar == 4] = 0
 
         # If 0 at start or end then season = year
@@ -362,7 +362,11 @@ class GeoMerge(base.BaseGeo):
             group.loc[idx_start:idx_end, "harvest_season"] = int(
                 group["year"].unique()[0]
             )
+        elif not np.any(group_calendar == 0):
+            # No off-season at all — entire year is in-season
+            group.loc[:, "harvest_season"] = int(group["year"].unique()[0])
         else:
+            # Season wraps across year boundary — 0s are in the middle
             # Find last occurence of 0
             idx_start = np.where(group_calendar == 0)[0][-1] + 1
             # Find first occ of 0

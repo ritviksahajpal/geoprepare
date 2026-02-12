@@ -150,7 +150,7 @@ class BaseGeo:
         sheet_name = None
         crop_name = self.get_key_or_value(crop)
 
-        if crop in ["winter_wheat", "spring_wheat"]:
+        if crop in ["winter_wheat", "spring_wheat", "ww", "sw"]:
             sheet_name = crop_name
         else:
             sheet_name = f"{crop_name}_{growing_season}"
@@ -175,7 +175,6 @@ class BaseGeo:
 
         """
         category = self.parser.get(country, "category")
-
         # Get crop calendar information
         if read_calendar or read_all:
             sheet_name = self.get_calendar_sheet_name(crop, growing_season)

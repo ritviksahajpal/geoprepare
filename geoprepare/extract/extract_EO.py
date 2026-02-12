@@ -584,7 +584,8 @@ def build_combinations(params):
                 "name0": "ADM0_NAME",
                 "name1": "ADM1_NAME",
                 "name2": "ADM2_NAME",
-                "FNID": "ADM_ID",
+                "FNID": "ADM_ID",  # for harvest stat shapefile
+                "num_ID": "ADM_ID",  # for EWCM and AMIS shapefiles
                 "asap1_id": "ADM_ID",
                 "asap0_id": "ADM0_ID",
             },
