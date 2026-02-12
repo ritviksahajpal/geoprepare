@@ -291,14 +291,14 @@ def geom_extract(
                 )
                 # weight_sum - total mask sum
                 output["counts"]["weight_sum"] = afi_arr.sum()
-                if type(output["counts"]["weight_sum"]) == np.uint64:
+                if isinstance(output["counts"]["weight_sum"], np.integer):
                     output["counts"]["weight_sum"] = int(output["counts"]["weight_sum"])
                 # weight_sum_used - mask sum after masking of dataset nodata is applied
                 afi_arr_compressed = np.ma.array(
                     afi_arr, mask=indicator_arr.mask
                 ).compressed()
                 output["counts"]["weight_sum_used"] = afi_arr_compressed.sum()
-                if type(output["counts"]["weight_sum_used"]) == np.uint64:
+                if isinstance(output["counts"]["weight_sum_used"], np.integer):
                     output["counts"]["weight_sum_used"] = int(
                         output["counts"]["weight_sum_used"]
                     )

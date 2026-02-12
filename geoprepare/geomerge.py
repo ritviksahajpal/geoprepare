@@ -37,6 +37,7 @@ class GeoMerge(base.BaseGeo):
         super().parse_config(project_name=self.project_name, section="DEFAULT")
 
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
+        self.dir_regions = Path(self.parser.get("PATHS", "dir_regions"))
         self.dir_regions_shp = Path(self.parser.get("PATHS", "dir_regions_shp"))
 
     def country_information(self, country, scale, crop, growing_season):
@@ -141,6 +142,10 @@ class GeoMerge(base.BaseGeo):
                 pd.read_csv(fl, usecols=self.static_columns + [var])
                 for fl in var_files
             ]
+
+            if not var_frames:
+                continue
+
             df_var = pd.concat(var_frames, ignore_index=True)
 
             # Drop duplicate rows (same region/year/doy), keeping first non-NaN
@@ -379,7 +384,11 @@ class GeoMerge(base.BaseGeo):
             self.df_ccs.loc[:, "ndvi"] = (self.df_ccs["ndvi"] - 50.0) / 200.0
 
         # 2. Assign hemisphere and temperate/tropical zones
-        self.df_ccs = pd.merge(self.df_ccs, self.df_countries, on="country", how="left")
+        # Rename 'region' in df_countries to 'zone' to avoid clash with admin 'region'
+        df_countries = self.df_countries.copy()
+        if "region" in df_countries.columns:
+            df_countries.rename(columns={"region": "zone"}, inplace=True)
+        self.df_ccs = pd.merge(self.df_ccs, df_countries, on="country", how="left")
 
         # 3. Add average_temperature
         if "cpc_tmax" in self.df_ccs.columns and "cpc_tmin" in self.df_ccs.columns:
@@ -458,7 +467,7 @@ def process_combination(combination, path_config_file):
 
     # Assign calendar_region from spatial overlay of admin units → EWCM regions
     path_admin_shp = gm.dir_regions_shp / gm.parser.get(country, "shp_boundary")
-    path_region_shp = gm.dir_regions_shp / gm.parser.get(country, "shp_region")
+    path_region_shp = gm.dir_regions / gm.parser.get(country, "shp_region")
     region_lookup = georegion.get_region_lookup(
         path_admin_shp=path_admin_shp,
         path_region_shp=path_region_shp,
@@ -480,7 +489,7 @@ def process_combination(combination, path_config_file):
         return (combination, False)
 
 
-def run(path_config_file=["geobase.txt", "geocif.txt"]):
+def run(path_config_file=["geobase.txt", "geoextract.txt"]):
     """
     Main function that can run either sequentially or in parallel,
     depending on the `parallel` argument.
@@ -509,7 +518,8 @@ def run(path_config_file=["geobase.txt", "geocif.txt"]):
     else:
         # -- PARALLEL EXECUTION --
         results = []
-        with ProcessPoolExecutor() as executor:
+        num_cpus = int(gm_master.fraction_cpus * os.cpu_count())
+        with ProcessPoolExecutor(max_workers=num_cpus) as executor:
             # Submit tasks
             future_to_combo = {
                 executor.submit(process_combination, combo, path_config_file): combo

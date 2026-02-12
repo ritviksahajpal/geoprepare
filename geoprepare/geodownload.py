@@ -9,6 +9,7 @@ import datetime
 from tqdm import tqdm
 
 from . import base
+from . import utils
 
 
 class GeoDownload(base.BaseGeo):
@@ -136,6 +137,30 @@ def run(path_config_file=["geobase.txt"]):
             # Whether to compute anomalies
             geoprep.fldas_compute_anomalies = geoprep.parser.getboolean(
                 "FLDAS", "compute_anomalies", fallback=False
+            )
+        elif dataset == "AEF":
+            from .datasets import AEF as obj
+
+            # AEF configuration
+            # Override start/end year (AEF data available 2018-2024 only)
+            geoprep.start_year = geoprep.parser.getint("AEF", "start_year")
+            geoprep.end_year = geoprep.parser.getint("AEF", "end_year")
+            # Countries: read from geoextract.txt so the list is defined once
+            extract_parser = utils.read_config(["geoextract.txt"])
+            geoprep.aef_countries = ast.literal_eval(
+                extract_parser.get("DEFAULT", "countries")
+            )
+            # Buffer in degrees around country extent
+            geoprep.aef_buffer = geoprep.parser.getfloat(
+                "AEF", "buffer", fallback=0.5
+            )
+            # Whether to download VRT files (needed to correct COG orientation)
+            geoprep.aef_download_vrt = geoprep.parser.getboolean(
+                "AEF", "download_vrt", fallback=True
+            )
+            # Optional path to cache the tile index
+            geoprep.aef_index_cache = geoprep.parser.get(
+                "AEF", "index_cache", fallback=None
             )
         else:
             raise ValueError(f"{dataset} not implemented")

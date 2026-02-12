@@ -44,14 +44,15 @@ def convert_to_nc_hndl(path_nc):
     :param path_nc:
     :return:
     """
-    hndl_nc = path_nc
-    if not isinstance(path_nc, np.ma.MaskedArray):
-        _, ext = os.path.splitext(path_nc)
+    if isinstance(path_nc, np.ma.MaskedArray):
+        return path_nc
+
+    _, ext = os.path.splitext(path_nc)
 
     if ext in [".nc", ".nc4"]:
-        hndl_nc = xr.open_dataset(path_nc)
+        return xr.open_dataset(path_nc)
 
-    return hndl_nc
+    return path_nc
 
 
 def arr_to_tif(arr, path_tif, profile):
@@ -94,8 +95,11 @@ def harmonize_df(df, columns=None):
     Returns:
 
     """
-    # Lowercase and underscore column names
-    df.columns = df.columns.str.lower().str.replace(" ", "_")
+    # Lowercase and underscore column names (only for string-type columns)
+    df.columns = [
+        c.lower().replace(" ", "_") if isinstance(c, str) else c
+        for c in df.columns
+    ]
 
     if columns is None:
         columns = df.columns
@@ -213,7 +217,7 @@ def extended_dataframe(df, eo_vars):
     columns = [x for x in columns if x not in eo_vars]
 
     # Created a new dataframe with the same columns as the original dataframe
-    df_extended = df[df["year"] == select_year]
+    df_extended = df[df["year"] == select_year].copy()
 
     # Fill in dataframe with NaNs for missing values
     df_extended.loc[:, df_extended.columns.difference(columns)] = np.nan

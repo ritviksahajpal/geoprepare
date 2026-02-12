@@ -3,6 +3,7 @@ datasets = ['NDVI', 'ESI','AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
 ; ['FLDAS']
 ; ['CHIRPS']
 ; ['ESI', 'NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'NSIDC']
+; ['AEF']
 
 [PATHS]
 dir_base = /gpfs/data1/cmongp1/GEOGLAM
@@ -58,6 +59,14 @@ variables = ['SoilMoist_tavg', 'TotalPrecip_tavg', 'Tair_tavg', 'Evap_tavg', 'TW
 leads = [0, 1, 2, 3, 4, 5]
 compute_anomalies = False
 
+[AEF]
+; AlphaEarth Foundations satellite embeddings (2018-2024, 64 channels, 10m)
+; Source: https://source.coop/tge-labs/aef  |  License: CC-BY 4.0
+; Countries are read from geoextract.txt [DEFAULT] countries
+buffer = 0.5
+download_vrt = True
+start_year = 2018
+end_year = 2024
 
 [FPAR]
 data_dir = https://agricultural-production-hotspots.ec.europa.eu//data//indicators_fpar//fpar//

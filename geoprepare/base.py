@@ -190,6 +190,9 @@ class BaseGeo:
                 else pd.DataFrame()
             )
             self.df_calendar = utils.harmonize_df(self.df_calendar)
+            # Rename 'admin' to 'calendar_region' to match georegion lookup output
+            if "admin" in self.df_calendar.columns:
+                self.df_calendar.rename(columns={"admin": "calendar_region"}, inplace=True)
 
         # Get yield, area and production information
         if read_statistics or read_all:
