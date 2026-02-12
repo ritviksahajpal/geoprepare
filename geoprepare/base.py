@@ -146,21 +146,29 @@ class BaseGeo:
         # If it's neither a key nor a value
         return None
 
+    def get_crop_full_name(self, crop):
+        """Always return the full crop name, whether given abbreviation or full name."""
+        mapping = {
+            "mz": "maize", "sb": "soybean", "rc": "rice",
+            "sw": "spring_wheat", "ww": "winter_wheat",
+            "ml": "millet", "tf": "teff", "sr": "sorghum",
+        }
+        return mapping.get(crop, crop)
+
     def get_calendar_sheet_name(self, crop, growing_season):
-        sheet_name = None
-        crop_name = self.get_key_or_value(crop)
+        crop_name = self.get_crop_full_name(crop)
 
-        if crop in ["winter_wheat", "spring_wheat", "ww", "sw"]:
-            sheet_name = crop_name
+        if crop_name in ("winter_wheat", "spring_wheat"):
+            # Wheat crops have a single season — sheet name is just the crop name
+            return crop_name
         else:
-            sheet_name = f"{crop_name}_{growing_season}"
-
-        return sheet_name
+            # Other crops: sheet name is crop_season (e.g. maize_1)
+            return f"{crop_name}_{growing_season}"
 
     def read_statistics(
         self,
         country,
-        crop="mz",
+        crop="maize",
         growing_season=1,
         read_calendar=False,
         read_statistics=False,

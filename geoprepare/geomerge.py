@@ -374,7 +374,7 @@ class GeoMerge(base.BaseGeo):
 
             group.loc[0:idx_end, "harvest_season"] = int(group["year"].unique()[0])
 
-            if group["hemisphere"].unique()[0] == "N" and self.crop == "ww":
+            if group["hemisphere"].unique()[0] == "N" and self.crop in ("ww", "winter_wheat"):
                 group.loc[idx_start:365, "harvest_season"] = np.nan
             else:
                 group.loc[idx_start:365, "harvest_season"] = int(
@@ -463,8 +463,7 @@ def process_combination(combination, path_config_file, parallel=False):
     # 3. Set up output directory and output file
     dir_output = gm.dir_output / gm.dir_threshold / country
     os.makedirs(dir_output, exist_ok=True)
-    crop_name = gm.get_key_or_value(crop) or crop
-    output_file = dir_output / f"{country}_{crop_name}_s{growing_season}.csv"
+    output_file = dir_output / f"{country}_{crop}_s{growing_season}.csv"
 
     # 4. Check if crop calendar info exists
     df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
