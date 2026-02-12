@@ -457,9 +457,10 @@ def process_combination(combination, path_config_file, parallel=False):
     gm.pretty_print(info="country_information")
 
     # 3. Set up output directory and output file
-    dir_output = gm.dir_output / gm.dir_threshold / country / scale
+    dir_output = gm.dir_output / gm.dir_threshold / country
     os.makedirs(dir_output, exist_ok=True)
-    output_file = dir_output / f"{crop}_s{growing_season}.csv"
+    crop_name = gm.get_key_or_value(crop) or crop
+    output_file = dir_output / f"{country}_{crop_name}_s{growing_season}.csv"
 
     # 4. Check if crop calendar info exists
     df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
