@@ -50,7 +50,7 @@ class NASAEarthAccess:
         os.makedirs(self.output_dir, exist_ok=True)
 
         self.logger = log.Logger(
-            dir_log=self.output_dir / "logs",
+            dir_logs=self.output_dir / "logs",
             project=self.logging_project,
             file=self.logging_file,
             level=self.logging_level,

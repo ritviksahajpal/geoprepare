@@ -98,7 +98,7 @@ def process(all_params):
     tar_gz_links = find_links(soup, ".tar.gz")
 
     # Unzip the downloaded .tar.gz files
-    interim_folder = params.dir_interim / "vhi" / "unzipped"
+    interim_folder = params.dir_intermed / "vhi" / "unzipped"
     os.makedirs(interim_folder, exist_ok=True)
     download_and_extract_files(tar_gz_links, params.url_historic, download_folder, interim_folder)
 
@@ -113,7 +113,7 @@ def process(all_params):
     filelist = list(interim_folder.glob("*VCI.tif"))
     pbar = tqdm(filelist, total=len(filelist))
     for f in pbar:
-        dir_global = params.dir_interim / "vhi" / "global"
+        dir_global = params.dir_intermed / "vhi" / "global"
         os.makedirs(dir_global, exist_ok=True)
         output_global_file = dir_global / f.name
         pbar.set_description(f"Converting to global: {f.name}")

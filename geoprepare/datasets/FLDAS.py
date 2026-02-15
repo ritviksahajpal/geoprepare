@@ -213,7 +213,7 @@ def extract_and_process(
     month,
     dir_forecast,
     dir_openloop,
-    dir_interim,
+    dir_intermed,
     variables,
     leads,
     convert_units=True,
@@ -227,7 +227,7 @@ def extract_and_process(
         month: Month
         dir_forecast: Directory for forecast data
         dir_openloop: Directory for openloop data
-        dir_interim: Directory for interim processed data
+        dir_intermed: Directory for interim processed data
         variables: List of variables to extract
         leads: List of lead times to extract (forecast only)
         convert_units: Whether to convert units
@@ -245,7 +245,7 @@ def extract_and_process(
         return
     
     # Set up output directories
-    processed_dir = dir_interim / "fldas" / data_type / "processed" / str(year)
+    processed_dir = dir_intermed / "fldas" / data_type / "processed" / str(year)
     os.makedirs(processed_dir, exist_ok=True)
     
     try:
@@ -394,7 +394,7 @@ def reproject_to_global(
     data_type,
     year,
     month,
-    dir_interim,
+    dir_intermed,
     variables,
     leads,
 ):
@@ -408,12 +408,12 @@ def reproject_to_global(
         data_type: 'forecast' or 'openloop'
         year: Year
         month: Month
-        dir_interim: Directory for interim processed data
+        dir_intermed: Directory for interim processed data
         variables: List of variables to reproject
         leads: List of lead times (forecast only)
     """
-    processed_dir = Path(dir_interim) / "fldas" / data_type / "processed" / str(year)
-    global_dir = Path(dir_interim) / "fldas" / "global" / str(year)
+    processed_dir = Path(dir_intermed) / "fldas" / data_type / "processed" / str(year)
+    global_dir = Path(dir_intermed) / "fldas" / "global" / str(year)
     os.makedirs(global_dir, exist_ok=True)
 
     # Build list of (input, output) file pairs
@@ -528,7 +528,7 @@ def run(geoprep):
             - start_year: First year to process
             - end_year: Last year to process
             - dir_download: Base download directory
-            - dir_interim: Directory for interim processed files
+            - dir_intermed: Directory for interim processed files
             - redo_last_year: Whether to re-download last year's data
             - parallel_process: Whether to use multiprocessing
             - fraction_cpus: Fraction of CPUs to use for parallel processing
@@ -543,7 +543,7 @@ def run(geoprep):
     start_year = geoprep.start_year
     end_year = geoprep.end_year
     dir_download = Path(geoprep.dir_download)
-    dir_interim = Path(geoprep.dir_interim)
+    dir_intermed = Path(geoprep.dir_intermed)
     redo_last_year = geoprep.redo_last_year
     parallel_process = geoprep.parallel_process
     fraction_cpus = geoprep.fraction_cpus
@@ -603,7 +603,7 @@ def run(geoprep):
     # Step 2: Extract and process variables to GeoTIFF
     # =========================================================================
     process_tasks = [
-        (dtype, yr, mon, dir_forecast, dir_openloop, dir_interim, variables, leads, True)
+        (dtype, yr, mon, dir_forecast, dir_openloop, dir_intermed, variables, leads, True)
         for dtype in data_types
         for yr in range(start_year, end_year + 1)
         for mon in range(1, 13)
@@ -629,7 +629,7 @@ def run(geoprep):
     # Matches standard grid used by CHIRPS, CPC, ESI, etc.
     # =========================================================================
     reproj_tasks = [
-        (dtype, yr, mon, dir_interim, variables, leads)
+        (dtype, yr, mon, dir_intermed, variables, leads)
         for dtype in data_types
         for yr in range(start_year, end_year + 1)
         for mon in range(1, 13)

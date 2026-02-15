@@ -125,8 +125,8 @@ def get_var_fname(params, var, year, doy):
     }
 
     # CHIRPS needs version-aware path to match download output structure:
-    #   dir_interim/chirps/{version}/global/{year}/chirps_{version_str}_{year}{doy}_global.tif
-    # get_var_fname returns the path relative to dir_interim/chirps/
+    #   dir_intermed/chirps/{version}/global/{year}/chirps_{version_str}_{year}{doy}_global.tif
+    # get_var_fname returns the path relative to dir_intermed/chirps/
     if var == "chirps":
         chirps_version = params.parser.get("CHIRPS", "version", fallback="v2")
         version_str = "v2.0" if chirps_version == "v2" else "v3.0"
@@ -353,7 +353,7 @@ def process_chirps_gefs(
         # Suppose you have a function that knows how to build the filename:
         # get_var_fname(params, var, year, jd) -> str
         fname = get_var_fname(params, var, year, jd)
-        fl_var = params.dir_interim / var / fname
+        fl_var = params.dir_intermed / var / fname
 
         if not os.path.isfile(fl_var):
             daily_stats.append(empty_str)
@@ -405,11 +405,11 @@ def process_regular_var(
 
         # Inline logic for nsidc_surface and nsidc_rootzone
         if var == "nsidc_surface":
-            fl_var = params.dir_interim / "nsidc" / "daily" / "surface" / fname
+            fl_var = params.dir_intermed / "nsidc" / "daily" / "surface" / fname
         elif var == "nsidc_rootzone":
-            fl_var = params.dir_interim / "nsidc" / "daily" / "rootzone" / fname
+            fl_var = params.dir_intermed / "nsidc" / "daily" / "rootzone" / fname
         else:
-            fl_var = params.dir_interim / var / fname
+            fl_var = params.dir_intermed / var / fname
 
         # If the file doesn't exist, store an empty row
         if not os.path.isfile(fl_var):
@@ -571,7 +571,7 @@ def build_combinations(params):
 
         # Load your GeoDataFrame
         df_cmask = gp.read_file(
-            params.dir_regions_shp / params.parser.get(country, "shp_boundary"),
+            params.dir_boundary_files / params.parser.get(country, "shp_boundary"),
             engine="pyogrio",
         )
 
@@ -617,7 +617,7 @@ def build_combinations(params):
                 path_mask = params.parser.get(country, "mask")
             else:
                 path_mask = params.parser.get(crop, "mask")
-            path_mask = params.dir_masks / path_mask
+            path_mask = params.dir_crop_masks / path_mask
 
             for scale in scales:
                 # Decide the crop name

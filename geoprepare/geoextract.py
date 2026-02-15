@@ -29,14 +29,8 @@ class GeoExtract(base.BaseGeo):
         super().parse_config(self.project_name, section="DEFAULT")
         self.method = self.parser.get("DEFAULT", "method")
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
-        self.dir_masks = Path(self.parser.get("PATHS", "dir_masks"))
-        self.dir_regions = Path(self.parser.get("PATHS", "dir_regions"))
-        self.dir_regions_shp = Path(self.parser.get("PATHS", "dir_regions_shp"))
-        self.dir_crop_masks = Path(self.parser.get("PATHS", "dir_crop_masks"))
-        # self.use_cropland_mask = self.parser.get(country, "use_cropland_mask")
-        # self.crop_mask = self.dir_crop_masks / self.parser.
+
         self.redo = self.parser.getboolean("DEFAULT", "redo")
-        # self.forecast_seasons = ast.literal_eval(self.parser.getint('DEFAULT', 'forecast_seasons'))
         self.parallel_extract = self.parser.getboolean("PROJECT", "parallel_extract")
 
 
@@ -55,10 +49,9 @@ def run(path_config_file="geoextract.txt"):
     dir_plots = obj.dir_output / "region_plots"
     georegion.plot_all_countries(
         path_config_file=path_config_file,
-        dir_regions_shp=obj.dir_regions_shp,
-        dir_regions=obj.dir_regions,
+        dir_boundary_files=obj.dir_boundary_files,
         dir_output=dir_plots,
-        dir_cache=obj.dir_interim / "region_cache",
+        dir_cache=obj.dir_intermed / "region_cache",
         redo=obj.redo,
     )
 

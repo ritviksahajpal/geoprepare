@@ -84,7 +84,7 @@ def process_soil_moisture(all_params):
     # change to JD
     day_of_year = datetime.date(year, month, day).timetuple().tm_yday
 
-    dir_final = params.dir_interim / f"soil_moisture_{product}"
+    dir_final = params.dir_intermed / f"soil_moisture_{product}"
     os.makedirs(dir_final, exist_ok=True)
 
     fl_final = f"nasa_usda_soil_moisture_{year}{str(day_of_year).zfill(3)}_{product}_global.tif"

@@ -211,7 +211,7 @@ def convert(params, source_h5):
         params: Configuration parameters object
         source_h5: Path to source H5 file
     """
-    dir_subdaily = params.dir_interim / "nsidc" / "subdaily"
+    dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
     os.makedirs(dir_subdaily, exist_ok=True)
 
     inp_file_name = os.path.basename(source_h5)
@@ -258,7 +258,7 @@ def convert(params, source_h5):
             params.logger.warning(f"Could not read {var} from {source_h5}: {e}")
             continue
 
-        dst_tmp = str(params.dir_interim) + os.sep + f"{iband+1}_{year}{doy.zfill(3)}T{hhmmss}_{var}.tif"
+        dst_tmp = str(params.dir_intermed) + os.sep + f"{iband+1}_{year}{doy.zfill(3)}T{hhmmss}_{var}.tif"
         sds_gdal = array_to_raster(sds_array, gt, wkt)
 
         ds = gdal.Translate(dst_tmp, sds_gdal, options=translate_options)
@@ -316,8 +316,8 @@ def subdaily_to_daily(params, var_type="rootzone"):
         params: Configuration parameters object
         var_type: Variable type ('rootzone' or 'surface')
     """
-    dir_subdaily = params.dir_interim / "nsidc" / "subdaily"
-    dir_daily = params.dir_interim / "nsidc" / "daily"
+    dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
+    dir_daily = params.dir_intermed / "nsidc" / "daily"
 
     os.makedirs(dir_daily / var_type, exist_ok=True)
 
@@ -360,7 +360,7 @@ def process(params):
         params: Configuration parameters object
     """
     dir_out = params.dir_download / "nsidc"
-    dir_subdaily = params.dir_interim / "nsidc" / "subdaily"
+    dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
     os.makedirs(dir_subdaily, exist_ok=True)
 
     # Convert h5 files to subdaily (3 hourly) GeoTIFFs
@@ -384,7 +384,7 @@ def run(params):
             - start_year: Start year for data download
             - end_year: End year for data download
             - dir_download: Base download directory
-            - dir_interim: Intermediate data directory
+            - dir_intermed: Intermediate data directory
             - logger: Logger instance
     """
     params.logger.info("Starting NSIDC SMAP L4 soil moisture processing")

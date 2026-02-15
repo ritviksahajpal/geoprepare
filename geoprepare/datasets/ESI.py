@@ -68,7 +68,7 @@ def to_global(all_params):
     params, product, year = all_params
 
     inpath = Path(os.path.normpath(params.dir_download / "esi" / product / str(year)))
-    outpath = Path(os.path.normpath(params.dir_interim / f"esi_{product}"))
+    outpath = Path(os.path.normpath(params.dir_intermed / f"esi_{product}"))
 
     os.makedirs(outpath, exist_ok=True)
 

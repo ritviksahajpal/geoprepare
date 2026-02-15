@@ -193,7 +193,7 @@ def unzip_and_scale(
     day,
     dir_prelim,
     dir_final,
-    dir_interim,
+    dir_intermed,
     version,
     disagg,
 ):
@@ -208,7 +208,7 @@ def unzip_and_scale(
         day: Day
         dir_prelim: Directory for prelim data
         dir_final: Directory for final data
-        dir_interim: Directory for interim processed data
+        dir_intermed: Directory for interim processed data
         version: CHIRPS version ('v2' or 'v3')
         disagg: Disaggregation method for v3 ('sat' or 'rnl')
     """
@@ -239,8 +239,8 @@ def unzip_and_scale(
         is_compressed = False
     
     # Set up output directories - include version and year in path
-    unzip_dir = dir_interim / "chirps" / version / type_product / "unzipped" / str(year)
-    scaled_dir = dir_interim / "chirps" / version / type_product / "scaled" / str(year)
+    unzip_dir = dir_intermed / "chirps" / version / type_product / "unzipped" / str(year)
+    scaled_dir = dir_intermed / "chirps" / version / type_product / "scaled" / str(year)
     os.makedirs(unzip_dir, exist_ok=True)
     os.makedirs(scaled_dir, exist_ok=True)
     
@@ -298,7 +298,7 @@ def unzip_and_scale(
 def reproject_to_global(
     year,
     jd,
-    dir_interim,
+    dir_intermed,
     fill_value,
     version,
 ):
@@ -313,11 +313,11 @@ def reproject_to_global(
     Args:
         year: Year
         jd: Julian day (day of year)
-        dir_interim: Directory for interim processed data
+        dir_intermed: Directory for interim processed data
         fill_value: Fill value for nodata
         version: CHIRPS version ('v2' or 'v3')
     """
-    global_dir = dir_interim / "chirps" / version / "global" / str(year)
+    global_dir = dir_intermed / "chirps" / version / "global" / str(year)
     os.makedirs(global_dir, exist_ok=True)
 
     version_str = "v2.0" if version == "v2" else "v3.0"
@@ -326,8 +326,8 @@ def reproject_to_global(
     prelim_marker = global_dir / f".{year}{jd:03d}_from_prelim"
     
     # Check for final and prelim scaled files (with year subfolder)
-    final_scaled = dir_interim / "chirps" / version / "final" / "scaled" / str(year) / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
-    prelim_scaled = dir_interim / "chirps" / version / "prelim" / "scaled" / str(year) / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
+    final_scaled = dir_intermed / "chirps" / version / "final" / "scaled" / str(year) / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
+    prelim_scaled = dir_intermed / "chirps" / version / "prelim" / "scaled" / str(year) / f"chirps_{version_str}_{year}{jd:03d}_scaled.tif"
     
     # Determine which source to use
     if final_scaled.exists():
@@ -434,7 +434,7 @@ def run(geoprep):
             - start_year: First year to process
             - end_year: Last year to process
             - dir_download: Base download directory
-            - dir_interim: Directory for interim processed files
+            - dir_intermed: Directory for interim processed files
             - redo_last_year: Whether to re-download last year's data
             - parallel_process: Whether to use multiprocessing
             - fraction_cpus: Fraction of CPUs to use for parallel processing
@@ -446,7 +446,7 @@ def run(geoprep):
     start_year = geoprep.start_year
     end_year = geoprep.end_year
     dir_download = Path(geoprep.dir_download)
-    dir_interim = Path(geoprep.dir_interim)
+    dir_intermed = Path(geoprep.dir_intermed)
     redo_last_year = geoprep.redo_last_year
     parallel_process = geoprep.parallel_process
     fraction_cpus = geoprep.fraction_cpus
@@ -501,7 +501,7 @@ def run(geoprep):
     # =========================================================================
     for prod in ["final", "prelim"]:  # Final first!
         unzip_tasks = [
-            (prod, yr, m, d, dir_prelim, dir_final, dir_interim, version, disagg)
+            (prod, yr, m, d, dir_prelim, dir_final, dir_intermed, version, disagg)
             for yr in range(start_year, end_year + 1)
             for m in range(1, 13)
             for d in range(1, monthrange(yr, m)[1] + 1)
@@ -524,7 +524,7 @@ def run(geoprep):
     # The reproject function handles final vs prelim priority internally
     # =========================================================================
     reproj_tasks = [
-        (yr, jd, dir_interim, fill_value, version)
+        (yr, jd, dir_intermed, fill_value, version)
         for yr in range(start_year, end_year + 1)
         for jd in range(1, (366 if isleap(yr) else 365) + 1)
     ]

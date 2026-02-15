@@ -116,7 +116,7 @@ def process_CPC(all_params):
     """
     params, var, year = all_params
 
-    dir_output = params.dir_interim / f"cpc_{var}"
+    dir_output = params.dir_intermed / f"cpc_{var}"
     os.makedirs(dir_output, exist_ok=True)
 
     dir_nc = params.dir_download / "cpc" / "original" / var

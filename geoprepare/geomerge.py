@@ -38,8 +38,7 @@ class GeoMerge(base.BaseGeo):
         super().parse_config(project_name=self.project_name, section="DEFAULT")
 
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
-        self.dir_regions = Path(self.parser.get("PATHS", "dir_regions"))
-        self.dir_regions_shp = Path(self.parser.get("PATHS", "dir_regions_shp"))
+        self.dir_boundary_files = Path(self.parser.get("PATHS", "dir_boundary_files"))
 
     def country_information(self, country, scale, crop, growing_season):
         """
@@ -479,14 +478,14 @@ def process_combination(combination, path_config_file, parallel=False):
     # gm.df_ccs = gm.add_statistics()
 
     # Assign calendar_region from spatial overlay of admin units → EWCM regions
-    path_admin_shp = gm.dir_regions_shp / gm.parser.get(country, "shp_boundary")
-    path_region_shp = gm.dir_regions / gm.parser.get(country, "shp_region")
+    path_admin_shp = gm.dir_boundary_files / gm.parser.get(country, "shp_boundary")
+    path_region_shp = gm.dir_boundary_files / gm.parser.get(country, "shp_region")
     region_lookup = georegion.get_region_lookup(
         path_admin_shp=path_admin_shp,
         path_region_shp=path_region_shp,
         country=country,
         scale=scale,
-        dir_cache=gm.dir_interim / "region_cache",
+        dir_cache=gm.dir_intermed / "region_cache",
     )
     gm.df_ccs["calendar_region"] = gm.df_ccs["region"].map(region_lookup)
 

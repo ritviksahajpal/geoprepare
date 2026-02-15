@@ -16,18 +16,18 @@ class Logger:
     # NOTSET	       0
     def __init__(
         self,
-        dir_log,  # Path to the directory where the log file will be saved
-        project="geoprepare",  # Name of the project, this will be created as a subdirectory in dir_log
+        dir_logs,  # Path to the directory where the log file will be saved
+        project="geoprepare",  # Name of the project, this will be created as a subdirectory in dir_logs
         file="logger.txt",  # Name of the log file
         level=logging.INFO,  # Logging level (see above)
     ):
         log_format = "[%(asctime)s] %(message)s"
-        dir_log = Path(dir_log) / project / ar.now().format("MMMM_DD_YYYY")
-        os.makedirs(dir_log, exist_ok=True)
+        dir_logs = Path(dir_logs) / project / ar.now().format("MMMM_DD_YYYY")
+        os.makedirs(dir_logs, exist_ok=True)
 
         self.logger = logzero.setup_logger(
             name=file,
-            logfile=dir_log / file,
+            logfile=dir_logs / file,
             formatter=logzero.LogFormatter(fmt=log_format, datefmt="%Y-%m-%d %H:%M"),
             maxBytes=int(1e6),  # 1 MB size
             backupCount=3,

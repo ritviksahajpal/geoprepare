@@ -497,8 +497,7 @@ def plot_region_assignments(
 
 def plot_all_countries(
     path_config_file,
-    dir_regions_shp,
-    dir_regions,
+    dir_boundary_files,
     dir_output,
     dir_cache=None,
     redo=False,
@@ -513,17 +512,15 @@ def plot_all_countries(
     ``category = EWCM`` are included.
 
     Path construction matches geomerge.py:
-        path_admin_shp  = dir_regions_shp / parser.get(country, "shp_boundary")
-        path_region_shp = dir_regions     / parser.get(country, "shp_region")
+        path_admin_shp  = dir_boundary_files / parser.get(country, "shp_boundary")
+        path_region_shp = dir_boundary_files / parser.get(country, "shp_region")
 
     Parameters
     ----------
     path_config_file : str or list of str
         Path(s) to the config file(s) (e.g. ["geobase.txt", "geoextract.txt"]).
-    dir_regions_shp : str or Path
-        Base directory for admin shapefiles (e.g. dir_regions/Shps).
-    dir_regions : str or Path
-        Base directory for EWCM region shapefiles.
+    dir_boundary_files : str or Path
+        Base directory for admin and region shapefiles.
     dir_output : str or Path
         Directory where per-country PNGs are saved.
     dir_cache : str or Path, optional
@@ -548,8 +545,7 @@ def plot_all_countries(
 
     from . import utils
 
-    dir_regions_shp = Path(dir_regions_shp)
-    dir_regions = Path(dir_regions)
+    dir_boundary_files = Path(dir_boundary_files)
     dir_output = Path(dir_output)
     os.makedirs(dir_output, exist_ok=True)
 
@@ -578,8 +574,8 @@ def plot_all_countries(
 
         ewcm_countries[section] = {
             "scale": scale,
-            "path_admin_shp": dir_regions_shp / shp_boundary,
-            "path_region_shp": dir_regions / shp_region,
+            "path_admin_shp": dir_boundary_files / shp_boundary,
+            "path_region_shp": dir_boundary_files / shp_region,
         }
 
     if not ewcm_countries:

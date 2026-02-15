@@ -159,7 +159,7 @@ def to_global(params, dir_download):
     filelist = glob.glob(os.path.join(dir_download, "*.tif"))
     assert len(filelist) == 16
 
-    dir_out = params.dir_interim / "chirps_gefs"
+    dir_out = params.dir_intermed / "chirps_gefs"
     os.makedirs(dir_out, exist_ok=True)
     delete_existing_files(params, dir_out)
 

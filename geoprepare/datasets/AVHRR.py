@@ -75,7 +75,7 @@ def process_AVHRR(all_params):
     params, year = all_params
     var = "NDVI"
 
-    dir_output = params.dir_interim / "avhrr_v5" / str(year)
+    dir_output = params.dir_intermed / "avhrr_v5" / str(year)
     os.makedirs(dir_output, exist_ok=True)
 
     dir_nc = params.dir_download / "avhrr_v5" / str(year)
@@ -140,8 +140,8 @@ def create_composite(params, suffix_out_dir, chunk_size=10):
     Returns:
 
     """
-    dir_output = params.dir_interim / "avhrr_v5" / "composite" / suffix_out_dir
-    dir_input = params.dir_interim / "avhrr_v5"
+    dir_output = params.dir_intermed / "avhrr_v5" / "composite" / suffix_out_dir
+    dir_input = params.dir_intermed / "avhrr_v5"
     os.makedirs(dir_output, exist_ok=True)
 
     tif_files = glob.glob(f"{dir_input}/**/*.tif", recursive=True)

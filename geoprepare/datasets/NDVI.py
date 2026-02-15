@@ -169,8 +169,8 @@ def scaleConversion_glamToMark(in_file: str) -> None:
 def run(params):
     from tqdm import tqdm
 
-    dir_interim = params.dir_interim / "ndvi"
-    os.makedirs(dir_interim, exist_ok=True)
+    dir_intermed = params.dir_intermed / "ndvi"
+    os.makedirs(dir_intermed, exist_ok=True)
 
     ## validate arguments
     if params.scale_glam:
@@ -181,11 +181,11 @@ def run(params):
 
     ## clean and collect existing files
     # remove running composites
-    runningComposites = glob.glob(os.path.join(dir_interim, "*.running_composite.tif"))
+    runningComposites = glob.glob(os.path.join(dir_intermed, "*.running_composite.tif"))
     for c in runningComposites:
         os.remove(c)
     # get list of existing full files
-    extantFiles = glob.glob(os.path.join(dir_interim, f"*.tif"))
+    extantFiles = glob.glob(os.path.join(dir_intermed, f"*.tif"))
 
     ## get missing dates
     # first and last year
@@ -212,7 +212,7 @@ def run(params):
         for doy in tqdm(doys, desc="doy", leave=False):
             if not os.path.exists(
                 os.path.join(
-                    dir_interim, generateFileName(params.product, params.vi, y, doy)
+                    dir_intermed, generateFileName(params.product, params.vi, y, doy)
                 )
             ):
                 formattedDate = datetime.strptime(f"{y}.{doy}", "%Y.%j").strftime(
@@ -253,7 +253,7 @@ def run(params):
                 availableFiles += 1
                 params.logger.info(f"Creating Composite for {d}")
                 outPath = os.path.join(
-                    dir_interim, generateFileName(params.product, params.vi, date=d)
+                    dir_intermed, generateFileName(params.product, params.vi, date=d)
                 )
                 octvi.globalVi(params.product, d, outPath)
                 if params.scale_mark:
@@ -280,7 +280,7 @@ def run(params):
                 availableFiles += 1
                 params.logger.info(f"Creating Composite for {d}")
                 outPath = os.path.join(
-                    dir_interim, generateFileName(params.product, params.vi, date=d)
+                    dir_intermed, generateFileName(params.product, params.vi, date=d)
                 )
                 octvi.globalVi(params.product, d, outPath, vi="GCVI")
 

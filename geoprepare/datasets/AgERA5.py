@@ -211,10 +211,10 @@ def parallel_process_agERA5(params):
         if var not in params.variables:
             continue
             
-        dir_output = params.dir_interim / "agera5" / "tif" / var
+        dir_output = params.dir_intermed / "agera5" / "tif" / var
         os.makedirs(dir_output, exist_ok=True)
 
-        dir_nc = params.dir_interim / "agera5" / "nc" / var
+        dir_nc = params.dir_intermed / "agera5" / "nc" / var
 
         nc_files = list(dir_nc.glob("*.nc"))
         for nc_input in nc_files:
@@ -346,7 +346,7 @@ def run(params):
     Args:
         params: configuration object with attributes:
             - dir_download: download directory
-            - dir_interim: interim data directory
+            - dir_intermed: interim data directory
             - start_year: first year to download
             - end_year: last year to download
             - variables: list of variables to download
@@ -355,7 +355,7 @@ def run(params):
             - logger: logging object
     """
     path_download = params.dir_download / "agera5"
-    path_nc = params.dir_interim / "agera5" / "nc"
+    path_nc = params.dir_intermed / "agera5" / "nc"
 
     try:
         c = cdsapi.Client()

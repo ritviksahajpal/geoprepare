@@ -76,13 +76,23 @@ class BaseGeo:
 
         """
         self.dir_base = Path(self.parser.get("PATHS", "dir_base"))
-        self.dir_log = Path(self.parser.get("PATHS", "dir_log")) / project_name
-        self.dir_input = Path(self.parser.get("PATHS", "dir_input"))
-        self.dir_interim = Path(self.parser.get("PATHS", "dir_interim"))
+
+        # Input directories with downloads, intermediate processed files
+        self.dir_inputs = Path(self.parser.get("PATHS", "dir_inputs"))
+        self.dir_logs = Path(self.parser.get("PATHS", "dir_logs")) / project_name
         self.dir_download = Path(self.parser.get("PATHS", "dir_download"))
-        self.dir_output = Path(self.parser.get("PATHS", "dir_output")) / project_name
-        self.dir_global_datasets = Path(self.parser.get("PATHS", "dir_global_datasets"))
+        self.dir_intermed = Path(self.parser.get("PATHS", "dir_intermed"))
+        
+        # Ancilliary files needed for modeling and analysis
         self.dir_metadata = Path(self.parser.get("PATHS", "dir_metadata"))
+        self.dir_boundary_files = Path(self.parser.get("PATHS", "dir_boundary_files"))
+        self.dir_crop_calendars = Path(self.parser.get("PATHS", "dir_crop_calendars"))
+        self.dir_crop_masks = Path(self.parser.get("PATHS", "dir_crop_masks"))
+        self.dir_images = Path(self.parser.get("PATHS", "dir_images"))
+        self.dir_production_statistics = Path(self.parser.get("PATHS", "dir_production_statistics"))
+
+        self.dir_output = Path(self.parser.get("PATHS", "dir_output")) / project_name
+        
         self.logging_level = self.parser.get("LOGGING", "level")
         self.parallel_process = self.parser.getboolean(section, "parallel_process")
         self.start_year = self.parser.getint(section, "start_year")
@@ -93,7 +103,7 @@ class BaseGeo:
 
         # Set up logger
         self.logger = log.Logger(
-            dir_log=self.dir_log,
+            dir_logs=self.dir_logs,
             file=self.parser.get("DEFAULT", "logfile"),
             level=level,
         )
@@ -187,8 +197,7 @@ class BaseGeo:
         if read_calendar or read_all:
             sheet_name = self.get_calendar_sheet_name(crop, growing_season)
             self.path_calendar = (
-                self.dir_input
-                / "crop_calendars"
+                self.dir_crop_calendars
                 / self.parser.get(category, "calendar_file")
             )
             self.df_calendar = (
@@ -204,8 +213,7 @@ class BaseGeo:
         # Get yield, area and production information
         if read_statistics or read_all:
             self.path_stats = (
-                self.dir_input
-                / "statistics"
+                self.dir_production_statistics
                 / self.parser.get(country, "statistics_file")
             )
             self.df_statistics = (
@@ -218,7 +226,7 @@ class BaseGeo:
         # Get hemisphere and temperate/tropical zone information
         if read_countries or read_all:
             self.path_countries = (
-                self.dir_input / "statistics" / self.parser.get("DEFAULT", "zone_file")
+                self.dir_metadata / self.parser.get("DEFAULT", "zone_file")
             )
             self.df_countries = (
                 pd.read_csv(self.path_countries)
