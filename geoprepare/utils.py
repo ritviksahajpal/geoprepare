@@ -1,3 +1,10 @@
+"""
+utils.py - Shared utility functions for geoprepare.
+
+Provides config reading, DataFrame harmonization (column name and value
+normalization), NetCDF/raster file handling, gap filling, and date
+conversion helpers used across the download, extract, and merge stages.
+"""
 import os
 
 import datetime
@@ -381,3 +388,67 @@ def mosaic(tif_files, output_file):
     # Close the files
     for src in src_files_to_mosaic:
         src.close()
+
+
+def wait_or_keypress(seconds=20):
+    """Wait for *seconds* or until the user presses a key (cross-platform)."""
+    import sys
+    import time
+
+    try:
+        if sys.platform == "win32":
+            import msvcrt
+            for remaining in range(seconds, 0, -1):
+                print(f"\r  Starting in {remaining}s ... (press any key to start now) ", end="", flush=True)
+                deadline = time.monotonic() + 1.0
+                while time.monotonic() < deadline:
+                    if msvcrt.kbhit():
+                        msvcrt.getch()
+                        print("\r" + " " * 60 + "\r", end="", flush=True)
+                        return
+                    time.sleep(0.05)
+        else:
+            import select
+            for remaining in range(seconds, 0, -1):
+                print(f"\r  Starting in {remaining}s ... (press Enter to start now) ", end="", flush=True)
+                rlist, _, _ = select.select([sys.stdin], [], [], 1.0)
+                if rlist:
+                    sys.stdin.readline()
+                    print("\r" + " " * 60 + "\r", end="", flush=True)
+                    return
+    except Exception:
+        time.sleep(seconds)
+
+    print("\r" + " " * 60 + "\r", end="", flush=True)
+
+
+def display_run_summary(title, params, wait=20):
+    """
+    Print a bordered summary of run parameters, then wait.
+
+    Args:
+        title: Header string (e.g. "GeoExtract Runner")
+        params: list of (label, value) tuples to display
+        wait: seconds to wait before starting (0 to skip)
+    """
+    lines = []
+    for label, value in params:
+        if isinstance(value, list):
+            value = ", ".join(str(v) for v in value)
+        lines.append(f"  {label:<24s}: {value}")
+
+    width = max(len(l) for l in lines) + 2
+    width = max(width, len(title) + 6)
+    bar = "=" * width
+
+    print()
+    print(f"  {bar}")
+    print(f"  {title:^{width}}")
+    print(f"  {bar}")
+    for l in lines:
+        print(l)
+    print(f"  {bar}")
+    print()
+
+    if wait > 0:
+        wait_or_keypress(wait)

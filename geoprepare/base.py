@@ -1,8 +1,16 @@
-###############################################################################
-# Ritvik Sahajpal, Tarun Murali
-# email: ritvik@umd.edu
-# July 4, 2022
-###############################################################################
+"""
+base.py - Base configuration and data loading for geoprepare.
+
+Provides BaseGeo, the shared base class for GeoDownload, GeoExtract, and
+GeoMerge. Handles config parsing (INI files via ConfigParser), directory
+setup, crop calendar reading, and statistics loading.
+
+Key responsibilities:
+- Parse config files (geobase.txt, geoextract.txt) into directory paths
+- Read crop calendars from Excel (per-crop sheet naming conventions)
+- Read yield/area/production statistics and zone metadata
+- Crop name mapping between abbreviations and full names
+"""
 import os
 
 import pandas as pd

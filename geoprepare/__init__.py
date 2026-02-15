@@ -2,7 +2,7 @@
 
 __author__ = """Ritvik Sahajpal"""
 __email__ = "ritvik@umd.edu"
-__version__ = "0.6.77"
+__version__ = "0.6.81"
 
 from importlib.metadata import PackageNotFoundError, version
 
@@ -12,4 +12,10 @@ except PackageNotFoundError:
     # Package is not installed, use hardcoded version
     pass
 
-__all__ = ["log", "utils", "base", "geodownload", "geoextract", "geomerge", "diagnostics"]
+try:
+    from osgeo import gdal
+    gdal.UseExceptions()
+except ImportError:
+    pass
+
+__all__ = ["log", "utils", "base", "geodownload", "geoextract", "geomerge", "geocheck", "diagnostics"]

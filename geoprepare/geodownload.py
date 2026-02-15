@@ -1,8 +1,12 @@
-##############################################################################
-# Ritvik Sahajpal
-# email: ritvik@umd.edu
-# June 18, 2022
-###############################################################################
+"""
+geodownload.py - Download global EO and climate datasets.
+
+Iterates over configured datasets (NDVI, CHIRPS, CPC, ESI, AgERA5, etc.)
+and downloads raw data files to dir_download. Each dataset module handles
+its own source URL, file format, and temporal coverage.
+
+Pipeline: download (geodownload.py) -> extract (geoextract.py) -> merge (geomerge.py)
+"""
 import ast
 import datetime
 
@@ -35,7 +39,15 @@ class GeoDownload(base.BaseGeo):
 def run(path_config_file=["geobase.txt"]):
     # Read in configuration file
     geoprep = GeoDownload(path_config_file)
+    geoprep.parse_config("DEFAULT")
     datasets = ast.literal_eval(geoprep.parser.get("DATASETS", "datasets"))
+
+    utils.display_run_summary("GeoDownload Runner", [
+        ("Datasets", datasets),
+        ("Years", f"{geoprep.start_year} - {geoprep.end_year}"),
+        ("Download dir", str(geoprep.dir_download)),
+        ("Intermed dir", str(geoprep.dir_intermed)),
+    ])
 
     # Loop through all datasets in parser
     pbar = tqdm(datasets, desc="Downloading Datasets")

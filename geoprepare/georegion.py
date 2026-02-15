@@ -1,23 +1,22 @@
-###############################################################################
-# Region Assignment: Map admin units to EWCM regions by largest spatial overlap
-#
-# Each admin unit (from adm_shapefile.shp) is assigned to exactly one
-# EWCM region (from EWCM_Regions_v39.shp) — the region with which it
-# shares the largest intersection area.
-#
-# Integration with geomerge.py:
-#   Called before add_calendar() so that each admin unit's calendar_region
-#   is populated from the spatial lookup rather than requiring it in the
-#   statistics CSV.
-#
-#   from . import georegion
-#   lookup = georegion.get_region_lookup(path_admin, path_region, country)
-#   df["calendar_region"] = df["region"].map(lookup)
-#
-# Plotting:
-#   plot_region_assignments()  — single country, one subplot per region
-#   plot_all_countries()       — batch all EWCM countries from config
-###############################################################################
+"""
+georegion.py - Map admin units to EWCM regions by largest spatial overlap.
+
+Each admin unit (from boundary shapefiles) is assigned to exactly one
+EWCM region — the region with which it shares the largest intersection area.
+
+Integration with geomerge.py:
+    Called before add_calendar() so that each admin unit's calendar_region
+    is populated from the spatial lookup rather than requiring it in the
+    statistics CSV.
+
+    from . import georegion
+    lookup = georegion.get_region_lookup(path_admin, path_region, country)
+    df["calendar_region"] = df["region"].map(lookup)
+
+Plotting:
+    plot_region_assignments()  — single country, one subplot per region
+    plot_all_countries()       — batch all EWCM countries from config
+"""
 import os
 import ast
 import hashlib

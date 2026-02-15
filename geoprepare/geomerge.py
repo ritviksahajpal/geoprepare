@@ -1,8 +1,14 @@
-###############################################################################
-# Ritvik Sahajpal
-# email: ritvik@umd.edu
-# July 4, 2022
-###############################################################################
+"""
+geomerge.py - Merge extracted EO statistics into per-country crop CSV files.
+
+Combines per-region/year CSV files from the extract step into a single
+DataFrame per country-crop-season combination. Adds crop calendar info,
+harvest season assignment, and region-to-EWCM-region mapping.
+
+Pipeline: extract (extract_EO.py) -> merge (geomerge.py) -> model (geocif)
+
+Output: {dir_output}/crop_t{threshold}/{country}/{country}_{crop}_s{season}.csv
+"""
 import os
 import ast
 import datetime
@@ -514,6 +520,16 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
 
     # 2. Get all combinations
     all_combinations = gm_master.create_run_combinations()
+
+    from . import utils
+    utils.display_run_summary("GeoMerge Runner", [
+        ("Countries", gm_master.countries),
+        ("Years", f"{gm_master.start_year} - {gm_master.end_year}"),
+        ("Combinations", str(len(all_combinations))),
+        ("Parallel", str(gm_master.parallel_merge)),
+        ("Intermed dir", str(gm_master.dir_intermed)),
+        ("Output dir", str(gm_master.dir_output)),
+    ])
 
     if not gm_master.parallel_merge:
         # -- SEQUENTIAL EXECUTION --
