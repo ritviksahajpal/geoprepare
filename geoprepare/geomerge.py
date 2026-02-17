@@ -126,8 +126,8 @@ class GeoMerge(base.BaseGeo):
         For each EO variable, concatenates all CSV files, then merges across
         variables on the static columns (country, region, region_id, year, doy).
 
-        AEF is handled specially: it has 64 columns (aef_1..aef_64) and no doy
-        dimension (annual data), so it is merged on (country, region, region_id, year).
+        AEF is handled specially: it has 64 columns (aef_1..aef_64) with no doy
+        or year dimension (multi-year average), so it is merged on (country, region, region_id).
         """
         AEF_NUM_BANDS = 64
         df_result = None
@@ -151,11 +151,11 @@ class GeoMerge(base.BaseGeo):
             if not var_files:
                 continue
 
-            # AEF: 64-band annual data (no doy column)
+            # AEF: 64-band average data (no doy or year column)
             if var == "aef":
                 aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
-                read_cols = ["country", "region", "region_id", "year"] + aef_cols
-                merge_cols = ["country", "region", "region_id", "year"]
+                read_cols = ["country", "region", "region_id"] + aef_cols
+                merge_cols = ["country", "region", "region_id"]
             else:
                 read_cols = self.static_columns + [var]
                 merge_cols = self.static_columns

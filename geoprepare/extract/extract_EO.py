@@ -443,14 +443,14 @@ def process_regular_var(
 AEF_NUM_BANDS = 64
 
 
-def process_aef(params, country, crop, scale, year, afi_file, df_country):
+def process_aef(params, country, crop, scale, afi_file, df_country):
     """
-    Extract crop-masked zonal means from AEF 64-band annual TIF.
+    Extract crop-masked zonal means from the average AEF 64-band TIF.
 
-    AEF files are annual composites (one per country per year) with 64 bands.
+    Uses aef_avg_global.tif (multi-year average) instead of per-year files.
     For each admin region, computes the mean of each band over crop-masked pixels.
 
-    Output CSV columns: country, region, region_id, year, aef_1 .. aef_64
+    Output CSV columns: country, region, region_id, aef_1 .. aef_64
     """
     from rasterio.mask import mask as rio_mask
 
@@ -459,11 +459,11 @@ def process_aef(params, country, crop, scale, year, afi_file, df_country):
     dir_output = prepare_output_directory(params, country, scale, crop, "aef")
     admin_name, admin_id = get_admin_fields(scale)
 
-    # 2. Build AEF file path
+    # 2. Build AEF average file path
     country_slug = country.lower().replace(" ", "_")
-    aef_path = params.dir_intermed / "aef" / country_slug / f"aef_{year}_global.tif"
+    aef_path = params.dir_intermed / "aef" / country_slug / "aef_avg_global.tif"
     if not aef_path.exists():
-        params.logger.warning(f"AEF file not found: {aef_path}")
+        params.logger.warning(f"AEF average file not found: {aef_path}")
         return
 
     # 3. Crop mask threshold
@@ -473,7 +473,7 @@ def process_aef(params, country, crop, scale, year, afi_file, df_country):
 
     # 4. Open both rasters once, iterate over regions
     aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
-    header = ",".join(["country", "region", "region_id", "year"] + aef_cols)
+    header = ",".join(["country", "region", "region_id"] + aef_cols)
 
     with rasterio.open(aef_path) as aef_src, rasterio.open(afi_file) as afi_src:
         for _, row in df_country.iterrows():
@@ -483,7 +483,7 @@ def process_aef(params, country, crop, scale, year, afi_file, df_country):
             region = row[admin_name].lower().replace(" ", "_")
             region_id = row[admin_id]
 
-            path_output = build_output_path(dir_output, region, region_id, year, "aef", crop)
+            path_output = dir_output / f"{region}_{region_id}_aef_{crop}.csv"
             if path_output.exists() and not params.redo:
                 continue
 
@@ -495,7 +495,7 @@ def process_aef(params, country, crop, scale, year, afi_file, df_country):
                 # Read crop mask clipped to same region: shape (1, h, w)
                 afi_data, _ = rio_mask(afi_src, geom, crop=True, all_touched=True, nodata=0)
             except Exception as e:
-                params.logger.warning(f"AEF mask failed for {region} ({year}): {e}")
+                params.logger.warning(f"AEF mask failed for {region}: {e}")
                 continue
 
             # Apply crop mask threshold
@@ -511,9 +511,9 @@ def process_aef(params, country, crop, scale, year, afi_file, df_country):
                 else:
                     band_means.append(float("nan"))
 
-            # Write single-row CSV for this region/year
+            # Write single-row CSV for this region
             values = ",".join(map(str, band_means))
-            line = f"{country},{region},{region_id},{year},{values}"
+            line = f"{country},{region},{region_id},{values}"
             df_result = pd.read_csv(io.StringIO(f"{header}\n{line}"))
             df_result.to_csv(path_output, index=False)
 
@@ -549,9 +549,9 @@ def process(val):
     # 1. Validate scale
     validate_scale(scale)
 
-    # 2. Handle AEF separately (annual 64-band, not daily single-band)
+    # 2. Handle AEF separately (64-band average, not daily single-band)
     if var == "aef":
-        process_aef(params, country, crop, scale, year, afi_file, df_country)
+        process_aef(params, country, crop, scale, afi_file, df_country)
         return
 
     # 3. Skip 'chirps_gefs' if year != current year
@@ -640,11 +640,14 @@ def process(val):
 # ========================
 #        MAIN RUNNER
 # ========================
-def build_combinations(params):
+def build_combinations(params, skip_vars=None):
     """
     Builds the list of combinations to process
     (country, crop, scale, var, year, mask, df_country, etc.).
+    skip_vars: set of (country, var) tuples to exclude (from validate_datasets).
     """
+    if skip_vars is None:
+        skip_vars = set()
     list_combinations = []
     years = list(range(params.start_year, params.end_year + 1))
 
@@ -652,7 +655,8 @@ def build_combinations(params):
         category = params.parser.get(country, "category")
         use_cropland_mask = params.parser.getboolean(country, "use_cropland_mask")
         crops = ast.literal_eval(params.parser.get(country, "crops"))
-        vars_list = ast.literal_eval(params.parser.get(category, "eo_model"))
+        vars_list = [v for v in ast.literal_eval(params.parser.get(category, "eo_model"))
+                     if (country, v) not in skip_vars]
         scales = ast.literal_eval(params.parser.get(country, "scales"))
 
         # Load your GeoDataFrame
@@ -710,26 +714,32 @@ def build_combinations(params):
                 name_crop = "cr" if use_cropland_mask else crop
 
                 for var in vars_list:
-                    # AEF has its own year range (2018-2024)
                     if var == "aef":
-                        aef_start = params.parser.getint("AEF", "start_year", fallback=2018)
-                        aef_end = params.parser.getint("AEF", "end_year", fallback=2024)
-                        var_years = [y for y in years if aef_start <= y <= aef_end]
-                    else:
-                        var_years = years
-
-                    for year in var_years:
+                        # AEF uses multi-year average file; one combo, year=0 (unused)
                         combo = (
                             params,
                             country,
                             name_crop,
                             scale,
                             var,
-                            year,
+                            0,
                             path_mask,
                             df_country,
                         )
                         list_combinations.append(combo)
+                    else:
+                        for year in years:
+                            combo = (
+                                params,
+                                country,
+                                name_crop,
+                                scale,
+                                var,
+                                year,
+                                path_mask,
+                                df_country,
+                            )
+                            list_combinations.append(combo)
 
     # Remove duplicates
     list_combinations = remove_duplicates(list_combinations)
@@ -753,7 +763,8 @@ def validate_datasets(params):
     """
     Pre-flight check: verify that intermediate data directories exist
     and contain .tif files for each EO variable and country.
-    Raises RuntimeError if any dataset is missing.
+    Logs warnings for missing datasets and returns the set of
+    (country, var) pairs to skip during extraction.
     """
     missing = []
 
@@ -768,24 +779,28 @@ def validate_datasets(params):
 
             dir_var = _get_var_directory(params, var, country)
 
-            if not dir_var.exists():
-                missing.append((country, var, str(dir_var)))
-            elif not any(dir_var.rglob("*.tif")):
+            if var == "aef":
+                # AEF extraction needs the average file specifically
+                aef_avg = dir_var / "aef_avg_global.tif"
+                if not aef_avg.exists():
+                    missing.append((country, var, str(aef_avg)))
+            elif not dir_var.exists() or not any(dir_var.rglob("*.tif")):
                 missing.append((country, var, str(dir_var)))
 
     if missing:
         lines = [f"  {country}: {var} ({path})" for country, var, path in missing]
-        msg = "Missing intermediate datasets — run geodownload first:\n" + "\n".join(lines)
-        params.logger.error(msg)
-        raise RuntimeError(msg)
+        msg = "Skipping missing intermediate datasets:\n" + "\n".join(lines)
+        params.logger.warning(msg)
+
+    return {(country, var) for country, var, _ in missing}
 
 
 def run(params):
     """
     Main entry point for the EO extraction pipeline.
     """
-    validate_datasets(params)
-    list_combinations = build_combinations(params)
+    skip_vars = validate_datasets(params)
+    list_combinations = build_combinations(params, skip_vars)
     num_cpus = (
         int(params.fraction_cpus * cpu_count()) if params.parallel_extract else 1
     )

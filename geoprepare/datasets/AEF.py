@@ -30,6 +30,8 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
 import geopandas as gpd
+import numpy as np
+import rasterio
 import requests
 from shapely.geometry import box
 from tqdm import tqdm
@@ -380,6 +382,79 @@ def to_global(params, year, country):
     params.logger.info(f"Created {output_file}")
 
 
+def _country_output_dir(dir_intermed, country):
+    """Return the per-country AEF output directory."""
+    country_slug = country.lower().replace(" ", "_")
+    return Path(dir_intermed) / "aef" / country_slug
+
+
+def _all_yearly_files_exist(dir_intermed, country, years):
+    """Check if all per-country yearly global AEF files already exist."""
+    out_dir = _country_output_dir(dir_intermed, country)
+    return all((out_dir / f"aef_{y}_global.tif").exists() for y in years)
+
+
+def compute_average_aef(params, country, years):
+    """
+    Average yearly AEF TIFs into a single multi-year mean file.
+
+    Reads aef_{year}_global.tif for each year, computes per-band pixel-wise
+    nanmean across years, and writes aef_avg_global.tif in the same directory.
+    """
+    out_dir = _country_output_dir(params.dir_intermed, country)
+    avg_file = out_dir / "aef_avg_global.tif"
+
+    if avg_file.exists():
+        params.logger.info(f"Skipping {avg_file} (already exists)")
+        return
+
+    # Collect existing yearly files
+    yearly_files = []
+    for y in years:
+        f = out_dir / f"aef_{y}_global.tif"
+        if f.exists():
+            yearly_files.append(f)
+
+    if not yearly_files:
+        params.logger.warning(f"No yearly AEF files found for {country}, skipping average")
+        return
+
+    params.logger.info(
+        f"Computing average AEF from {len(yearly_files)} files for {country}..."
+    )
+
+    # Read first file to get metadata (shape, transform, crs, nodata)
+    with rasterio.open(yearly_files[0]) as src:
+        meta = src.meta.copy()
+        n_bands = src.count
+        height = src.height
+        width = src.width
+
+    # Accumulate sum and count per pixel per band (avoids loading all years at once)
+    band_sum = np.zeros((n_bands, height, width), dtype=np.float64)
+    band_count = np.zeros((n_bands, height, width), dtype=np.int32)
+
+    for f in tqdm(yearly_files, desc=f"Reading AEF years ({country})"):
+        with rasterio.open(f) as src:
+            for b in range(1, n_bands + 1):
+                data = src.read(b).astype(np.float64)
+                valid = np.isfinite(data)
+                band_sum[b - 1] += np.where(valid, data, 0.0)
+                band_count[b - 1] += valid.astype(np.int32)
+
+    # Compute mean, set pixels with no valid observations to NaN
+    with np.errstate(invalid="ignore"):
+        band_mean = np.where(band_count > 0, band_sum / band_count, np.nan)
+
+    # Write output
+    meta.update(dtype="float32", count=n_bands, nodata=float("nan"))
+    with rasterio.open(avg_file, "w", **meta) as dst:
+        for b in range(n_bands):
+            dst.write(band_mean[b].astype(np.float32), b + 1)
+
+    params.logger.info(f"Created {avg_file}")
+
+
 def run(geoprep):
     """
     Main entry point for AEF processing.
@@ -425,6 +500,21 @@ def run(geoprep):
     logger.info(f"Processing AEF data for countries: {countries}")
     logger.info(f"Years: {years_to_download}")
 
+    # Check which countries actually need downloading/resampling
+    countries_to_process = [
+        c for c in countries
+        if not _all_yearly_files_exist(geoprep.dir_intermed, c, years_to_download)
+    ]
+
+    if not countries_to_process:
+        logger.info("All per-country AEF files already exist, skipping download/resample")
+        # Still compute averages for countries that need them
+        for country in countries:
+            compute_average_aef(geoprep, country, years_to_download)
+        return
+
+    logger.info(f"Countries needing download/resample: {countries_to_process}")
+
     # Set up directories
     download_dir = dir_download / "aef"
     download_dir.mkdir(parents=True, exist_ok=True)
@@ -435,15 +525,21 @@ def run(geoprep):
     else:
         cache_path = dir_download / "aef" / "aef_index_cache.gpkg"
 
-    # Load index once (shared across countries)
+    # Load index once (shared across countries that need processing)
     logger.info("Loading AEF tile index...")
     index_gdf = load_aef_index(cache_path=cache_path)
     logger.info(f"Total tiles in index: {len(index_gdf)}")
     logger.info(f"Years available in index: {sorted(index_gdf['year'].unique())}")
 
-    # Process each country separately
+    # Process each country
     for country in countries:
         logger.info(f"--- Processing AEF for {country} ---")
+
+        # Skip download/resample if all yearly files exist
+        if country not in countries_to_process:
+            logger.info(f"All yearly files exist for {country}, skipping download/resample")
+            compute_average_aef(geoprep, country, years_to_download)
+            continue
 
         # Get country extent
         extent = get_country_lat_lon_extent([country], buffer=buffer)
@@ -495,6 +591,9 @@ def run(geoprep):
         logger.info(f"Resampling tiles to 0.05° global grid for {country}...")
         for year in tqdm(years_to_download, desc=f"Resampling AEF ({country})"):
             to_global(geoprep, year, country)
+
+        # Compute average AEF
+        compute_average_aef(geoprep, country, years_to_download)
 
 
 if __name__ == "__main__":
