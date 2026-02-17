@@ -736,10 +736,55 @@ def build_combinations(params):
     return list_combinations
 
 
+def _get_var_directory(params, var, country):
+    """Return the intermediate directory for a given EO variable."""
+    if var == "aef":
+        country_slug = country.lower().replace(" ", "_")
+        return params.dir_intermed / "aef" / country_slug
+    elif var == "nsidc_surface":
+        return params.dir_intermed / "nsidc" / "daily" / "surface"
+    elif var == "nsidc_rootzone":
+        return params.dir_intermed / "nsidc" / "daily" / "rootzone"
+    else:
+        return params.dir_intermed / var
+
+
+def validate_datasets(params):
+    """
+    Pre-flight check: verify that intermediate data directories exist
+    and contain .tif files for each EO variable and country.
+    Raises RuntimeError if any dataset is missing.
+    """
+    missing = []
+
+    for country in params.countries:
+        category = params.parser.get(country, "category")
+        vars_list = ast.literal_eval(params.parser.get(category, "eo_model"))
+
+        for var in vars_list:
+            # chirps_gefs is only for current year forecasts — skip validation
+            if var == "chirps_gefs":
+                continue
+
+            dir_var = _get_var_directory(params, var, country)
+
+            if not dir_var.exists():
+                missing.append((country, var, str(dir_var)))
+            elif not any(dir_var.rglob("*.tif")):
+                missing.append((country, var, str(dir_var)))
+
+    if missing:
+        lines = [f"  {country}: {var} ({path})" for country, var, path in missing]
+        msg = "Missing intermediate datasets — run geodownload first:\n" + "\n".join(lines)
+        params.logger.error(msg)
+        raise RuntimeError(msg)
+
+
 def run(params):
     """
     Main entry point for the EO extraction pipeline.
     """
+    validate_datasets(params)
     list_combinations = build_combinations(params)
     num_cpus = (
         int(params.fraction_cpus * cpu_count()) if params.parallel_extract else 1
