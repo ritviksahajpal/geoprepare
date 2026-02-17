@@ -45,11 +45,16 @@ def run(path_config_file="geoextract.txt"):
     obj.parse_config("DEFAULT")
 
     from . import utils
+    eo_vars = ast.literal_eval(obj.parser.get(obj.countries[0], "eo_model"))
+    num_cpus = int(obj.fraction_cpus * os.cpu_count()) if obj.parallel_extract else 1
     utils.display_run_summary("GeoExtract Runner", [
         ("Countries", obj.countries),
         ("Years", f"{obj.start_year} - {obj.end_year}"),
+        ("EO vars", eo_vars),
         ("Method", obj.method),
+        ("Redo", str(obj.redo)),
         ("Parallel", str(obj.parallel_extract)),
+        ("CPUs", str(num_cpus)),
         ("Intermed dir", str(obj.dir_intermed)),
         ("Output dir", str(obj.dir_output)),
     ])

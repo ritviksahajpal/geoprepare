@@ -37,14 +37,6 @@ def read_config(path_config_file):
     return parser
 
 
-def unzip_file(path_file):
-    """
-    Unzips a file
-    """
-    if path_file.endswith(".gz"):
-        os.system(f"gunzip {path_file}")
-
-
 def convert_to_nc_hndl(path_nc):
     """
 
@@ -294,52 +286,6 @@ def fill_missing_values(df, eo_vars):
     return df
 
 
-def remove_leap_doy(df):
-    """
-    Remove day corresponding to Feb 29th from dataframe.
-    Dataframe can span across multiple years and may or may not include leap year
-    For Julian day column, reduce julian day value by 1 for each day following Feb 29th
-    Args:
-        df:
-
-    Returns:
-
-    """
-    # Remove row for Feb 29th
-    df = df[~is_leap(df)]
-
-    # Recompute JD since Feb 29th has been removed now
-    frames = []
-    groups = df.groupby(["region", "year"])
-    for key, vals in groups:
-        vals["doy"] = range(1, len(vals) + 1)
-        frames.append(vals)
-
-    df = pd.concat(frames)
-
-    return df
-
-
-def is_leap(s):
-    """
-    Assume that index is a datetime object
-    Args:
-        s: dataframe with datetime index
-
-    Returns: If year is leap or not (True/False)
-
-    """
-    if isinstance(s.index, pd.DatetimeIndex):
-        return (
-            (s.index.year % 4 == 0)
-            & ((s.index.year % 100 != 0) | (s.index.year % 400 == 0))
-            & (s.index.month == 2)
-            & (s.index.day == 29)
-        )
-    else:
-        raise ValueError("Index should be a datetime object")
-
-
 def mosaic(tif_files, output_file):
     """
     Merges multiple TIFF files into a single mosaic TIFF file.
@@ -424,31 +370,37 @@ def wait_or_keypress(seconds=20):
 
 def display_run_summary(title, params, wait=20):
     """
-    Print a bordered summary of run parameters, then wait.
+    Print a rich-formatted summary of run parameters, then wait.
 
     Args:
         title: Header string (e.g. "GeoExtract Runner")
         params: list of (label, value) tuples to display
         wait: seconds to wait before starting (0 to skip)
     """
-    lines = []
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+
+    console = Console()
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column(style="bold cyan", no_wrap=True)
+    table.add_column()
+
     for label, value in params:
         if isinstance(value, list):
             value = ", ".join(str(v) for v in value)
-        lines.append(f"  {label:<24s}: {value}")
+        table.add_row(label, str(value))
 
-    width = max(len(l) for l in lines) + 2
-    width = max(width, len(title) + 6)
-    bar = "=" * width
-
-    print()
-    print(f"  {bar}")
-    print(f"  {title:^{width}}")
-    print(f"  {bar}")
-    for l in lines:
-        print(l)
-    print(f"  {bar}")
-    print()
+    console.print()
+    console.print(
+        Panel(
+            table,
+            title=f"[bold bright_white]{title}[/bold bright_white]",
+            border_style="bright_blue",
+            padding=(1, 2),
+        )
+    )
+    console.print()
 
     if wait > 0:
         wait_or_keypress(wait)

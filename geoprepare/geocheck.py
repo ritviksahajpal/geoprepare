@@ -102,6 +102,32 @@ def _expected_nsidc(dir_intermed, start_year, end_year, parser):
                 yield base_dir / fname, f"NSIDC_{var}/{fname}"
 
 
+def _expected_aef(dir_intermed, start_year, end_year, parser):
+    """Yield (path, label) for every expected AEF global TIF.
+
+    Uses AEF-specific year range from [AEF] config section and
+    auto-discovers country subdirectories under dir_intermed/aef/.
+    """
+    aef_start = parser.getint("AEF", "start_year", fallback=2018)
+    aef_end = parser.getint("AEF", "end_year", fallback=2024)
+    check_start = max(start_year, aef_start)
+    check_end = min(end_year, aef_end)
+
+    aef_dir = dir_intermed / "aef"
+    if not aef_dir.exists():
+        return
+
+    countries = sorted(
+        d.name for d in aef_dir.iterdir()
+        if d.is_dir() and not d.name.startswith(".")
+    )
+
+    for country in countries:
+        for year in range(check_start, check_end + 1):
+            fname = f"aef_{year}_global.tif"
+            yield aef_dir / country / fname, f"AEF/{country}/{fname}"
+
+
 # Registry: dataset name -> generator function
 _DATASET_GENERATORS = {
     "CHIRPS": _expected_chirps,
@@ -111,6 +137,7 @@ _DATASET_GENERATORS = {
     "CPC": _expected_cpc,
     "LST": _expected_lst,
     "NSIDC": _expected_nsidc,
+    "AEF": _expected_aef,
 }
 
 

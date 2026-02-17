@@ -438,6 +438,87 @@ def process_regular_var(
 
 
 # ---------------------------------------------------------------------
+# 3b. AEF processor (annual 64-band embeddings)
+# ---------------------------------------------------------------------
+AEF_NUM_BANDS = 64
+
+
+def process_aef(params, country, crop, scale, year, afi_file, df_country):
+    """
+    Extract crop-masked zonal means from AEF 64-band annual TIF.
+
+    AEF files are annual composites (one per country per year) with 64 bands.
+    For each admin region, computes the mean of each band over crop-masked pixels.
+
+    Output CSV columns: country, region, region_id, year, aef_1 .. aef_64
+    """
+    from rasterio.mask import mask as rio_mask
+
+    # 1. Validate scale and prepare output directory
+    validate_scale(scale)
+    dir_output = prepare_output_directory(params, country, scale, crop, "aef")
+    admin_name, admin_id = get_admin_fields(scale)
+
+    # 2. Build AEF file path
+    country_slug = country.lower().replace(" ", "_")
+    aef_path = params.dir_intermed / "aef" / country_slug / f"aef_{year}_global.tif"
+    if not aef_path.exists():
+        params.logger.warning(f"AEF file not found: {aef_path}")
+        return
+
+    # 3. Crop mask threshold
+    threshold = params.parser.getboolean(country, "threshold")
+    limit = utils.crop_mask_limit(params, country, threshold)
+    afi_thresh = limit * 100
+
+    # 4. Open both rasters once, iterate over regions
+    aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
+    header = ",".join(["country", "region", "region_id", "year"] + aef_cols)
+
+    with rasterio.open(aef_path) as aef_src, rasterio.open(afi_file) as afi_src:
+        for _, row in df_country.iterrows():
+            if not row[admin_name]:
+                continue
+
+            region = row[admin_name].lower().replace(" ", "_")
+            region_id = row[admin_id]
+
+            path_output = build_output_path(dir_output, region, region_id, year, "aef", crop)
+            if path_output.exists() and not params.redo:
+                continue
+
+            geom = [row.geometry.__geo_interface__]
+
+            try:
+                # Read all 64 bands clipped to region: shape (64, h, w)
+                aef_data, _ = rio_mask(aef_src, geom, crop=True, all_touched=True, nodata=np.nan)
+                # Read crop mask clipped to same region: shape (1, h, w)
+                afi_data, _ = rio_mask(afi_src, geom, crop=True, all_touched=True, nodata=0)
+            except Exception as e:
+                params.logger.warning(f"AEF mask failed for {region} ({year}): {e}")
+                continue
+
+            # Apply crop mask threshold
+            crop_valid = afi_data[0] >= afi_thresh
+
+            # Compute mean per band over crop-valid pixels
+            band_means = []
+            for b in range(AEF_NUM_BANDS):
+                band = aef_data[b]
+                valid = ~np.isnan(band) & crop_valid
+                if valid.any():
+                    band_means.append(float(np.nanmean(band[valid])))
+                else:
+                    band_means.append(float("nan"))
+
+            # Write single-row CSV for this region/year
+            values = ",".join(map(str, band_means))
+            line = f"{country},{region},{region_id},{year},{values}"
+            df_result = pd.read_csv(io.StringIO(f"{header}\n{line}"))
+            df_result.to_csv(path_output, index=False)
+
+
+# ---------------------------------------------------------------------
 # 4. Main entry point: process(...)
 # ---------------------------------------------------------------------
 def process(val):
@@ -450,7 +531,7 @@ def process(val):
     - Prepares output folder
     - Loops over each region in df_country, extracting stats
     - Writes out a CSV
-    
+
     Uses RasterCache to keep the AFI (crop mask) dataset open for all regions,
     significantly reducing I/O overhead.
     """
@@ -468,24 +549,29 @@ def process(val):
     # 1. Validate scale
     validate_scale(scale)
 
-    # 2. Skip 'chirps_gefs' if year != current year
+    # 2. Handle AEF separately (annual 64-band, not daily single-band)
+    if var == "aef":
+        process_aef(params, country, crop, scale, year, afi_file, df_country)
+        return
+
+    # 3. Skip 'chirps_gefs' if year != current year
     if skip_chirps_gefs(var, year):
         return
 
-    # 3. Prepare the output directory
+    # 4. Prepare the output directory
     dir_output = prepare_output_directory(params, country, scale, crop, var)
 
-    # 4. Identify admin fields
+    # 5. Identify admin fields
     admin_name, admin_id = get_admin_fields(scale)
 
-    # 5. Some references
+    # 6. Some references
     current_year = ar.utcnow().year
     end_doy = get_end_doy(year)
     threshold = params.parser.getboolean(country, "threshold")
     limit = utils.crop_mask_limit(params, country, threshold)
     use_partial = should_use_partial_file(params, year, current_year)
 
-    # 6. Use RasterCache for efficient dataset management
+    # 7. Use RasterCache for efficient dataset management
     with RasterCache() as raster_cache:
         # Open the AFI (crop mask) once for all regions
         afi_ds = raster_cache.get(afi_file)
@@ -494,7 +580,7 @@ def process(val):
             params.logger.warning(f"AFI file not found: {afi_file}")
             return
 
-        # 7. Iterate over each row (region) in df_country
+        # 8. Iterate over each row (region) in df_country
         for _, row in df_country.iterrows():
 
             # Skip rows missing an admin name
@@ -513,7 +599,7 @@ def process(val):
             # We'll collect daily stats in this list
             daily_stats = []
 
-            # 8. If var == "chirps_gefs", handle that with special logic
+            # 9. If var == "chirps_gefs", handle that with special logic
             if var == "chirps_gefs":
                 process_chirps_gefs(
                     daily_stats,
@@ -547,7 +633,7 @@ def process(val):
                     raster_cache
                 )
 
-            # 9. Write the results to CSV
+            # 10. Write the results to CSV
             write_daily_stats_to_csv(daily_stats, path_output, var)
 
 
@@ -624,10 +710,15 @@ def build_combinations(params):
                 name_crop = "cr" if use_cropland_mask else crop
 
                 for var in vars_list:
-                    # Extend the list of parameter combos
-                    # Each combination is passed as a tuple to process()
-                    # Last element is df_country
-                    for year in years:
+                    # AEF has its own year range (2018-2024)
+                    if var == "aef":
+                        aef_start = params.parser.getint("AEF", "start_year", fallback=2018)
+                        aef_end = params.parser.getint("AEF", "end_year", fallback=2024)
+                        var_years = [y for y in years if aef_start <= y <= aef_end]
+                    else:
+                        var_years = years
+
+                    for year in var_years:
                         combo = (
                             params,
                             country,
@@ -653,22 +744,6 @@ def run(params):
     num_cpus = (
         int(params.fraction_cpus * cpu_count()) if params.parallel_extract else 1
     )
-
-    # Logging info
-    scales = ast.literal_eval(params.parser.get(params.countries[0], "scales"))
-    vars_list = ast.literal_eval(params.parser.get(params.countries[0], "eo_model"))
-    msg = (
-        "++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-        f"# CPUs: {num_cpus}\n"
-        f"Parallel: {params.parallel_extract}\n"
-        f"REDO flag: {params.redo}\n"
-        f"Countries: {params.countries}\n"
-        f"EO vars to process: {vars_list}\n"
-        f"Start Year: {params.start_year}, End Year: {params.end_year}\n"
-        f"Output directory: {params.dir_output}\n"
-        "++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    )
-    params.logger.error(msg)
 
     if params.parallel_extract:
         # Swap to pickle-safe logger for multiprocessing

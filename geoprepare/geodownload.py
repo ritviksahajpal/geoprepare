@@ -158,7 +158,9 @@ def run(path_config_file=["geobase.txt"]):
             geoprep.start_year = geoprep.parser.getint("AEF", "start_year")
             geoprep.end_year = geoprep.parser.getint("AEF", "end_year")
             # Countries: read from geoextract.txt so the list is defined once
-            extract_parser = utils.read_config(["geoextract.txt"])
+            from pathlib import Path
+            config_dir = Path(path_config_file[0]).parent
+            extract_parser = utils.read_config([str(config_dir / "geoextract.txt")])
             geoprep.aef_countries = ast.literal_eval(
                 extract_parser.get("DEFAULT", "countries")
             )
@@ -177,8 +179,6 @@ def run(path_config_file=["geobase.txt"]):
         else:
             raise ValueError(f"{dataset} not implemented")
 
-        # Parse configuration file
-        geoprep.parse_config(dataset)
         # Print all elements of configuration file
         geoprep.pp_config(dataset)
         # Execute!

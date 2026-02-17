@@ -25,50 +25,6 @@ def get_forecast_file_name(params, list_files):
     """
     # Number of days to look back at if forecast file does not exist for current day
     MAX_DAYS = 15
-
-    forecast_regex = "data-mean_" + ar.utcnow().to("America/New_York").date().strftime(
-        "%Y%m%d"
-    )
-    forecast_file = [s for s in list_files if forecast_regex in s]
-
-    # If forecast file does not exist for current day then look at previous day (upto 14 days ago)
-    if not len(forecast_file):
-        params.logger.info(
-            "CHIRPS-GEFS data does not exist for "
-            + ar.utcnow().to("America/New_York").date().strftime("%Y-%m-%d")
-        )
-        for day in range(1, MAX_DAYS):
-            forecast_regex = "data-mean_" + ar.utcnow().to("America/New_York").shift(
-                days=-day
-            ).date().strftime("%Y%m%d")
-            forecast_file = [s for s in list_files if forecast_regex in s]
-
-            # If data exists then break
-            if len(forecast_file):
-                params.logger.info(
-                    "Getting CHIRPS-GEFS data from "
-                    + ar.utcnow()
-                    .to("America/New_York")
-                    .shift(days=-day)
-                    .date()
-                    .strftime("%Y-%m-%d")
-                )
-                break
-
-    return forecast_file
-
-
-def get_forecast_file_name(params, list_files):
-    """
-
-    Args:
-        list_files:
-
-    Returns:
-
-    """
-    # Number of days to look back at if forecast file does not exist for current day
-    MAX_DAYS = 15
     current_day = ar.utcnow().date().strftime("%Y%m%d")
 
     forecast_regex = f"data-mean_{current_day}"

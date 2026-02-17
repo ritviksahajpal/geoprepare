@@ -125,10 +125,18 @@ class GeoMerge(base.BaseGeo):
         Merge all per-region/year EO CSV files into a single DataFrame.
         For each EO variable, concatenates all CSV files, then merges across
         variables on the static columns (country, region, region_id, year, doy).
+
+        AEF is handled specially: it has 64 columns (aef_1..aef_64) and no doy
+        dimension (annual data), so it is merged on (country, region, region_id, year).
         """
+        AEF_NUM_BANDS = 64
         df_result = None
 
-        for var in self.eo_model:
+        # Process daily vars before AEF so df_result has a doy column;
+        # AEF (annual, no doy) merges on the year-level subset.
+        vars_ordered = sorted(self.eo_model, key=lambda v: v == "aef")
+
+        for var in vars_ordered:
             crop_folder_name = "cr" if self.use_cropland_mask else self.crop
             path_var_files = (
                 self.dir_output
@@ -143,9 +151,18 @@ class GeoMerge(base.BaseGeo):
             if not var_files:
                 continue
 
+            # AEF: 64-band annual data (no doy column)
+            if var == "aef":
+                aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
+                read_cols = ["country", "region", "region_id", "year"] + aef_cols
+                merge_cols = ["country", "region", "region_id", "year"]
+            else:
+                read_cols = self.static_columns + [var]
+                merge_cols = self.static_columns
+
             # Read and concat all files for this variable in one shot
             var_frames = [
-                pd.read_csv(fl, usecols=self.static_columns + [var])
+                pd.read_csv(fl, usecols=read_cols)
                 for fl in var_files
             ]
 
@@ -154,9 +171,9 @@ class GeoMerge(base.BaseGeo):
 
             df_var = pd.concat(var_frames, ignore_index=True)
 
-            # Drop duplicate rows (same region/year/doy), keeping first non-NaN
+            # Drop duplicate rows, keeping first non-NaN
             df_var = (
-                df_var.groupby(self.static_columns, as_index=False)
+                df_var.groupby(merge_cols, as_index=False)
                 .first()
             )
 
@@ -166,8 +183,8 @@ class GeoMerge(base.BaseGeo):
             else:
                 df_result = pd.merge(
                     df_result, df_var,
-                    on=self.static_columns,
-                    how="outer",
+                    on=merge_cols,
+                    how="outer" if var != "aef" else "left",
                 )
 
         if df_result is None:
@@ -427,7 +444,19 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs["dekad"] = self.df_ccs["datetime"].dt.dayofyear // 10 + 1
 
         # 7. Move EO columns to the end of the dataframe, to make it more readable
-        self.move_columns_to_end(columns=self.eo_model)
+        # Expand "aef" to actual column names aef_1..aef_64
+        eo_columns = self._expand_eo_columns()
+        self.move_columns_to_end(columns=eo_columns)
+
+    def _expand_eo_columns(self):
+        """Expand 'aef' in eo_model to actual column names aef_1..aef_64."""
+        expanded = []
+        for var in self.eo_model:
+            if var == "aef":
+                expanded.extend([f"aef_{i}" for i in range(1, 65)])
+            else:
+                expanded.append(var)
+        return expanded
 
     def move_columns_to_end(self, columns=None):
         # Exclude elements from columns that are not in the dataframe
@@ -480,7 +509,7 @@ def process_combination(combination, path_config_file, parallel=False):
 
     # 6. Add static data, fill missing, add yield stats, etc.
     gm.add_static_information()
-    gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm.eo_model)
+    gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm._expand_eo_columns())
     # gm.df_ccs = gm.add_statistics()
 
     # Assign calendar_region from spatial overlay of admin units → EWCM regions
