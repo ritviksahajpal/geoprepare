@@ -333,7 +333,8 @@ def to_global(params, year, country):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     output_file = output_dir / f"aef_{year}_global.tif"
-    if output_file.exists():
+    redo = getattr(params, "redo", False)
+    if output_file.exists() and not redo:
         params.logger.info(f"Skipping {output_file} (already exists)")
         return
 
@@ -404,7 +405,8 @@ def compute_average_aef(params, country, years):
     out_dir = _country_output_dir(params.dir_intermed, country)
     avg_file = out_dir / "aef_avg_global.tif"
 
-    if avg_file.exists():
+    redo = getattr(params, "redo", False)
+    if avg_file.exists() and not redo:
         params.logger.info(f"Skipping {avg_file} (already exists)")
         return
 
@@ -501,9 +503,10 @@ def run(geoprep):
     logger.info(f"Years: {years_to_download}")
 
     # Check which countries actually need downloading/resampling
+    redo = getattr(geoprep, "redo", False)
     countries_to_process = [
         c for c in countries
-        if not _all_yearly_files_exist(geoprep.dir_intermed, c, years_to_download)
+        if redo or not _all_yearly_files_exist(geoprep.dir_intermed, c, years_to_download)
     ]
 
     if not countries_to_process:
