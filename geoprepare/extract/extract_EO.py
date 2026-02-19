@@ -18,6 +18,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 
 from .. import utils
+from ..georegion import get_boundary_col_mapping
 from .. import log as _log
 
 import logging as _logging
@@ -665,22 +666,10 @@ def build_combinations(params, skip_vars=None):
             engine="pyogrio",
         )
 
-        # Rename columns
-        df_cmask.rename(
-            columns={
-                "ADMIN0": "ADM0_NAME",
-                "ADMIN1": "ADM1_NAME",
-                "ADMIN2": "ADM2_NAME",
-                "name0": "ADM0_NAME",
-                "name1": "ADM1_NAME",
-                "name2": "ADM2_NAME",
-                "FNID": "ADM_ID",  # for harvest stat shapefile
-                "num_ID": "ADM_ID",  # for EWCM and AMIS shapefiles
-                "asap1_id": "ADM_ID",
-                "asap0_id": "ADM0_ID",
-            },
-            inplace=True,
-        )
+        # Rename columns using config-driven mapping
+        shp_boundary = params.parser.get(country, "shp_boundary")
+        col_rename = get_boundary_col_mapping(params.parser, shp_boundary)
+        df_cmask.rename(columns=col_rename, inplace=True)
 
         # Validate that required columns exist after rename
         required_cols = ["ADM0_NAME", "ADM1_NAME", "ADM_ID"]

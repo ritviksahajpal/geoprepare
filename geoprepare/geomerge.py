@@ -500,6 +500,8 @@ def process_combination(combination, path_config_file, parallel=False):
     output_file = dir_output / f"{country}_{crop}_s{growing_season}.csv"
 
     # 4. Check if crop calendar info exists
+    if gm.df_calendar.empty or "country" not in gm.df_calendar.columns:
+        return (combination, False)
     df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
     if df_cal.empty:
         return (combination, False)  # No data, skip

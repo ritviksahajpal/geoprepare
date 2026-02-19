@@ -31,19 +31,63 @@ log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-#  Column names (match your shapefiles)
+#  Column names — region shapefile columns
 # ---------------------------------------------------------------------------
-# adm_shapefile.shp
-ADM_COUNTRY_COL = "ADMIN0"
-ADM_ADMIN1_COL = "ADMIN1"
-ADM_ADMIN2_COL = "ADMIN2"
-ADM_ID_COL = "FNID"
-
-# EWCM_Regions_v39.shp
 REG_COUNTRY_COL = "ADM0_NAME"
 REG_NAME_COL = "Name"
 REG_KEY_COL = "Key"
 REG_KEY2_COL = "Key2"
+
+# Standard internal column names (what the code expects after rename)
+_STD_ADM0 = "ADM0_NAME"
+_STD_ADM1 = "ADM1_NAME"
+_STD_ADM2 = "ADM2_NAME"
+_STD_ID = "ADM_ID"
+
+
+def get_boundary_col_mapping(parser, boundary_file):
+    """Get source→standard column rename mapping for a boundary file.
+
+    Looks up a config section named after the file stem (e.g. ``adm_shapefile``
+    for ``adm_shapefile.gpkg``) and reads ``adm0_col``, ``adm1_col``,
+    ``adm2_col`` (optional), and ``id_col`` (optional).
+
+    Returns a dict suitable for ``GeoDataFrame.rename(columns=...)``.
+
+    If no config section exists, falls back to the hardcoded alias map
+    for backward compatibility.
+    """
+    stem = Path(boundary_file).stem
+    rename = {}
+
+    if parser.has_section(stem):
+        adm0 = parser.get(stem, "adm0_col", fallback=None)
+        adm1 = parser.get(stem, "adm1_col", fallback=None)
+        adm2 = parser.get(stem, "adm2_col", fallback=None)
+        id_col = parser.get(stem, "id_col", fallback=None)
+
+        if adm0 and adm0 != _STD_ADM0:
+            rename[adm0] = _STD_ADM0
+        if adm1 and adm1 != _STD_ADM1:
+            rename[adm1] = _STD_ADM1
+        if adm2 and adm2 != _STD_ADM2:
+            rename[adm2] = _STD_ADM2
+        if id_col and id_col != _STD_ID:
+            rename[id_col] = _STD_ID
+    else:
+        # Fallback: hardcoded alias map (backward compat)
+        rename = {
+            "ADMIN0": _STD_ADM0,
+            "ADMIN1": _STD_ADM1,
+            "ADMIN2": _STD_ADM2,
+            "name0": _STD_ADM0,
+            "name1": _STD_ADM1,
+            "FNID": _STD_ID,
+            "num_ID": _STD_ID,
+            "asap1_id": _STD_ID,
+        }
+
+    return rename
 
 
 def _normalize(s):
@@ -67,18 +111,24 @@ def _file_hash(path):
 
 
 def _admin_name_col(scale, columns):
-    """Choose ADMIN2 or ADMIN1 column based on scale and availability."""
-    if scale == "admin_2" and ADM_ADMIN2_COL in columns:
-        return ADM_ADMIN2_COL
-    return ADM_ADMIN1_COL
+    """Choose ADM2_NAME or ADM1_NAME column based on scale and availability."""
+    if scale == "admin_2" and _STD_ADM2 in columns:
+        return _STD_ADM2
+    return _STD_ADM1
 
 
 # ---------------------------------------------------------------------------
 #  Shared data loading
 # ---------------------------------------------------------------------------
-def _load_country_data(path_admin_shp, path_region_shp, country):
+def _load_country_data(path_admin_shp, path_region_shp, country, parser=None):
     """
     Load and filter admin and region shapefiles for a single country.
+
+    Parameters
+    ----------
+    parser : ConfigParser, optional
+        If provided, uses config-driven column mapping via
+        get_boundary_col_mapping(). Falls back to hardcoded aliases otherwise.
 
     Returns
     -------
@@ -92,32 +142,30 @@ def _load_country_data(path_admin_shp, path_region_shp, country):
     gdf_admin = gp.read_file(Path(path_admin_shp), engine="pyogrio")
     gdf_region = gp.read_file(Path(path_region_shp), engine="pyogrio")
 
-    # Standardise column names coming from different shapefile variants
-    # Use case-insensitive matching to handle varying column casing across files
-    _alias_map = {
-        "adm0_name": ADM_COUNTRY_COL,
-        "admin0": ADM_COUNTRY_COL,
-        "adm1_name": ADM_ADMIN1_COL,
-        "admin1": ADM_ADMIN1_COL,
-        "adm2_name": ADM_ADMIN2_COL,
-        "admin2": ADM_ADMIN2_COL,
-        "fnid": ADM_ID_COL,
-        "num_id": ADM_ID_COL,
-        "name0": ADM_COUNTRY_COL,
-        "name1": ADM_ADMIN1_COL,
-        "asap1_id": ADM_ID_COL,
-    }
-
-    col_rename = {}
-    for col in gdf_admin.columns:
-        target = _alias_map.get(col.lower())
-        if target and col != target:
-            col_rename[col] = target
+    # Standardise column names to _STD_ADM0, _STD_ADM1, _STD_ADM2, _STD_ID
+    col_rename = get_boundary_col_mapping(parser, path_admin_shp) if parser else {}
+    if not col_rename:
+        # Fallback: hardcoded alias map (no config available)
+        _alias_map = {
+            "ADMIN0": _STD_ADM0,
+            "ADMIN1": _STD_ADM1,
+            "ADMIN2": _STD_ADM2,
+            "name0": _STD_ADM0,
+            "name1": _STD_ADM1,
+            "FNID": _STD_ID,
+            "num_ID": _STD_ID,
+            "asap1_id": _STD_ID,
+        }
+        col_rename = {
+            col: _alias_map[col]
+            for col in gdf_admin.columns
+            if col in _alias_map and col != _alias_map[col]
+        }
     gdf_admin.rename(columns=col_rename, inplace=True)
 
     # Filter to the requested country
     country_norm = _normalize(country)
-    mask_admin = gdf_admin[ADM_COUNTRY_COL].apply(_normalize) == country_norm
+    mask_admin = gdf_admin[_STD_ADM0].apply(_normalize) == country_norm
     gdf_admin = gdf_admin[mask_admin].copy()
 
     mask_region = gdf_region[REG_COUNTRY_COL].apply(_normalize) == country_norm
@@ -155,6 +203,7 @@ def assign_admin_to_regions(
     country,
     scale="admin_1",
     dir_cache=None,
+    parser=None,
 ):
     """
     Assign each admin unit to the EWCM region with the largest overlap area.
@@ -206,7 +255,7 @@ def assign_admin_to_regions(
     # 2. Load and filter shapefiles
     # ------------------------------------------------------------------
     gdf_admin, gdf_region = _load_country_data(
-        path_admin_shp, path_region_shp, country
+        path_admin_shp, path_region_shp, country, parser=parser
     )
 
     # ------------------------------------------------------------------
@@ -223,9 +272,9 @@ def assign_admin_to_regions(
     # 4. Overlay (intersection) — produces one row per admin×region pair
     #    that actually overlaps
     # ------------------------------------------------------------------
-    admin_cols = [ADM_ID_COL, ADM_ADMIN1_COL]
-    if ADM_ADMIN2_COL in gdf_admin_ea.columns:
-        admin_cols.append(ADM_ADMIN2_COL)
+    admin_cols = [_STD_ID, _STD_ADM1]
+    if _STD_ADM2 in gdf_admin_ea.columns:
+        admin_cols.append(_STD_ADM2)
     admin_cols.append("_admin_area")
 
     region_cols = [REG_NAME_COL, REG_KEY_COL]
@@ -252,7 +301,7 @@ def assign_admin_to_regions(
         gdf_overlay["_overlap_area"] / gdf_overlay["_admin_area"]
     )
 
-    idx_max = gdf_overlay.groupby(ADM_ID_COL)["_overlap_area"].idxmax()
+    idx_max = gdf_overlay.groupby(_STD_ID)["_overlap_area"].idxmax()
     df_best = gdf_overlay.loc[idx_max].copy()
 
     # ------------------------------------------------------------------
@@ -265,7 +314,7 @@ def assign_admin_to_regions(
     # ------------------------------------------------------------------
     result = pd.DataFrame(
         {
-            "admin_id": df_best[ADM_ID_COL].values,
+            "admin_id": df_best[_STD_ID].values,
             "admin_name": df_best[name_col].apply(_normalize).values,
             "region_name": df_best[REG_NAME_COL].values,
             "region_key": df_best[REG_KEY_COL].values,
@@ -290,10 +339,10 @@ def assign_admin_to_regions(
 
     if n_unmatched > 0:
         matched_ids = set(result["admin_id"])
-        missing = gdf_admin[~gdf_admin[ADM_ID_COL].isin(matched_ids)]
+        missing = gdf_admin[~gdf_admin[_STD_ID].isin(matched_ids)]
         log.warning(
             f"{n_unmatched}/{n_total} admin units had no overlap with any "
-            f"region: {missing[ADM_ID_COL].tolist()}"
+            f"region: {missing[_STD_ID].tolist()}"
         )
 
     low_overlap = result[result["overlap_pct"] < 0.5]
@@ -324,6 +373,7 @@ def get_region_lookup(
     country,
     scale="admin_1",
     dir_cache=None,
+    parser=None,
 ):
     """
     Return a dict mapping admin_name → region_name (calendar_region).
@@ -333,7 +383,7 @@ def get_region_lookup(
         df["calendar_region"] = df["region"].map(lookup)
     """
     df = assign_admin_to_regions(
-        path_admin_shp, path_region_shp, country, scale, dir_cache
+        path_admin_shp, path_region_shp, country, scale, dir_cache, parser=parser
     )
     return dict(zip(df["admin_name"], df["region_name"].apply(_normalize)))
 
@@ -347,6 +397,7 @@ def plot_region_assignments(
     country,
     scale="admin_1",
     dir_cache=None,
+    parser=None,
     path_output=None,
     redo=False,
     ncols=3,
@@ -396,12 +447,12 @@ def plot_region_assignments(
 
     # Get assignment mapping (may hit cache)
     df_assignment = assign_admin_to_regions(
-        path_admin_shp, path_region_shp, country, scale, dir_cache
+        path_admin_shp, path_region_shp, country, scale, dir_cache, parser=parser
     )
 
     # Load geometries for plotting
     gdf_admin, gdf_region = _load_country_data(
-        path_admin_shp, path_region_shp, country
+        path_admin_shp, path_region_shp, country, parser=parser
     )
 
     # Add normalized admin name for joining
@@ -599,6 +650,7 @@ def plot_all_countries(
                 country=country,
                 scale=info["scale"],
                 dir_cache=dir_cache,
+                parser=parser,
                 path_output=out_path,
                 redo=redo,
                 **plot_kwargs,
