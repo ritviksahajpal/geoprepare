@@ -658,16 +658,18 @@ def build_combinations(params, skip_vars=None):
         crops = ast.literal_eval(params.parser.get(country, "crops"))
         vars_list = [v for v in ast.literal_eval(params.parser.get(category, "eo_model"))
                      if (country, v) not in skip_vars]
-        scales = ast.literal_eval(params.parser.get(country, "scales"))
+        admin_level = params.parser.get(country, "admin_level")
+        scales = [admin_level]
 
         # Load your GeoDataFrame
+        boundary_file = params.parser.get(country, "boundary_file")
         df_cmask = gp.read_file(
-            params.dir_boundary_files / params.parser.get(country, "shp_boundary"),
+            params.dir_boundary_files / boundary_file,
             engine="pyogrio",
         )
 
         # Rename columns using config-driven mapping
-        shp_boundary = params.parser.get(country, "shp_boundary")
+        shp_boundary = boundary_file
         col_rename = get_boundary_col_mapping(params.parser, shp_boundary)
         df_cmask.rename(columns=col_rename, inplace=True)
 

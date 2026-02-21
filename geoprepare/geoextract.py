@@ -30,7 +30,7 @@ class GeoExtract(base.BaseGeo):
         Returns:
 
         """
-        self.project_name = self.parser.get("PROJECT", "project_name")
+        self.project_name = self.parser.get("DEFAULT", "project_name")
         super().parse_config(self.project_name, section="DEFAULT")
         self.method = self.parser.get("DEFAULT", "method")
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))

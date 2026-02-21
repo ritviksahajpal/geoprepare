@@ -613,13 +613,12 @@ def plot_all_countries(
 
         # Scale (first entry in the scales list)
         try:
-            scales = ast.literal_eval(parser.get(section, "scales"))
-            scale = scales[0] if scales else "admin_1"
+            scale = parser.get(section, "admin_level")
         except Exception:
             scale = "admin_1"
 
         # Per-country shapefile paths (same construction as geomerge.py)
-        shp_boundary = parser.get(section, "shp_boundary")
+        shp_boundary = parser.get(section, "boundary_file")
         shp_region = parser.get(section, "shp_region")
 
         ewcm_countries[section] = {

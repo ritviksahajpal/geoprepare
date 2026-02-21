@@ -88,23 +88,20 @@ Additional utilities:
 
 ## Usage
 
+```python
+config_dir = "/path/to/config"  # full path to your config directory
+
+cfg_geoprepare = [f"{config_dir}/geobase.txt", f"{config_dir}/countries.txt", f"{config_dir}/crops.txt", f"{config_dir}/geoextract.txt"]
+```
+
 ### 1. Download data (`geodownload`)
 
 Downloads and preprocesses global EO datasets. Only requires `geobase.txt`. The `[DATASETS]` section controls which datasets are downloaded. Each dataset is processed to global 0.05° TIF files in `dir_intermed`.
 
 ```python
 from geoprepare import geodownload
-
-geodownload.run([r"PATH_TO_geobase.txt"])
+geodownload.run([f"{config_dir}/geobase.txt"])
 ```
-
-**What it does:**
-- Iterates over datasets listed in `[DATASETS] datasets`
-- Downloads raw data from each source to `dir_download`
-- Processes to standardized global TIF files in `dir_intermed`
-- Automatically skips files that already exist (re-downloads only the current year if before March 1st)
-
-**AEF dataset:** When `AEF` is in the datasets list, geodownload reads `countries` from `geoextract.txt` (must be in the same directory as `geobase.txt`) to determine which geographic tiles to download.
 
 ### 2. Validate downloads (`geocheck`)
 
@@ -112,78 +109,55 @@ Checks that all expected TIF files exist in `dir_intermed` and are non-empty. Wr
 
 ```python
 from geoprepare import geocheck
-
-# Basic check (file existence only)
-geocheck.run([r"PATH_TO_geobase.txt"])
-
-# With GDAL validation (slower, checks file readability)
-geocheck.run([r"PATH_TO_geobase.txt"], gdal_check=True)
+geocheck.run([f"{config_dir}/geobase.txt"])
 ```
-
-Supported datasets for checking: AEF, CHIRPS, NDVI, VIIRS, ESI, CPC, LST, NSIDC.
 
 ### 3. Extract crop masks and EO data (`geoextract`)
 
-Extracts EO variable statistics (mean, median, etc.) for each admin region, crop, and growing season. Requires both `geobase.txt` and `geoextract.txt`.
+Extracts EO variable statistics (mean, median, etc.) for each admin region, crop, and growing season.
 
 ```python
 from geoprepare import geoextract
-
-geoextract.run([r"PATH_TO_geobase.txt", r"PATH_TO_geoextract.txt"])
+geoextract.run(cfg_geoprepare)
 ```
-
-**What it does:**
-- For each country in `[DEFAULT] countries`:
-  - Reads crop mask, admin boundary shapefile, and crop calendar
-  - For each crop/scale/season combination, extracts EO statistics per admin region
-  - Writes per-region CSV files to `dir_output/{project_name}/crop_t{threshold}/{country}/{scale}/{crop}/{eo_var}/`
-- Generates EWCM region-assignment plots in `dir_output/{project_name}/region_plots/`
-
-**Key config values used:**
-- `[DEFAULT] countries` - which countries to process
-- `[PROJECT] project_name` - output subdirectory name (e.g. `FEWSNET`)
-- Per-country sections - `category`, `scales`, `crops`, `growing_seasons`, `shp_boundary`, `calendar_file`
-- `[EWCM]` / `[AMIS]` - `eo_model` (list of EO variables to extract), `calendar_file`
 
 ### 4. Merge extracted data (`geomerge`)
 
-Merges per-region/year EO CSV files into a single CSV per country-crop-season combination. Adds crop calendar info, harvest season assignment, and region-to-EWCM-region mapping.
+Merges per-region/year EO CSV files into a single CSV per country-crop-season combination.
 
 ```python
 from geoprepare import geomerge
-
-geomerge.run([r"PATH_TO_geobase.txt", r"PATH_TO_geoextract.txt"])
+geomerge.run(cfg_geoprepare)
 ```
 
-**What it does:**
-- For each country/scale/crop/season combination:
-  - Merges all EO variable CSV files on `(country, region, region_id, year, doy)`
-  - Adds datetime, crop calendar stages, harvest season assignment
-  - Adds hemisphere/zone info and average temperature
-  - Scales NDVI values: `(ndvi - 50) / 200`
-  - Writes output to `dir_output/{project_name}/crop_t{threshold}/{country}/{country}_{crop}_s{season}.csv`
-- Supports parallel execution via `[PROJECT] parallel_merge = True`
+## Config files
 
-## Configuration files
+| File | Purpose | Used by |
+|------|---------|---------|
+| [`geobase.txt`](#geobasetxt) | Paths, dataset settings, boundary file column mappings, logging | both |
+| [`countries.txt`](#countriestxt) | Per-country config (boundary files, admin levels, seasons, crops) | both |
+| [`crops.txt`](#cropstxt) | Crop masks, calendar categories (EWCM, AMIS), EO model variables | both |
+| [`geoextract.txt`](#geoextracttxt) | Extraction-only settings (method, threshold, parallelism) | geoprepare |
+| [`geocif.txt`](#geociftxt) | Indices/ML/agmet settings, country overrides, runtime selections | geocif |
 
-geoprepare uses INI-style configuration files parsed with Python's `ConfigParser`. When multiple files are passed, they are read in order and **later files override earlier ones** for duplicate keys.
+**Order matters:** Config files are loaded left-to-right. When the same key appears in multiple files, the last file wins. The tool-specific file (`geoextract.txt` or `geocif.txt`) must be last so its `[DEFAULT]` values (countries, method, etc.) override the shared defaults in `countries.txt`.
 
-Three configuration files are used:
-- **`geobase.txt`** - Paths, dataset settings, logging (required by all stages)
-- **`geoextract.txt`** - Per-country extraction settings, crop masks, calendars (required by extract/merge)
-- **`geocif.txt`** - geocif-specific settings, ML configs (optional, only needed for geocif pipeline)
+```python
+config_dir = "/path/to/config"  # full path to your config directory
+
+cfg_geoprepare = [f"{config_dir}/geobase.txt", f"{config_dir}/countries.txt", f"{config_dir}/crops.txt", f"{config_dir}/geoextract.txt"]
+cfg_geocif = [f"{config_dir}/geobase.txt", f"{config_dir}/countries.txt", f"{config_dir}/crops.txt", f"{config_dir}/geocif.txt"]
+```
+
+## Config file documentation
 
 ### geobase.txt
 
-Defines directory structure, dataset-specific settings, and global defaults.
-
-> **NOTE:** `dir_base` needs to be changed to your specific directory structure
+Shared paths, dataset settings, boundary file column mappings, and logging. All directory paths are derived from `dir_base`.
 
 ```ini
 [DATASETS]
-datasets = ['CPC']
-; Available: 'NDVI', 'AGERA5', 'CHIRPS', 'CPC', 'CHIRPS-GEFS', 'ESI', 'NSIDC',
-;            'FLDAS', 'VHI', 'VIIRS', 'AVHRR', 'LST', 'SOIL-MOISTURE', 'FPAR'
+datasets = ['CHIRPS', 'CPC', 'NDVI', 'ESI', 'NSIDC', 'AEF']
 
 [PATHS]
 dir_base = /gpfs/data1/cmongp1/GEO
@@ -193,6 +167,8 @@ dir_logs = ${dir_base}/logs
 dir_download = ${dir_inputs}/download
 dir_intermed = ${dir_inputs}/intermed
 dir_metadata = ${dir_inputs}/metadata
+dir_condition = ${dir_inputs}/crop_condition
+dir_crop_inputs = ${dir_condition}/crop_t20
 
 dir_boundary_files = ${dir_metadata}/boundary_files
 dir_crop_calendars = ${dir_metadata}/crop_calendars
@@ -201,6 +177,8 @@ dir_images = ${dir_metadata}/images
 dir_production_statistics = ${dir_metadata}/production_statistics
 
 dir_output = ${dir_base}/outputs
+
+; --- Per-dataset settings ---
 
 [AEF]
 ; AlphaEarth Foundations satellite embeddings (2018-2024, 64 channels, 10m)
@@ -219,6 +197,9 @@ fill_value = -2147483648
 ; CHIRPS version: 'v2' for CHIRPS-2.0 or 'v3' for CHIRPS-3.0
 version = v3
 ; Disaggregation method for v3 only: 'sat' (IMERG) or 'rnl' (ERA5)
+; - 'sat': Uses NASA IMERG Late V07 for daily downscaling (available from 1998, 0.1° resolution)
+; - 'rnl': Uses ECMWF ERA5 for daily downscaling (full time coverage, 0.25° resolution)
+; Note: Prelim data is only available with 'sat' due to ERA5 latency (5-6 days)
 disagg = sat
 
 [CHIRPS-GEFS]
@@ -244,17 +225,53 @@ product = MOD09CMG
 vi = ndvi
 scale_glam = False
 scale_mark = True
-print_missing = False
 
 [VIIRS]
 product = VNP09CMG
 vi = ndvi
 scale_glam = False
 scale_mark = True
-print_missing = False
+
+[NSIDC]
+
+[VHI]
+data_historic = https://www.star.nesdis.noaa.gov/data/pub0018/VHPdata4users/VHP_4km_GeoTiff/
+data_current = https://www.star.nesdis.noaa.gov/pub/corp/scsb/wguo/data/Blended_VH_4km/geo_TIFF/
+
+; --- Boundary file column mappings ---
+; Section name = filename stem (without extension)
+; Maps source shapefile columns to standard internal names:
+;   adm0_col  -> ADM0_NAME (country)
+;   adm1_col  -> ADM1_NAME (admin level 1)
+;   adm2_col  -> ADM2_NAME (admin level 2, optional)
+;   id_col    -> ADM_ID    (unique feature ID)
+
+[adm_shapefile]
+adm0_col = ADMIN0
+adm1_col = ADMIN1
+adm2_col = ADMIN2
+id_col = FNID
+
+[gaul1_asap_v04]
+adm0_col = name0
+adm1_col = name1
+id_col = asap1_id
+
+[EWCM_Level_1]
+adm0_col = ADM0_NAME
+adm1_col = ADM1_NAME
+id_col = num_ID
+
+; Add more [boundary_stem] sections as needed for other shapefiles
 
 [LOGGING]
 level = ERROR
+
+[POOCH]
+; URL to download metadata.zip (boundary files, crop masks, calendars, etc.)
+; NOTE: Set this to your own hosted URL (e.g. Dropbox, S3, etc.)
+url = <your_metadata_zip_url>
+enabled = True
 
 [DEFAULT]
 logfile = log
@@ -264,27 +281,27 @@ start_year = 2001
 end_year = 2026
 ```
 
-### geoextract.txt
+### countries.txt
 
-Defines per-country extraction settings, crop masks, calendar files, and EO variables.
-
-> **NOTE:** For each country add a new section. Countries are organized into two categories: **AMIS** (global monitoring) and **EWCM** (early warning crop monitor).
-
-**Key settings:**
-- `countries`: List of countries to process (in `[DEFAULT]`)
-- `category`: `AMIS` or `EWCM` - determines calendar file and EO model
-- `scales`: Admin level for extraction (`admin_1` or `admin_2`)
-- `crops`: List of crops to process (full names: `maize`, `sorghum`, `millet`, `rice`, `winter_wheat`, `spring_wheat`, `teff`, `soybean`)
-- `growing_seasons`: List of seasons (`[1]` for primary, `[1, 2]` for primary + secondary)
-- `shp_boundary`: Shapefile for admin boundaries
-- `calendar_file`: Crop calendar Excel file
-- `mask`: Cropland/crop-type mask filename
-- `threshold` / `floor` / `ceil`: Mask thresholding settings
-- `eo_model`: List of EO datasets to extract
-- `redo`: Redo processing for all days (`True`) or only new data (`False`)
+Single source of truth for per-country config. Shared by both geoprepare and geocif.
 
 ```ini
-;;; AMIS countries ;;;
+[DEFAULT]
+boundary_file = gaul1_asap_v04.shp
+admin_level = admin_1
+seasons = [1]
+crops = ['maize']
+category = AMIS
+use_cropland_mask = False
+calendar_file = crop_calendar.csv
+mask = cropland_v9.tif
+statistics_file = statistics.csv
+zone_file = countries.csv
+shp_region = GlobalCM_Regions_2025-11.shp
+eo_model = ['aef', 'nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
+annotate_regions = False
+
+;;; AMIS countries (inherit from DEFAULT, override crops if needed) ;;;
 [argentina]
 crops = ['soybean', 'winter_wheat', 'maize']
 
@@ -294,118 +311,184 @@ crops = ['maize', 'soybean', 'winter_wheat', 'rice']
 [india]
 crops = ['rice', 'maize', 'winter_wheat', 'soybean']
 
-; ... (additional AMIS countries)
+[united_states_of_america]
+crops = ['rice', 'maize', 'winter_wheat']
 
-;;; EWCM countries ;;;
+; ... (40+ AMIS countries, most inherit DEFAULT crops)
+
+;;; EWCM countries (full per-country config) ;;;
 [kenya]
 category = EWCM
-scales = ['admin_1']
-growing_seasons = [1, 2]
+admin_level = admin_1
+seasons = [1, 2]
 use_cropland_mask = True
-shp_boundary = adm_shapefile.gpkg
+boundary_file = adm_shapefile.gpkg
 calendar_file = EWCM_2025-04-21.xlsx
 crops = ['maize']
 
-[zambia]
+[malawi]
 category = EWCM
-scales = ['admin_2']
-growing_seasons = [1]
+admin_level = admin_2
 use_cropland_mask = True
-shp_boundary = adm_shapefile.gpkg
+boundary_file = adm_shapefile.gpkg
 calendar_file = EWCM_2025-04-21.xlsx
 crops = ['maize']
 
-; ... (additional EWCM countries)
+[ethiopia]
+category = EWCM
+admin_level = admin_2
+use_cropland_mask = True
+boundary_file = adm_shapefile.gpkg
+calendar_file = EWCM_2025-04-21.xlsx
+crops = ['maize', 'sorghum', 'millet', 'rice', 'winter_wheat', 'teff']
 
+; ... (30+ EWCM countries, mostly Sub-Saharan Africa)
+
+;;; Other countries (custom boundary files, non-standard setups) ;;;
+[nepal]
+crops = ['rice']
+boundary_file = hermes_NPL_new_wgs_2.shp
+
+[illinois]
+admin_level = admin_3
+boundary_file = illinois_counties.shp
+```
+
+### crops.txt
+
+Crop mask filenames and calendar category definitions. Calendar categories define the EO variables and crop calendars used for each category of countries.
+
+```ini
 ;;; Crop masks ;;;
-[maize]
-mask = Percent_Maize.tif
-
 [winter_wheat]
 mask = Percent_Winter_Wheat.tif
 
-[rice]
-mask = Percent_Rice.tif
+[spring_wheat]
+mask = Percent_Spring_Wheat.tif
+
+[maize]
+mask = Percent_Maize.tif
 
 [soybean]
 mask = Percent_Soybean.tif
 
-; ... (additional crops)
+[rice]
+mask = Percent_Rice.tif
+
+[teff]
+mask = cropland_v9.tif
+
+[sorghum]
+mask = cropland_v9.tif
+
+[millet]
+mask = cropland_v9.tif
 
 ;;; Calendar categories ;;;
 [EWCM]
-calendar_file = EWCM_2025-04-21.xlsx
-eo_model = ['nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
+use_cropland_mask = True
+shp_boundary = adm_shapefile.gpkg
+calendar_file = EWCM_2026-01-05.xlsx
+crops = ['maize', 'sorghum', 'millet', 'rice', 'winter_wheat', 'teff']
+growing_seasons = [1]
+eo_model = ['aef', 'nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
 
 [AMIS]
-calendar_file = AMISCM_2025-04-21.xlsx
+calendar_file = AMISCM_2026-01-05.xlsx
+```
 
+### geoextract.txt
+
+Extraction-only settings for geoprepare. Loaded last so its `[DEFAULT]` overrides shared defaults.
+
+```ini
 [DEFAULT]
+project_name = geocif
 method = JRC
-redo = True
+redo = False
 threshold = True
 floor = 20
 ceil = 90
-countries = ["kenya"]
-crops = ['maize']
-category = AMIS
-scales = ['admin_1']
-growing_seasons = [1]
-mask = cropland_v9.tif
-use_cropland_mask = False
-shp_boundary = gaul1_asap_v04.shp
-statistics_file = statistics.csv
-zone_file = countries.csv
-eo_model = ['aef', 'nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
+countries = ["malawi"]
+forecast_seasons = [2022]
 
 [PROJECT]
-project_name = FEWSNET
 parallel_extract = True
 parallel_merge = False
 ```
 
-### geocif.txt (optional)
+### geocif.txt
 
-Only needed when running the geocif pipeline. Adds per-country geocif settings, ML model configuration, and overrides `[DEFAULT]` values like `countries`, `method`, and `project_name`.
-
-**Key overrides when geocif.txt is loaded:**
-- `countries` changes from geoextract.txt's list to geocif's list
-- `method` changes from `JRC` to `monthly_r`
-- `project_name` in `[DEFAULT]` becomes `geocif` (but `[PROJECT] project_name` stays `FEWSNET`)
+Indices, ML, and agmet settings for geocif. Country overrides go here when geocif needs different values than countries.txt (e.g., a subset of crops). Its `[DEFAULT]` section is loaded last and overrides shared defaults for geocif runs.
 
 ```ini
 [AGMET]
 eo_plot = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'esi_4wk', 'nsidc_surface', 'nsidc_rootzone']
+logo_harvest = harvest.png
+logo_geoglam = geoglam.png
 
-;;; Per-country geocif settings ;;;
-[zambia]
+;;; Country overrides (only where geocif differs from countries.txt) ;;;
+[ethiopia]
+crops = ['winter_wheat']
+
+[bangladesh]
+crops = ['rice']
+admin_level = admin_2
+boundary_file = bangladesh.shp
+
+[india]
+crops = ['soybean', 'maize', 'rice']
+
+[somalia]
 crops = ['maize']
-admin_zone = admin_2
-boundary_file = adm_shapefile.gpkg
 
-[malawi]
-crops = ['maize']
-admin_zone = admin_2
-boundary_file = adm_shapefile.gpkg
+[ukraine]
+crops = ['winter_wheat', 'maize']
 
-; ... (additional countries)
+;;; ML model definitions ;;;
+[catboost]
+ML_model = True
 
-;;; ML model settings ;;;
+[linear]
+ml_model = True
+
+[analog]
+ML_model = False
+
+[median]
+ML_model = False
+
+; ... (additional models: gam, ngboost, tabpfn, desreg, cubist, etc.)
+
 [ML]
 model_type = REGRESSION
 target = Yield (tn per ha)
-panel_model = True
+feature_selection = BorutaPy
 lag_years = 3
-; ... (see geocif.txt for full ML configuration)
+panel_model = True
+panel_model_region = Country
+median_years = 5
+lag_yield_as_feature = True
+run_latest_time_period = True
+run_every_time_period = 3
+cat_features = ["Harvest Year", "Region_ID", "Region"]
+loocv_var = Harvest Year
+
+[LOGGING]
+log_level = INFO
 
 [DEFAULT]
 data_source = harvest
 method = monthly_r
 project_name = geocif
-countries = ["zambia", "malawi", "south_africa", "madagascar", "mozambique", "angola", "zimbabwe"]
+countries = ["kenya"]
 crops = ['maize']
-admin_zone = admin_1
+admin_level = admin_1
 models = ['catboost']
+seasons = [1]
+threshold = True
+floor = 20
+input_file_path = ${PATHS:dir_crop_inputs}/processed
 ```
 
 ## Supported datasets
@@ -503,5 +586,5 @@ password = pypi-YOUR_API_TOKEN_HERE
 ```
 
 ## Credits
-This project was supported by was supported by NASA Applied Sciences Grant No. 80NSSC17K0625 through the NASA Harvest Consortium,
-and the NASA Acres Consortium under NASA Grant #80NSSC23M0034
+
+This project was supported by NASA Applied Sciences Grant No. 80NSSC17K0625 through the NASA Harvest Consortium, and the NASA Acres Consortium under NASA Grant #80NSSC23M0034.

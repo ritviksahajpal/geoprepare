@@ -101,10 +101,10 @@ class GeoMerge(base.BaseGeo):
         all_combinations = []
 
         for country in self.countries:
-            self.scales = ast.literal_eval(self.parser.get(country, "scales"))
+            self.scales = [self.parser.get(country, "admin_level")]
             self.crops = ast.literal_eval(self.parser.get(country, "crops"))
             self.growing_seasons = ast.literal_eval(
-                self.parser.get(country, "growing_seasons")
+                self.parser.get(country, "seasons")
             )
 
             for scale in self.scales:
@@ -515,7 +515,7 @@ def process_combination(combination, path_config_file, parallel=False):
     # gm.df_ccs = gm.add_statistics()
 
     # Assign calendar_region from spatial overlay of admin units → EWCM regions
-    path_admin_shp = gm.dir_boundary_files / gm.parser.get(country, "shp_boundary")
+    path_admin_shp = gm.dir_boundary_files / gm.parser.get(country, "boundary_file")
     path_region_shp = gm.dir_boundary_files / gm.parser.get(country, "shp_region")
     region_lookup = georegion.get_region_lookup(
         path_admin_shp=path_admin_shp,
