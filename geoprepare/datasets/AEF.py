@@ -248,6 +248,7 @@ def _download_file_wrapper(args):
 def download_aef_tiles(
     matching_tiles: gpd.GeoDataFrame,
     output_dir: Path,
+    country: str = "",
     download_vrt: bool = True,
     overwrite: bool = False,
     parallel_process: bool = False,
@@ -259,6 +260,7 @@ def download_aef_tiles(
     Args:
         matching_tiles: GeoDataFrame of tiles to download
         output_dir: Directory to save downloaded files
+        country: Country name (for log messages)
         download_vrt: Whether to also download VRT files
         overwrite: Whether to overwrite existing files
         parallel_process: Whether to use parallel processing
@@ -281,7 +283,8 @@ def download_aef_tiles(
             local_vrt_path = output_dir / vrt_path
             downloads.append((vrt_url, local_vrt_path, overwrite))
 
-    logger.info(f"Downloading {len(downloads)} files...")
+    country_tag = f" for {country}" if country else ""
+    logger.info(f"Downloading {len(downloads)} files{country_tag}...")
 
     downloaded_files = []
     failed_downloads = []
@@ -571,6 +574,7 @@ def run(geoprep):
         downloaded_files, failed_downloads = download_aef_tiles(
             matching_tiles,
             download_dir,
+            country=country,
             download_vrt=download_vrt,
             overwrite=False,
             parallel_process=parallel_process,

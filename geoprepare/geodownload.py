@@ -42,9 +42,14 @@ def run(path_config_file=["geobase.txt"]):
     geoprep.parse_config("DEFAULT")
     datasets = ast.literal_eval(geoprep.parser.get("DATASETS", "datasets"))
 
+    import multiprocessing
+    num_cpus = max(1, int(multiprocessing.cpu_count() * geoprep.fraction_cpus))
+    parallel_info = f"Yes ({num_cpus} CPUs)" if geoprep.parallel_process else "No"
+
     utils.display_run_summary("GeoDownload Runner", [
         ("Datasets", datasets),
         ("Years", f"{geoprep.start_year} - {geoprep.end_year}"),
+        ("Parallel", parallel_info),
         ("Download dir", str(geoprep.dir_download)),
         ("Intermed dir", str(geoprep.dir_intermed)),
     ])
