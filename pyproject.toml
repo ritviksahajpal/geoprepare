@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprepare"
-version = "0.6.110"
+version = "0.6.111"
 description = "A Python package to prepare (download, extract, process input data) for GEOCIF and related models"
 readme = "README.md"
 license = {text = "MIT"}
@@ -128,7 +128,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.bumpversion]
-current_version = "0.6.110"
+current_version = "0.6.111"
 commit = true
 tag = true
 
