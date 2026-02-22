@@ -48,6 +48,8 @@ def run(path_config_file="geoextract.txt"):
     eo_vars = ast.literal_eval(obj.parser.get(obj.countries[0], "eo_model"))
     num_cpus = int(obj.fraction_cpus * os.cpu_count()) if obj.parallel_extract else 1
     utils.display_run_summary("GeoExtract Runner", [
+        ("Usage", "from geoprepare import geoextract; geoextract.run(cfg)"),
+        ("cfg", "[geobase.txt, countries.txt, crops.txt, geoextract.txt]"),
         ("Countries", obj.countries),
         ("Years", f"{obj.start_year} - {obj.end_year}"),
         ("EO vars", eo_vars),

@@ -47,6 +47,8 @@ def run(path_config_file=["geobase.txt"]):
     parallel_info = f"Yes ({num_cpus} CPUs)" if geoprep.parallel_process else "No"
 
     utils.display_run_summary("GeoDownload Runner", [
+        ("Usage", "from geoprepare import geodownload; geodownload.run(cfg)"),
+        ("cfg", "[geobase.txt]"),
         ("Datasets", datasets),
         ("Years", f"{geoprep.start_year} - {geoprep.end_year}"),
         ("Parallel", parallel_info),

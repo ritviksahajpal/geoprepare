@@ -241,6 +241,8 @@ def run(path_config_file=["geobase.txt"], gdal_check=False):
     datasets = ast.literal_eval(obj.parser.get("DATASETS", "datasets"))
 
     utils.display_run_summary("GeoCheck Runner", [
+        ("Usage", "from geoprepare import geocheck; geocheck.run(cfg)"),
+        ("cfg", "[geobase.txt]"),
         ("Datasets", datasets),
         ("Years", f"{obj.start_year} - {obj.end_year}"),
         ("Intermed dir", str(obj.dir_intermed)),

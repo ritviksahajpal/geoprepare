@@ -136,7 +136,8 @@ class GeoMerge(base.BaseGeo):
         # AEF (annual, no doy) merges on the year-level subset.
         vars_ordered = sorted(self.eo_model, key=lambda v: v == "aef")
 
-        for var in vars_ordered:
+        for var in tqdm(vars_ordered, desc=f"Merging EO variables ({self.country})"):
+            
             crop_folder_name = "cr" if self.use_cropland_mask else self.crop
             path_var_files = (
                 self.dir_output
@@ -488,7 +489,12 @@ def process_combination(combination, path_config_file, parallel=False):
         )
 
     # 1. Read statistics (you can pass read_all=True if needed)
-    gm.read_statistics(country, crop, growing_season, read_all=True)
+    gm.read_statistics(country, 
+                       crop, 
+                       growing_season, 
+                       read_calendar=True,
+                       read_statistics=False,
+                       read_countries=True)
 
     # 2. Initialize GeoMerge object with country, scale, crop, growing_season
     gm.country_information(country, scale, crop, growing_season)
@@ -501,10 +507,12 @@ def process_combination(combination, path_config_file, parallel=False):
 
     # 4. Check if crop calendar info exists
     if gm.df_calendar.empty or "country" not in gm.df_calendar.columns:
+        gm.logger.error(f"Skipping {combination}: calendar is empty or missing 'country' column (path: {gm.path_calendar})")
         return (combination, False)
     df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
     if df_cal.empty:
-        return (combination, False)  # No data, skip
+        gm.logger.error(f"Skipping {combination}: no calendar rows for country '{country}'")
+        return (combination, False)
 
     # 5. Merge all EO data
     gm.df_ccs = gm.merge_eo_files()
@@ -535,6 +543,7 @@ def process_combination(combination, path_config_file, parallel=False):
         gm.df_ccs.to_csv(output_file, index=False)
         return (combination, True)
     else:
+        gm.logger.error(f"Skipping {combination}: merged DataFrame is empty after processing")
         return (combination, False)
 
 
@@ -554,6 +563,8 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
 
     from . import utils
     utils.display_run_summary("GeoMerge Runner", [
+        ("Usage", "from geoprepare import geomerge; geomerge.run(cfg)"),
+        ("cfg", "[geobase.txt, countries.txt, crops.txt, geoextract.txt]"),
         ("Countries", gm_master.countries),
         ("Years", f"{gm_master.start_year} - {gm_master.end_year}"),
         ("Combinations", str(len(all_combinations))),
@@ -573,7 +584,10 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
             combo_result, success = process_combination(combo, path_config_file)
             results.append((combo_result, success))
         succeeded = sum(s for _, s in results)
-        gm_master.logger.info(f"[SEQUENTIAL] {succeeded}/{len(results)} combinations processed successfully.")
+        failed = [(c, s) for c, s in results if not s]
+        print(f"\nGeoMerge: {succeeded}/{len(results)} combinations produced output.")
+        if failed:
+            print(f"  Failed: {[c for c, _ in failed]}")
     else:
         # -- PARALLEL EXECUTION --
         results = []
@@ -601,7 +615,10 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
                     results.append((combo, False))
 
         succeeded = sum(s for _, s in results)
-        gm_master.logger.info(f"[PARALLEL] {succeeded}/{len(results)} combinations processed successfully.")
+        failed = [(c, s) for c, s in results if not s]
+        print(f"\nGeoMerge: {succeeded}/{len(results)} combinations produced output.")
+        if failed:
+            print(f"  Failed: {[c for c, _ in failed]}")
 
 
 if __name__ == "__main__":
