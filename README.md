@@ -136,7 +136,7 @@ geomerge.run(cfg_geoprepare)
 |------|---------|---------|
 | [`geobase.txt`](#geobasetxt) | Paths, dataset settings, boundary file column mappings, logging | both |
 | [`countries.txt`](#countriestxt) | Per-country config (boundary files, admin levels, seasons, crops) | both |
-| [`crops.txt`](#cropstxt) | Crop masks, calendar categories (EWCM, AMIS), EO model variables | both |
+| [`crops.txt`](#cropstxt) | Crop masks, calendar category settings (EWCM, AMIS) | both |
 | [`geoextract.txt`](#geoextracttxt) | Extraction-only settings (method, threshold, parallelism) | geoprepare |
 | [`geocif.txt`](#geociftxt) | Indices/ML/agmet settings, country overrides, runtime selections | geocif |
 
@@ -283,7 +283,7 @@ end_year = 2026
 
 ### countries.txt
 
-Single source of truth for per-country config. Shared by both geoprepare and geocif.
+Single source of truth for per-country config. Each country owns its `calendar_file`, `crops`, `eo_model`, and other settings. Shared by both geoprepare and geocif.
 
 ```ini
 [DEFAULT]
@@ -323,7 +323,7 @@ admin_level = admin_1
 seasons = [1, 2]
 use_cropland_mask = True
 boundary_file = adm_shapefile.gpkg
-calendar_file = EWCM_2025-04-21.xlsx
+calendar_file = EWCM_2026-01-05.xlsx
 crops = ['maize']
 
 [malawi]
@@ -331,7 +331,7 @@ category = EWCM
 admin_level = admin_2
 use_cropland_mask = True
 boundary_file = adm_shapefile.gpkg
-calendar_file = EWCM_2025-04-21.xlsx
+calendar_file = EWCM_2026-01-05.xlsx
 crops = ['maize']
 
 [ethiopia]
@@ -339,7 +339,7 @@ category = EWCM
 admin_level = admin_2
 use_cropland_mask = True
 boundary_file = adm_shapefile.gpkg
-calendar_file = EWCM_2025-04-21.xlsx
+calendar_file = EWCM_2026-01-05.xlsx
 crops = ['maize', 'sorghum', 'millet', 'rice', 'winter_wheat', 'teff']
 
 ; ... (30+ EWCM countries, mostly Sub-Saharan Africa)
@@ -356,7 +356,7 @@ boundary_file = illinois_counties.shp
 
 ### crops.txt
 
-Crop mask filenames and calendar category definitions. Calendar categories define the EO variables and crop calendars used for each category of countries.
+Crop mask filenames and calendar category settings. Calendar categories define shared settings (cropland masking, boundary files, growing seasons) for groups of countries.
 
 ```ini
 ;;; Crop masks ;;;
@@ -388,13 +388,9 @@ mask = cropland_v9.tif
 [EWCM]
 use_cropland_mask = True
 shp_boundary = adm_shapefile.gpkg
-calendar_file = EWCM_2026-01-05.xlsx
-crops = ['maize', 'sorghum', 'millet', 'rice', 'winter_wheat', 'teff']
-growing_seasons = [1]
-eo_model = ['aef', 'nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
+growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
 
 [AMIS]
-calendar_file = AMISCM_2026-01-05.xlsx
 ```
 
 ### geoextract.txt

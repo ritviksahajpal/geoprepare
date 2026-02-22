@@ -653,10 +653,9 @@ def build_combinations(params, skip_vars=None):
     years = list(range(params.start_year, params.end_year + 1))
 
     for country in params.countries:
-        category = params.parser.get(country, "category")
         use_cropland_mask = params.parser.getboolean(country, "use_cropland_mask")
         crops = ast.literal_eval(params.parser.get(country, "crops"))
-        vars_list = [v for v in ast.literal_eval(params.parser.get(category, "eo_model"))
+        vars_list = [v for v in ast.literal_eval(params.parser.get(country, "eo_model"))
                      if (country, v) not in skip_vars]
         admin_level = params.parser.get(country, "admin_level")
         scales = [admin_level]
@@ -760,8 +759,7 @@ def validate_datasets(params):
     missing = []
 
     for country in params.countries:
-        category = params.parser.get(country, "category")
-        vars_list = ast.literal_eval(params.parser.get(category, "eo_model"))
+        vars_list = ast.literal_eval(params.parser.get(country, "eo_model"))
 
         for var in vars_list:
             # chirps_gefs is only for current year forecasts — skip validation

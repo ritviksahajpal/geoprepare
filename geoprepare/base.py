@@ -200,13 +200,12 @@ class BaseGeo:
         Returns:
 
         """
-        category = self.parser.get(country, "category")
         # Get crop calendar information
         if read_calendar or read_all:
             sheet_name = self.get_calendar_sheet_name(crop, growing_season)
             self.path_calendar = (
                 self.dir_crop_calendars
-                / self.parser.get(category, "calendar_file")
+                / self.parser.get(country, "calendar_file")
             )
             self.df_calendar = (
                 pd.read_excel(self.path_calendar, sheet_name=sheet_name)
