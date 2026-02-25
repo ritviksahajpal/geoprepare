@@ -330,7 +330,7 @@ class GeoMerge(base.BaseGeo):
 
         # Get the calendar information for the current calendar_region
         df_cal = self.df_calendar[
-            (self.df_calendar["country"] == self.country)
+            (self.df_calendar["country2"] == self.country)
             & (self.df_calendar["calendar_region"] == calendar_region)
         ]
 
@@ -506,10 +506,10 @@ def process_combination(combination, path_config_file, parallel=False):
     output_file = dir_output / f"{country}_{crop}_s{growing_season}.csv"
 
     # 4. Check if crop calendar info exists
-    if gm.df_calendar.empty or "country" not in gm.df_calendar.columns:
-        gm.logger.error(f"Skipping {combination}: calendar is empty or missing 'country' column (path: {gm.path_calendar})")
+    if gm.df_calendar.empty or "country2" not in gm.df_calendar.columns:
+        gm.logger.error(f"Skipping {combination}: calendar is empty or missing 'country2' column (path: {gm.path_calendar})")
         return (combination, False)
-    df_cal = gm.df_calendar[gm.df_calendar["country"] == country]
+    df_cal = gm.df_calendar[gm.df_calendar["country2"] == country]
     if df_cal.empty:
         gm.logger.error(f"Skipping {combination}: no calendar rows for country '{country}'")
         return (combination, False)

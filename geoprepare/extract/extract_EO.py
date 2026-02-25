@@ -550,14 +550,16 @@ def process(val):
     # 1. Validate scale
     validate_scale(scale)
 
+    combo_id = (country, crop, var, year)
+
     # 2. Handle AEF separately (64-band average, not daily single-band)
     if var == "aef":
         process_aef(params, country, crop, scale, afi_file, df_country)
-        return
+        return combo_id
 
     # 3. Skip 'chirps_gefs' if year != current year
     if skip_chirps_gefs(var, year):
-        return
+        return combo_id
 
     # 4. Prepare the output directory
     dir_output = prepare_output_directory(params, country, scale, crop, var)
@@ -579,7 +581,7 @@ def process(val):
         
         if afi_ds is None:
             params.logger.warning(f"AFI file not found: {afi_file}")
-            return
+            return combo_id
 
         # 8. Iterate over each row (region) in df_country
         for _, row in df_country.iterrows():
@@ -636,6 +638,8 @@ def process(val):
 
             # 10. Write the results to CSV
             write_daily_stats_to_csv(daily_stats, path_output, var)
+
+    return combo_id
 
 
 # ========================
@@ -795,32 +799,39 @@ def run(params):
         int(params.fraction_cpus * cpu_count()) if params.parallel_extract else 1
     )
 
+    # Count combinations per country for progress tracking
+    country_totals = {}
+    for combo in list_combinations:
+        c = combo[1]
+        country_totals[c] = country_totals.get(c, 0) + 1
+    country_done = {c: 0 for c in country_totals}
+
+    def _update_pbar(pbar, combo_id):
+        """Update progress bar with completed combination info."""
+        country, crop, var, year = combo_id
+        country_done[country] += 1
+        pbar.set_description(f"{country} {crop} {var} {year}")
+        pbar.set_postfix(
+            {c: f"{country_done[c]}/{country_totals[c]}" for c in country_totals}
+        )
+
     if params.parallel_extract:
         # Swap to pickle-safe logger for multiprocessing
         original_logger = _swap_logger_for_parallel(params)
         with Pool(num_cpus) as p:
             with tqdm(total=len(list_combinations)) as pbar:
-                for i, _ in enumerate(p.imap_unordered(process, list_combinations)):
-                    desc = (
-                        f"Processing {list_combinations[i][1]} "
-                        f"{list_combinations[i][2]} {list_combinations[i][4]} "
-                        f"{list_combinations[i][5]}"
-                    )
-                    pbar.set_description(desc)
+                for combo_id in p.imap_unordered(process, list_combinations):
+                    _update_pbar(pbar, combo_id)
                     pbar.update()
         # Restore original logger
         params.logger = original_logger
     else:
-        pbar = tqdm(list_combinations)
-        for i, val in enumerate(pbar):
-            desc = (
-                f"Processing {list_combinations[i][1]} "
-                f"{list_combinations[i][2]} {list_combinations[i][4]} "
-                f"{list_combinations[i][5]}"
-            )
-            pbar.set_description(desc)
-            pbar.update()
-            process(val)
+        with tqdm(total=len(list_combinations)) as pbar:
+            for val in list_combinations:
+                process(val)
+                combo_id = (val[1], val[2], val[4], val[5])
+                _update_pbar(pbar, combo_id)
+                pbar.update()
 
 
 if __name__ == "__main__":
