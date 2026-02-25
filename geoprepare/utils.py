@@ -9,7 +9,6 @@ import os
 
 import datetime
 import rasterio
-import xarray as xr
 import numpy as np
 import pandas as pd
 
@@ -43,6 +42,8 @@ def convert_to_nc_hndl(path_nc):
     :param path_nc:
     :return:
     """
+    import xarray as xr
+
     if isinstance(path_nc, np.ma.MaskedArray):
         return path_nc
 

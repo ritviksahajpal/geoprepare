@@ -248,7 +248,11 @@ def convert(params, source_h5):
         if os.path.isfile(ras_subdaily):
             continue
 
-        sds = gdal.Open(f"HDF5:{str(source_h5)}://Geophysical_Data/{var}")
+        try:
+            sds = gdal.Open(f"HDF5:{str(source_h5)}://Geophysical_Data/{var}")
+        except RuntimeError:
+            params.logger.warning(f"Skipping corrupt file: {source_h5.name}")
+            return
         if sds is None:
             continue
             
@@ -363,11 +367,28 @@ def process(params):
     dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
     os.makedirs(dir_subdaily, exist_ok=True)
 
-    # Convert h5 files to subdaily (3 hourly) GeoTIFFs
+    # Build set of timestamps already converted (both vars present)
+    existing = set()
+    for f in dir_subdaily.glob("nasa_usda_soil_moisture_*_sm_surface_global.tif"):
+        ts = f.stem.split("nasa_usda_soil_moisture_")[1].split("_sm_surface")[0]
+        rootzone = dir_subdaily / f.name.replace("sm_surface", "sm_rootzone")
+        if rootzone.exists():
+            existing.add(ts)
+
+    # Filter to only unconverted H5 files
     h5_files = list(dir_out.glob("*.h5"))
-    params.logger.info(f"Processing {len(h5_files)} H5 files")
-    
-    for file in tqdm(h5_files, desc="H5 to subdaily TIF"):
+    pending = []
+    for f in h5_files:
+        name = f.name
+        year, month, day = name[15:19], name[19:21], name[21:23]
+        hhmmss = name[24:30]
+        doy = ar.get(f"{year}-{month}-{day}").format("DDD")
+        if f"{year}{doy.zfill(3)}T{hhmmss}" not in existing:
+            pending.append(f)
+
+    params.logger.info(f"Processing {len(pending)} H5 files ({len(h5_files) - len(pending)} already converted)")
+
+    for file in tqdm(pending, desc="H5 to subdaily TIF"):
         convert(params, file)
 
     # Convert subdaily data to daily data by averaging

@@ -671,6 +671,7 @@ def build_combinations(params, skip_vars=None):
         shp_boundary = boundary_file
         col_rename = get_boundary_col_mapping(params.parser, shp_boundary)
         df_cmask.rename(columns=col_rename, inplace=True)
+        df_cmask = df_cmask.loc[:, ~df_cmask.columns.duplicated()]
 
         # Validate that required columns exist after rename
         required_cols = ["ADM0_NAME", "ADM1_NAME", "ADM_ID"]

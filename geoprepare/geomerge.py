@@ -39,8 +39,8 @@ class GeoMerge(base.BaseGeo):
         Returns:
 
         """
-        self.project_name = self.parser.get("PROJECT", "project_name")
-        self.parallel_merge = self.parser.getboolean("PROJECT", "parallel_merge")
+        self.project_name = self.parser.get("DEFAULT", "project_name")
+        self.parallel_merge = self.parser.getboolean("DEFAULT", "parallel_merge")
         super().parse_config(project_name=self.project_name, section="DEFAULT")
 
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))

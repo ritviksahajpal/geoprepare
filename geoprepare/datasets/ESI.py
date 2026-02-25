@@ -37,21 +37,25 @@ def download_ESI(all_params):
         pbar.set_description(f"Downloading {product} {year} {jd}")
         pbar.update()
 
-        # It is possible that the file is present as a tgz archive, in which case downloand and unzip it
-        fl_download = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
+        # Try both old (DFPPM_) and new (DFPPM_AQUA_) naming conventions
+        fl_old = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
+        fl_new = f"DFPPM_AQUA_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
 
-        # Download .tgz file if it has not been downloaded already or if we are updating data within the last year
-        if not os.path.isfile(dir_download / fl_download):
-            request = requests.head(
-                f"{params.data_dir}{product.upper()}//{year}//{fl_download}"
-            )
+        # Skip if either version already exists locally
+        if os.path.isfile(dir_download / fl_old) or os.path.isfile(dir_download / fl_new):
+            continue
 
+        base_url = f"{params.data_dir}{product.upper()}/{year}"
+
+        # Try new naming first, fall back to old
+        for fl_download in [fl_new, fl_old]:
+            request = requests.head(f"{base_url}/{fl_download}")
             if request.status_code == 200:
-                # params.logger.info('Downloading ' + fl_download)
                 wget.download(
-                    f"{params.data_dir}{product.upper()}//{year}//{fl_download}",
+                    f"{base_url}/{fl_download}",
                     f"{dir_download}/{fl_download}",
                 )
+                break
 
 
 def to_global(all_params):
@@ -74,7 +78,9 @@ def to_global(all_params):
 
     for jd in range(start_jd, end_jd, 7):
         format = "GTiff"
-        name_in = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
+        name_old = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
+        name_new = f"DFPPM_AQUA_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
+        name_in = name_new if os.path.isfile(inpath / name_new) else name_old
         name_out = f"esi_dfppm_{product}_{year}{str(jd).zfill(3)}.tif"
 
         # check if output file does not exist but input file does

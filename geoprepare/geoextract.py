@@ -36,7 +36,7 @@ class GeoExtract(base.BaseGeo):
         self.countries = ast.literal_eval(self.parser.get("DEFAULT", "countries"))
 
         self.redo = self.parser.getboolean("DEFAULT", "redo")
-        self.parallel_extract = self.parser.getboolean("PROJECT", "parallel_extract")
+        self.parallel_extract = self.parser.getboolean("DEFAULT", "parallel_extract")
 
 
 def run(path_config_file="geoextract.txt"):

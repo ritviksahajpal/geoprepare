@@ -162,6 +162,7 @@ def _load_country_data(path_admin_shp, path_region_shp, country, parser=None):
             if col in _alias_map and col != _alias_map[col]
         }
     gdf_admin.rename(columns=col_rename, inplace=True)
+    gdf_admin = gdf_admin.loc[:, ~gdf_admin.columns.duplicated()]
 
     # Filter to the requested country
     country_norm = _normalize(country)
