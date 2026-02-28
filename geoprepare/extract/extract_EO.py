@@ -103,26 +103,27 @@ def get_var_fname(params, var, year, doy):
     month, day_of_month = get_month_and_day_from_day_of_year(year, doy)
 
     # Common variable-to-filename mapping
+    # Each path is relative to dir_intermed/{var}/ and includes a year subfolder
     variable_fnames = {
-        "ndvi": f"mod09.ndvi.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif",
-        "gcvi": f"mod09.gcvi.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif",
-        "esi_4wk": f"esi_dfppm_4wk_{year_doy}.tif",
-        "esi_12wk": f"esi_dfppm_12wk_{year_doy}.tif",
-        "ncep2_precip": f"ncep2_{year_doy}_precip_global.tif",
-        "ncep2_mean": f"ncep2_temp/mean/ncep2_{year_doy}_mean_global.tif",
-        "ncep2_min": f"ncep2_temp/min/ncep2_{year_doy}_min_global.tif",
-        "ncep2_max": f"ncep2_temp/max/ncep2_{year_doy}_max_global.tif",
-        "cpc_tmax": f"cpc_{year_doy}_tmax_global.tif",
-        "cpc_tmin": f"cpc_{year_doy}_tmin_global.tif",
-        "cpc_precip": f"cpc_{year_doy}_precip_global.tif",
-        "soil_moisture_as1": f"nasa_usda_soil_moisture_{year_doy}_as1_global.tif",
-        "soil_moisture_as2": f"nasa_usda_soil_moisture_{year_doy}_as2_global.tif",
-        "nsidc_surface": f"nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_surface_global.tif",
-        "nsidc_rootzone": f"nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_rootzone_global.tif",
-        "lai": f"MCD15A2H.A{year_doy}_Lai_500m_mosaic_0p05.tif",
-        "fpar": f"MCD15A2H.A{year_doy}_Fpar_500m_mosaic_0p05.tif",
-        "chirps_gefs": f"data.{year}.{month:02d}{day_of_month:02d}.tif",
-        "lst": f"MOD11C1.A{year_doy}_global.tif"
+        "ndvi": f"{year}/mod09.ndvi.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif",
+        "gcvi": f"{year}/mod09.gcvi.global_0.05_degree.{year}.{str(doy).zfill(3)}.c6.v1.tif",
+        "esi_4wk": f"{year}/esi_dfppm_4wk_{year_doy}.tif",
+        "esi_12wk": f"{year}/esi_dfppm_12wk_{year_doy}.tif",
+        "ncep2_precip": f"{year}/ncep2_{year_doy}_precip_global.tif",
+        "ncep2_mean": f"{year}/ncep2_temp/mean/ncep2_{year_doy}_mean_global.tif",
+        "ncep2_min": f"{year}/ncep2_temp/min/ncep2_{year_doy}_min_global.tif",
+        "ncep2_max": f"{year}/ncep2_temp/max/ncep2_{year_doy}_max_global.tif",
+        "cpc_tmax": f"{year}/cpc_{year_doy}_tmax_global.tif",
+        "cpc_tmin": f"{year}/cpc_{year_doy}_tmin_global.tif",
+        "cpc_precip": f"{year}/cpc_{year_doy}_precip_global.tif",
+        "soil_moisture_as1": f"{year}/nasa_usda_soil_moisture_{year_doy}_as1_global.tif",
+        "soil_moisture_as2": f"{year}/nasa_usda_soil_moisture_{year_doy}_as2_global.tif",
+        "nsidc_surface": f"{year}/nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_surface_global.tif",
+        "nsidc_rootzone": f"{year}/nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_rootzone_global.tif",
+        "lai": f"{year}/MCD15A2H.A{year_doy}_Lai_500m_mosaic_0p05.tif",
+        "fpar": f"{year}/MCD15A2H.A{year_doy}_Fpar_500m_mosaic_0p05.tif",
+        "chirps_gefs": f"{year}/data.{year}.{month:02d}{day_of_month:02d}.tif",
+        "lst": f"{year}/MOD11C1.A{year_doy}_global.tif"
     }
 
     # CHIRPS needs version-aware path to match download output structure:
@@ -140,9 +141,9 @@ def get_var_fname(params, var, year, doy):
         # Example threshold: "2015124"
         # SM_OPER* if >= 2015124, else SM_RE04*
         return (
-            f"SM_OPER_MIR_CLF33A_{year_doy}.tif"
+            f"{year}/SM_OPER_MIR_CLF33A_{year_doy}.tif"
             if year_doy >= "2015124"
-            else f"SM_RE04_MIR_CLF33A_{year_doy}.tif"
+            else f"{year}/SM_RE04_MIR_CLF33A_{year_doy}.tif"
         )
     else:
         # If variable doesn't match any known pattern

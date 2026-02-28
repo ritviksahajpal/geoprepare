@@ -187,15 +187,18 @@ def process_agERA5(all_params):
     date = get_date_from_fname(nc_input)
     year = date.year
 
+    dir_year = dir_output / str(year)
+    os.makedirs(dir_year, exist_ok=True)
+
     fl_out = f"agera5_{year}{str(pd.DatetimeIndex([date]).dayofyear[0]).zfill(3)}_{var}_global.tif"
 
-    if not os.path.isfile(dir_output / fl_out):
+    if not os.path.isfile(dir_year / fl_out):
         arr = remap_like(
             nc_input,
             pathlib.Path(__file__).parent.resolve() / path_template,
             name_var=var,
         )
-        utils.arr_to_tif(arr, dir_output / fl_out, profile)
+        utils.arr_to_tif(arr, dir_year / fl_out, profile)
 
 
 def parallel_process_agERA5(params):

@@ -169,8 +169,8 @@ def scaleConversion_glamToMark(in_file: str) -> None:
 def run(params):
     from tqdm import tqdm
 
-    dir_intermed = params.dir_intermed / "ndvi"
-    os.makedirs(dir_intermed, exist_ok=True)
+    dir_intermed_base = params.dir_intermed / "ndvi"
+    os.makedirs(dir_intermed_base, exist_ok=True)
 
     ## validate arguments
     if params.scale_glam:
@@ -180,12 +180,12 @@ def run(params):
         assert params.vi == "ndvi", "MARK scaling should only be used with NDVI"
 
     ## clean and collect existing files
-    # remove running composites
-    runningComposites = glob.glob(os.path.join(dir_intermed, "*.running_composite.tif"))
+    # remove running composites (search recursively in year subdirs)
+    runningComposites = glob.glob(os.path.join(dir_intermed_base, "**", "*.running_composite.tif"), recursive=True)
     for c in runningComposites:
         os.remove(c)
-    # get list of existing full files
-    extantFiles = glob.glob(os.path.join(dir_intermed, f"*.tif"))
+    # get list of existing full files (search recursively in year subdirs)
+    extantFiles = glob.glob(os.path.join(dir_intermed_base, "**", "*.tif"), recursive=True)
 
     ## get missing dates
     # first and last year
@@ -209,10 +209,12 @@ def run(params):
     earliestDataDict = {"MOD09CMG": "2000.055", "MYD09CMG": "2002.185"}
 
     for y in tqdm(years, desc="year"):
+        dir_intermed_year = dir_intermed_base / str(y)
+        os.makedirs(dir_intermed_year, exist_ok=True)
         for doy in tqdm(doys, desc="doy", leave=False):
             if not os.path.exists(
                 os.path.join(
-                    dir_intermed, generateFileName(params.product, params.vi, y, doy)
+                    dir_intermed_year, generateFileName(params.product, params.vi, y, doy)
                 )
             ):
                 formattedDate = datetime.strptime(f"{y}.{doy}", "%Y.%j").strftime(
@@ -252,8 +254,11 @@ def run(params):
             if dates[d] == "Available":
                 availableFiles += 1
                 params.logger.info(f"Creating Composite for {d}")
+                file_year = d.split("-")[0]
+                dir_year = dir_intermed_base / file_year
+                os.makedirs(dir_year, exist_ok=True)
                 outPath = os.path.join(
-                    dir_intermed, generateFileName(params.product, params.vi, date=d)
+                    dir_year, generateFileName(params.product, params.vi, date=d)
                 )
                 octvi.globalVi(params.product, d, outPath)
                 if params.scale_mark:
@@ -279,8 +284,11 @@ def run(params):
             if dates[d] == "Available":
                 availableFiles += 1
                 params.logger.info(f"Creating Composite for {d}")
+                file_year = d.split("-")[0]
+                dir_year = dir_intermed_base / file_year
+                os.makedirs(dir_year, exist_ok=True)
                 outPath = os.path.join(
-                    dir_intermed, generateFileName(params.product, params.vi, date=d)
+                    dir_year, generateFileName(params.product, params.vi, date=d)
                 )
                 octvi.globalVi(params.product, d, outPath, vi="GCVI")
 

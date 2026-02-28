@@ -18,9 +18,15 @@ def download_file(input):
     Returns:
 
     """
+    import re
     params, url = input
     local_filename = url.split('/')[-1]
-    os.makedirs(params.dir_download / "fpar", exist_ok=True)
+
+    # Extract year from filename (e.g. MCD15A2H.A2023001_...)
+    match = re.search(r"\.A(\d{4})", local_filename)
+    file_year = match.group(1) if match else "unknown"
+    dir_fpar = params.dir_download / "fpar" / file_year
+    os.makedirs(dir_fpar, exist_ok=True)
 
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -28,7 +34,7 @@ def download_file(input):
         block_size = 1024  # 1 Kibibyte
         progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc=local_filename)
 
-        with open(params.dir_download / "fpar" / local_filename, 'wb') as f:
+        with open(dir_fpar / local_filename, 'wb') as f:
             for chunk in r.iter_content(block_size):
                 progress_bar.update(len(chunk))
                 f.write(chunk)

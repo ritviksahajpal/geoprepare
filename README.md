@@ -82,7 +82,10 @@ geoprepare follows a three-stage pipeline:
 2. **Extract** (`geoextract`) - Extract EO variable statistics per admin region to `dir_output`
 3. **Merge** (`geomerge`) - Merge extracted EO files into per-country/crop CSV files for ML models and AgMet graphics
 
+All datasets store files in year-specific subfolders (e.g., `dir_intermed/cpc_tmax/2024/`, `dir_download/nsidc/2025/`).
+
 Additional utilities:
+- **Move** (`geomove`) - One-time migration of existing flat directories to year-specific subfolders
 - **Check** (`geocheck`) - Validate that expected TIF files exist in `dir_intermed` after download
 - **Diagnostics** (`diagnostics`) - Count and summarize files in the data directories
 
@@ -103,7 +106,21 @@ from geoprepare import geodownload
 geodownload.run([f"{config_dir}/geobase.txt"])
 ```
 
-### 2. Validate downloads (`geocheck`)
+### 2. Migrate to year subfolders (`geomove`)
+
+Moves existing files from flat directories into year-specific subfolders. Run this once after upgrading to a version with year-subfolder support. All datasets are handled: CPC, ESI, NDVI, NSIDC, CHIRPS-GEFS, LST, Soil Moisture, AgERA5, VHI, FPAR, and AEF.
+
+```python
+from geoprepare import geomove
+
+# Preview what would be moved (no files are changed)
+geomove.run([f"{config_dir}/geobase.txt"], dry_run=True)
+
+# Execute the migration
+geomove.run([f"{config_dir}/geobase.txt"])
+```
+
+### 3. Validate downloads (`geocheck`)
 
 Checks that all expected TIF files exist in `dir_intermed` and are non-empty. Writes a timestamped report to `dir_logs/check/`.
 
@@ -112,7 +129,7 @@ from geoprepare import geocheck
 geocheck.run([f"{config_dir}/geobase.txt"])
 ```
 
-### 3. Extract crop masks and EO data (`geoextract`)
+### 4. Extract crop masks and EO data (`geoextract`)
 
 Extracts EO variable statistics (mean, median, etc.) for each admin region, crop, and growing season.
 
@@ -121,7 +138,7 @@ from geoprepare import geoextract
 geoextract.run(cfg_geoprepare)
 ```
 
-### 4. Merge extracted data (`geomerge`)
+### 5. Merge extracted data (`geomerge`)
 
 Merges per-region/year EO CSV files into a single CSV per country-crop-season combination.
 
@@ -158,6 +175,7 @@ Shared paths, dataset settings, boundary file column mappings, and logging. All 
 ```ini
 [DATASETS]
 datasets = ['CHIRPS', 'CPC', 'NDVI', 'ESI', 'NSIDC', 'AEF']
+; Other available: 'CHIRPS-GEFS', 'AGERA5', 'FLDAS', 'LST', 'VHI', 'FPAR', 'SOIL-MOISTURE', 'AVHRR', 'VIIRS'
 
 [PATHS]
 dir_base = /gpfs/data1/cmongp1/GEO
@@ -192,6 +210,9 @@ end_year = 2024
 [AGERA5]
 variables = ['Precipitation_Flux', 'Temperature_Air_2m_Max_24h', 'Temperature_Air_2m_Min_24h']
 
+[AVHRR]
+data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
+
 [CHIRPS]
 fill_value = -2147483648
 ; CHIRPS version: 'v2' for CHIRPS-2.0 or 'v3' for CHIRPS-3.0
@@ -220,19 +241,30 @@ variables = ['SoilMoist_tavg', 'TotalPrecip_tavg', 'Tair_tavg', 'Evap_tavg', 'TW
 leads = [0, 1, 2, 3, 4, 5]
 compute_anomalies = False
 
+[FPAR]
+data_dir = https://agricultural-production-hotspots.ec.europa.eu//data//indicators_fpar//fpar//
+
+[LST]
+num_update_days = 7
+
 [NDVI]
 product = MOD09CMG
 vi = ndvi
 scale_glam = False
 scale_mark = True
+print_missing = False
 
 [VIIRS]
 product = VNP09CMG
 vi = ndvi
 scale_glam = False
 scale_mark = True
+print_missing = False
 
 [NSIDC]
+
+[SOIL-MOISTURE]
+data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
 
 [VHI]
 data_historic = https://www.star.nesdis.noaa.gov/data/pub0018/VHPdata4users/VHP_4km_GeoTiff/
@@ -399,18 +431,19 @@ Extraction-only settings for geoprepare. Loaded last so its `[DEFAULT]` override
 
 ```ini
 [DEFAULT]
+start_year = 2001
+end_year = 2026
 project_name = geocif
 method = JRC
 redo = False
 threshold = True
 floor = 20
 ceil = 90
-countries = ["malawi"]
-forecast_seasons = [2022]
-
-[PROJECT]
 parallel_extract = True
-parallel_merge = False
+parallel_merge = True
+fraction_cpus = 0.6
+countries = ["malawi"]
+forecast_seasons = [2026]
 ```
 
 ### geocif.txt
@@ -424,16 +457,21 @@ logo_harvest = harvest.png
 logo_geoglam = geoglam.png
 
 ;;; Country overrides (only where geocif differs from countries.txt) ;;;
-[ethiopia]
-crops = ['winter_wheat']
-
 [bangladesh]
 crops = ['rice']
 admin_level = admin_2
 boundary_file = bangladesh.shp
+annotate_regions = False
+input_file_path = ${PATHS:dir_output}/countries
+
+[ethiopia]
+crops = ['winter_wheat']
 
 [india]
 crops = ['soybean', 'maize', 'rice']
+
+[russian_federation]
+crops = ['winter_wheat', 'maize']
 
 [somalia]
 crops = ['maize']
@@ -442,10 +480,10 @@ crops = ['maize']
 crops = ['winter_wheat', 'maize']
 
 ;;; ML model definitions ;;;
-[catboost]
-ML_model = True
-
 [linear]
+ml_model = True
+
+[gam]
 ml_model = True
 
 [analog]
@@ -454,12 +492,24 @@ ML_model = False
 [median]
 ML_model = False
 
-; ... (additional models: gam, ngboost, tabpfn, desreg, cubist, etc.)
+[catboost]
+ML_model = True
+
+[desreg]
+ML_model = True
+
+[ngboost]
+ML_model = True
+
+[tabpfn]
+ML_model = True
+
+; ... (additional models: tabicl, cumulative_*, oblique, merf, cubist, ydf, etc.)
 
 [ML]
 model_type = REGRESSION
 target = Yield (tn per ha)
-feature_selection = BorutaPy
+feature_selection = multi
 lag_years = 3
 panel_model = True
 panel_model_region = Country
@@ -469,21 +519,24 @@ run_latest_time_period = True
 run_every_time_period = 3
 cat_features = ["Harvest Year", "Region_ID", "Region"]
 loocv_var = Harvest Year
+check_yield_trend = True
+detrend_method = gaussian
 
 [LOGGING]
-log_level = INFO
+log_level = ERROR
 
 [DEFAULT]
 data_source = harvest
 method = monthly_r
 project_name = geocif
-countries = ["kenya"]
+countries = ["malawi"]
 crops = ['maize']
 admin_level = admin_1
 models = ['catboost']
 seasons = [1]
 threshold = True
 floor = 20
+fraction_cpus = 0.7
 input_file_path = ${PATHS:dir_crop_inputs}/processed
 ```
 
@@ -493,19 +546,52 @@ input_file_path = ${PATHS:dir_crop_inputs}/processed
 |---------|-------------|--------|
 | AEF | AlphaEarth Foundations satellite embeddings (64-band, 10m) | [source.coop](https://source.coop/tge-labs/aef) |
 | AGERA5 | Agrometeorological indicators (precipitation, temperature) | [CDS](https://cds.climate.copernicus.eu) |
+| AVHRR | Long-term NDVI | NOAA NCEI |
 | CHIRPS | Rainfall estimates (v2 and v3) | [CHC](https://www.chc.ucsb.edu/data/chirps) |
 | CHIRPS-GEFS | 15-day precipitation forecasts | CHC |
-| CPC | Temperature (Tmax, Tmin) | NOAA CPC |
+| CPC | Temperature (Tmax, Tmin) and precipitation | NOAA CPC |
 | ESI | Evaporative Stress Index (4-week, 12-week) | SERVIR |
 | FLDAS | Land surface model outputs (soil moisture, precip, temp) | NASA |
-| NDVI | Vegetation index from MODIS (MOD09CMG) | NASA |
-| VIIRS | Vegetation index from VIIRS (VNP09CMG) | NASA |
-| NSIDC | Soil moisture (surface, rootzone) | NSIDC |
-| VHI | Vegetation Health Index | NOAA STAR |
-| LST | Land Surface Temperature | NASA |
-| AVHRR | Long-term NDVI | NOAA NCEI |
 | FPAR | Fraction of Absorbed Photosynthetically Active Radiation | JRC |
-| SOIL-MOISTURE | SMAP soil moisture | NASA |
+| LST | Land Surface Temperature (MODIS MOD11C1) | NASA |
+| NDVI | Vegetation index from MODIS (MOD09CMG) | NASA |
+| NSIDC | SMAP L4 soil moisture (surface, rootzone) | NASA NSIDC |
+| SOIL-MOISTURE | NASA-USDA soil moisture (surface as1, subsurface as2) | NASA |
+| VHI | Vegetation Health Index | NOAA STAR |
+| VIIRS | Vegetation index from VIIRS (VNP09CMG) | NASA |
+
+### Directory layout
+
+All datasets organize files into year-specific subfolders. After running `geomove` (or on fresh downloads), the directory structure looks like:
+
+```
+dir_download/
+  nsidc/2025/*.h5, nsidc/2026/*.h5
+  chirps_gefs/2026/*.tif
+  fpar/2024/*.tif, fpar/2025/*.tif
+  modis_lst/*.hdf                     (flat - pymodis manages this)
+  ...
+
+dir_intermed/
+  cpc_tmax/2024/*.tif, cpc_tmax/2025/*.tif
+  cpc_tmin/2024/*.tif, ...
+  cpc_precip/2024/*.tif, ...
+  chirps/v3/global/2024/*.tif, ...    (CHIRPS already used year subfolders)
+  chirps_gefs/2026/*.tif
+  esi_4wk/2024/*.tif, ...
+  esi_12wk/2024/*.tif, ...
+  ndvi/2024/*.tif, ...
+  lst/2024/*.tif, ...
+  nsidc/subdaily/2025/*.tif
+  nsidc/daily/surface/2025/*.tif
+  nsidc/daily/rootzone/2025/*.tif
+  soil_moisture_as1/2024/*.tif, ...
+  soil_moisture_as2/2024/*.tif, ...
+  agera5/tif/{variable}/2024/*.tif, ...
+  vhi/global/2024/*.tif, ...
+  aef/{country}/2018/*.tif, ..., aef/{country}/aef_avg_global.tif
+  fldas/.../2024/*.tif, ...           (FLDAS already used year subfolders)
+```
 
 ## Upload package to PyPI
 

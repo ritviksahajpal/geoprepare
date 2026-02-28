@@ -1,4 +1,5 @@
 import os
+import re
 import tarfile
 import requests
 import rioxarray
@@ -113,7 +114,10 @@ def process(all_params):
     filelist = list(interim_folder.glob("*VCI.tif"))
     pbar = tqdm(filelist, total=len(filelist))
     for f in pbar:
-        dir_global = params.dir_intermed / "vhi" / "global"
+        # Extract year from filename (first 4-digit sequence)
+        match = re.search(r"(\d{4})", f.name)
+        file_year = match.group(1) if match else "unknown"
+        dir_global = params.dir_intermed / "vhi" / "global" / file_year
         os.makedirs(dir_global, exist_ok=True)
         output_global_file = dir_global / f.name
         pbar.set_description(f"Converting to global: {f.name}")

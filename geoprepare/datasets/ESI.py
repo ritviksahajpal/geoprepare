@@ -32,10 +32,7 @@ def download_ESI(all_params):
     dir_download = params.dir_download / "esi" / product / str(year)
     os.makedirs(dir_download, exist_ok=True)
 
-    pbar = tqdm(range(start_jd, end_jd, 7))
-    for jd in pbar:
-        pbar.set_description(f"Downloading {product} {year} {jd}")
-        pbar.update()
+    for jd in tqdm(range(start_jd, end_jd, 7), desc=f"Downloading {product} {year}", leave=False):
 
         # Try both old (DFPPM_) and new (DFPPM_AQUA_) naming conventions
         fl_old = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
@@ -72,11 +69,11 @@ def to_global(all_params):
     params, product, year = all_params
 
     inpath = Path(os.path.normpath(params.dir_download / "esi" / product / str(year)))
-    outpath = Path(os.path.normpath(params.dir_intermed / f"esi_{product}"))
+    outpath = Path(os.path.normpath(params.dir_intermed / f"esi_{product}" / str(year)))
 
     os.makedirs(outpath, exist_ok=True)
 
-    for jd in range(start_jd, end_jd, 7):
+    for jd in tqdm(range(start_jd, end_jd, 7), desc=f"Processing ESI {product} {year}", leave=False):
         format = "GTiff"
         name_old = f"DFPPM_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
         name_new = f"DFPPM_AQUA_{product.upper()}_{year}{str(jd).zfill(3)}.tif"
@@ -108,6 +105,7 @@ def to_global(all_params):
             dst_ds.GetRasterBand(1).SetNoDataValue(-9999.0)
 
             ds = None
+            dst_ds = None
 
 
 def run(params):
@@ -132,7 +130,7 @@ def run(params):
             int(multiprocessing.cpu_count() * params.fraction_cpus)
         ) as p:
             with tqdm(total=len(all_params), desc="download ESI") as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(download_ESI, all_params))):
+                for _ in p.imap_unordered(download_ESI, all_params):
                     pbar.update()
     else:
         for val in all_params:
@@ -149,7 +147,7 @@ def run(params):
             int(multiprocessing.cpu_count() * params.fraction_cpus)
         ) as p:
             with tqdm(total=len(all_params), desc="process ESI") as pbar:
-                for i, _ in tqdm(enumerate(p.imap_unordered(to_global, all_params))):
+                for _ in p.imap_unordered(to_global, all_params):
                     pbar.update()
     else:
         for val in all_params:

@@ -140,7 +140,6 @@ def download_date_range(params, start_date, end_date):
         end_date: End date (datetime or arrow object)
     """
     dir_out = params.dir_download / "nsidc"
-    os.makedirs(dir_out, exist_ok=True)
 
     # Get credentials
     username, password = get_credentials()
@@ -167,8 +166,11 @@ def download_date_range(params, start_date, end_date):
     while current_date <= end_date:
         urls = get_file_urls_for_day(current_date)
 
+        year_dir = dir_out / str(current_date.year)
+        os.makedirs(year_dir, exist_ok=True)
+
         for url, filename in tqdm(urls, desc=f"Downloading {current_date.strftime('%Y-%m-%d')}", leave=False):
-            if download_file(session, url, filename, dir_out, params.logger):
+            if download_file(session, url, filename, year_dir, params.logger):
                 total_downloaded += 1
             else:
                 total_failed += 1
@@ -211,14 +213,14 @@ def convert(params, source_h5):
         params: Configuration parameters object
         source_h5: Path to source H5 file
     """
-    dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
-    os.makedirs(dir_subdaily, exist_ok=True)
-
     inp_file_name = os.path.basename(source_h5)
-    
+
     # Parse filename: SMAP_L4_SM_gph_20250101T013000_Vv8011_001.h5
     # Positions: year=15:19, month=19:21, day=21:23, time=24:30
     year = inp_file_name[15:19]
+
+    dir_subdaily = params.dir_intermed / "nsidc" / "subdaily" / year
+    os.makedirs(dir_subdaily, exist_ok=True)
     month = inp_file_name[19:21]
     day = inp_file_name[21:23]
     hhmmss = inp_file_name[24:30]
@@ -262,7 +264,7 @@ def convert(params, source_h5):
             params.logger.warning(f"Could not read {var} from {source_h5}: {e}")
             continue
 
-        dst_tmp = str(params.dir_intermed) + os.sep + f"{iband+1}_{year}{doy.zfill(3)}T{hhmmss}_{var}.tif"
+        dst_tmp = str(dir_subdaily) + os.sep + f"tmp_{iband+1}_{year}{doy.zfill(3)}T{hhmmss}_{var}.tif"
         sds_gdal = array_to_raster(sds_array, gt, wkt)
 
         ds = gdal.Translate(dst_tmp, sds_gdal, options=translate_options)
@@ -323,9 +325,7 @@ def subdaily_to_daily(params, var_type="rootzone"):
     dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
     dir_daily = params.dir_intermed / "nsidc" / "daily"
 
-    os.makedirs(dir_daily / var_type, exist_ok=True)
-
-    files = list(Path(dir_subdaily).glob(f"*sm_{var_type}_global.tif"))
+    files = list(Path(dir_subdaily).rglob(f"*sm_{var_type}_global.tif"))
     
     if not files:
         params.logger.warning(f"No subdaily files found for {var_type}")
@@ -348,7 +348,9 @@ def subdaily_to_daily(params, var_type="rootzone"):
         timestamp = str(row["timestamp"])
         year = timestamp[:4]
         doy = timestamp[4:]
-        output_file = dir_daily / var_type / f"nasa_usda_soil_moisture_{year}_{doy}_{var_type}_global.tif"
+        output_dir = dir_daily / var_type / year
+        os.makedirs(output_dir, exist_ok=True)
+        output_file = output_dir / f"nasa_usda_soil_moisture_{year}_{doy}_{var_type}_global.tif"
 
         if os.path.isfile(output_file):
             continue
@@ -365,18 +367,17 @@ def process(params):
     """
     dir_out = params.dir_download / "nsidc"
     dir_subdaily = params.dir_intermed / "nsidc" / "subdaily"
-    os.makedirs(dir_subdaily, exist_ok=True)
 
     # Build set of timestamps already converted (both vars present)
     existing = set()
-    for f in dir_subdaily.glob("nasa_usda_soil_moisture_*_sm_surface_global.tif"):
+    for f in dir_subdaily.rglob("nasa_usda_soil_moisture_*_sm_surface_global.tif"):
         ts = f.stem.split("nasa_usda_soil_moisture_")[1].split("_sm_surface")[0]
-        rootzone = dir_subdaily / f.name.replace("sm_surface", "sm_rootzone")
+        rootzone = f.parent / f.name.replace("sm_surface", "sm_rootzone")
         if rootzone.exists():
             existing.add(ts)
 
-    # Filter to only unconverted H5 files
-    h5_files = list(dir_out.glob("*.h5"))
+    # Filter to only unconverted H5 files (scan year subdirs)
+    h5_files = list(dir_out.rglob("*.h5"))
     pending = []
     for f in h5_files:
         name = f.name

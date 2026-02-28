@@ -2,7 +2,7 @@
 
 __author__ = """Ritvik Sahajpal"""
 __email__ = "ritvik@umd.edu"
-__version__ = "0.6.129"
+__version__ = "0.6.130"
 
 from importlib.metadata import PackageNotFoundError, version
 
@@ -18,4 +18,4 @@ try:
 except ImportError:
     pass
 
-__all__ = ["log", "utils", "base", "geodownload", "geoextract", "geomerge", "geocheck", "diagnostics"]
+__all__ = ["log", "utils", "base", "geodownload", "geoextract", "geomerge", "geocheck", "diagnostics", "geomove"]

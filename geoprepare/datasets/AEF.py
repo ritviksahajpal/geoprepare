@@ -332,7 +332,7 @@ def to_global(params, year, country):
 
     country_slug = country.lower().replace(" ", "_")
     aef_download_dir = Path(params.dir_download) / "aef"
-    output_dir = Path(params.dir_intermed) / "aef" / country_slug
+    output_dir = Path(params.dir_intermed) / "aef" / country_slug / str(year)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     output_file = output_dir / f"aef_{year}_global.tif"
@@ -395,7 +395,7 @@ def _country_output_dir(dir_intermed, country):
 def _all_yearly_files_exist(dir_intermed, country, years):
     """Check if all per-country yearly global AEF files already exist."""
     out_dir = _country_output_dir(dir_intermed, country)
-    return all((out_dir / f"aef_{y}_global.tif").exists() for y in years)
+    return all((out_dir / str(y) / f"aef_{y}_global.tif").exists() for y in years)
 
 
 def compute_average_aef(params, country, years):
@@ -416,7 +416,7 @@ def compute_average_aef(params, country, years):
     # Collect existing yearly files
     yearly_files = []
     for y in years:
-        f = out_dir / f"aef_{y}_global.tif"
+        f = out_dir / str(y) / f"aef_{y}_global.tif"
         if f.exists():
             yearly_files.append(f)
 

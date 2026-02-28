@@ -115,7 +115,8 @@ def to_global(params, dir_download):
     filelist = glob.glob(os.path.join(dir_download, "*.tif"))
     assert len(filelist) == 16
 
-    dir_out = params.dir_intermed / "chirps_gefs"
+    current_year = ar.utcnow().to("America/New_York").year
+    dir_out = params.dir_intermed / "chirps_gefs" / str(current_year)
     os.makedirs(dir_out, exist_ok=True)
     delete_existing_files(params, dir_out)
 
@@ -156,7 +157,8 @@ def run(params):
     Returns:
 
     """
-    dir_download = params.dir_download / "chirps_gefs"
+    current_year = ar.utcnow().to("America/New_York").year
+    dir_download = params.dir_download / "chirps_gefs" / str(current_year)
     os.makedirs(dir_download, exist_ok=True)
 
     download_CHIRPS_GEFS(params, dir_download)

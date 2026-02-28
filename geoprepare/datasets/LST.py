@@ -118,7 +118,8 @@ def lst_tiff_qa(all_params):
     params, year, jd = all_params
 
     dir_download = params.dir_download / "modis_lst"
-    os.makedirs(params.dir_intermed, exist_ok=True)
+    dir_lst = params.dir_intermed / "lst" / str(year)
+    os.makedirs(dir_lst, exist_ok=True)
 
     # Get the reference info (e.g., dimension, projection) for output images from the first hdf file
     hdf_files = list(dir_download.glob("*.hdf"))
@@ -132,7 +133,7 @@ def lst_tiff_qa(all_params):
     Projection = sample_band_ds.GetProjection()
 
     name_file = f"MOD11C1.A{year}{str(jd).zfill(3)}_global.tif"
-    path_out = params.dir_intermed / name_file
+    path_out = dir_lst / name_file
 
     if not os.path.isfile(path_out):
         fileList = glob.glob(
