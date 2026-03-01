@@ -12,8 +12,6 @@ Key responsibilities:
 - Crop name mapping between abbreviations and full names
 """
 import os
-
-import pandas as pd
 from pathlib import Path
 
 from . import utils
@@ -200,6 +198,8 @@ class BaseGeo:
         Returns:
 
         """
+        import pandas as pd
+
         # Get crop calendar information
         if read_calendar or read_all:
             sheet_name = self.get_calendar_sheet_name(crop, growing_season)

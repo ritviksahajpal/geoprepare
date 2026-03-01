@@ -3,7 +3,6 @@
 # ritvik@umd.edu
 ###############################################################################
 import os
-import pdb
 import glob
 import arrow as ar
 import numpy as np
@@ -12,40 +11,6 @@ import requests
 from osgeo import osr, gdal
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-
-
-def get_forecast_file_name(params, list_files):
-    """
-
-    Args:
-        list_files:
-
-    Returns:
-
-    """
-    # Number of days to look back at if forecast file does not exist for current day
-    MAX_DAYS = 15
-    current_day = ar.utcnow().date().strftime("%Y%m%d")
-
-    forecast_regex = f"data-mean_{current_day}"
-    forecast_file = [s for s in list_files if forecast_regex in s]
-
-    # If forecast file does not exist for current day then look at previous day (upto 14 days ago)
-    if not len(forecast_file):
-        params.logger.info(f"CHIRPS-GEFS data does not exist for date: {current_day}")
-
-        for day in range(1, MAX_DAYS):
-            previous_day = ar.utcnow().shift(days=-day).date().strftime("%Y%m%d")
-
-            forecast_regex = f"data-mean_{previous_day}"
-            forecast_file = [s for s in list_files if forecast_regex in s]
-
-            # If data exists then break
-            if len(forecast_file):
-                params.logger.info(f"Getting CHIRPS-GEFS data from {previous_day}")
-                break
-
-    return forecast_file
 
 
 def delete_existing_files(params, dir_out):
@@ -77,28 +42,31 @@ def delete_existing_files(params, dir_out):
 
 def download_CHIRPS_GEFS(params, dir_out):
     base_url = "https://data.chc.ucsb.edu/products/EWX/data/forecasts/CHIRPS-GEFS_precip_v12/daily_16day/"
-
-    current_year = ar.utcnow().to("America/New_York").year
-    current_month = ar.utcnow().to("America/New_York").month
-    current_day = ar.utcnow().to("America/New_York").day
-    download_url = base_url + f"{current_year}/{current_month:02d}/{current_day:02d}"
+    MAX_DAYS = 15
 
     os.makedirs(dir_out, exist_ok=True)
     params.logger.info(f"Downloading to {dir_out}")
     delete_existing_files(params, dir_out)
 
-    response = requests.get(download_url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    for day_offset in range(MAX_DAYS):
+        dt = ar.utcnow().to("America/New_York").shift(days=-day_offset)
+        download_url = base_url + f"{dt.year}/{dt.month:02d}/{dt.day:02d}"
 
-    for link in tqdm(
-        soup.select("a[href$='.tif']"),
-        desc=f"CHIRPS-GEFS {current_year}-{current_month}-{current_day}",
-    ):
-        # Name the pdf files using the last portion of each link which are unique in this case
-        filename = os.path.join(dir_out, link["href"].split("/")[-1])
+        response = requests.get(download_url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        tif_links = soup.select("a[href$='.tif']")
 
-        with open(filename, "wb") as f:
-            f.write(requests.get(urljoin(download_url + "/", link["href"])).content)
+        if tif_links:
+            params.logger.info(f"Found {len(tif_links)} files for {dt.format('YYYY-MM-DD')}")
+            for link in tqdm(tif_links, desc=f"CHIRPS-GEFS {dt.format('YYYY-M-D')}"):
+                filename = os.path.join(dir_out, link["href"].split("/")[-1])
+                with open(filename, "wb") as f:
+                    f.write(requests.get(urljoin(download_url + "/", link["href"])).content)
+            return
+
+        params.logger.info(f"No CHIRPS-GEFS data for {dt.format('YYYY-MM-DD')}, trying previous day")
+
+    params.logger.warning(f"No CHIRPS-GEFS data found in the last {MAX_DAYS} days")
 
 
 def to_global(params, dir_download):
@@ -113,7 +81,9 @@ def to_global(params, dir_download):
     """
     # Get path of downloaded CHIRPS-GEFS file
     filelist = glob.glob(os.path.join(dir_download, "*.tif"))
-    assert len(filelist) == 16
+    if len(filelist) != 16:
+        params.logger.warning(f"Expected 16 CHIRPS-GEFS files, found {len(filelist)} — skipping")
+        return
 
     current_year = ar.utcnow().to("America/New_York").year
     dir_out = params.dir_intermed / "chirps_gefs" / str(current_year)

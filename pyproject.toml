@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprepare"
-version = "0.6.130"
+version = "0.6.134"
 description = "A Python package to prepare (download, extract, process input data) for GEOCIF and related models"
 readme = "README.md"
 license = {text = "MIT"}
@@ -128,7 +128,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.bumpversion]
-current_version = "0.6.130"
+current_version = "0.6.134"
 commit = true
 tag = true
 
@@ -141,3 +141,9 @@ replace = 'version = "{new_version}"'
 filename = "geoprepare/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
+
+[tool.uv]
+override-dependencies = [
+    "cuda-bindings; python_version < '0'",
+    "cuda-pathfinder; python_version < '0'",
+]

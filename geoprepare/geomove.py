@@ -13,9 +13,9 @@ Usage:
 """
 import os
 import re
-import ast
 import shutil
-from pathlib import Path
+import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
 from . import base
@@ -87,6 +87,7 @@ class GeoMove(base.BaseGeo):
 
     def parse_config(self, section="DEFAULT"):
         super().parse_config(section="DEFAULT")
+        self.parallel_move = self.parser.getboolean(section, "parallel_move")
 
 
 def _is_in_year_subdir(filepath):
@@ -201,6 +202,17 @@ def _move_lst_from_root(dir_intermed, dry_run, logger):
     return moved
 
 
+def _process_pattern(rel_dir, pattern, location, dir_download, dir_intermed, dry_run, logger):
+    """Process a single dataset pattern. Returns (label, moved, already, unmatched)."""
+    base_dir = dir_download / rel_dir if location == "download" else dir_intermed / rel_dir
+
+    if not base_dir.exists():
+        return rel_dir, 0, 0, 0
+
+    m, a, u = _move_files(base_dir, pattern, dry_run, logger)
+    return rel_dir, m, a, u
+
+
 def run(path_config_file=["geobase.txt"], dry_run=False):
     geomove = GeoMove(path_config_file)
     geomove.parse_config("DEFAULT")
@@ -208,17 +220,19 @@ def run(path_config_file=["geobase.txt"], dry_run=False):
     logger = geomove.logger
     dir_download = geomove.dir_download
     dir_intermed = geomove.dir_intermed
+    parallel_move = geomove.parallel_move
 
     tag = "[DRY RUN] " if dry_run else ""
     logger.info(f"{tag}Starting file migration to year-specific subfolders")
 
-    import multiprocessing
     num_cpus = max(1, int(multiprocessing.cpu_count() * geomove.fraction_cpus))
+    parallel_info = f"Yes ({num_cpus} CPUs)" if parallel_move else "No"
 
     utils.display_run_summary("GeoMove Runner", [
         ("Usage", "from geoprepare import geomove; geomove.run(cfg, dry_run=True)"),
         ("cfg", "[geobase.txt]"),
         ("Dry run", str(dry_run)),
+        ("Parallel", parallel_info),
         ("Download dir", str(dir_download)),
         ("Intermed dir", str(dir_intermed)),
     ])
@@ -233,39 +247,66 @@ def run(path_config_file=["geobase.txt"], dry_run=False):
     if lst_moved:
         logger.info(f"LST (from root): {lst_moved} files moved")
 
-    # Process standard patterns
-    for rel_dir, pattern, location in tqdm(DATASET_PATTERNS, desc="Processing datasets"):
+    # Build task list: (label, callable) for standard patterns + special cases
+    tasks = []
+    for rel_dir, pattern, location in DATASET_PATTERNS:
         if pattern is None:
-            continue  # Special-cased below
-
-        base_dir = dir_download / rel_dir if location == "download" else dir_intermed / rel_dir
-
-        if not base_dir.exists():
             continue
+        tasks.append((rel_dir, pattern, location))
 
-        m, a, u = _move_files(base_dir, pattern, dry_run, logger)
+    if parallel_move:
+        # -- PARALLEL EXECUTION --
+        with ThreadPoolExecutor(max_workers=num_cpus) as executor:
+            futures = {}
+            for rel_dir, pattern, location in tasks:
+                f = executor.submit(
+                    _process_pattern, rel_dir, pattern, location,
+                    dir_download, dir_intermed, dry_run, logger,
+                )
+                futures[f] = rel_dir
+            # Special cases
+            futures[executor.submit(_move_agera5_files, dir_intermed, dry_run, logger)] = "agera5"
+            futures[executor.submit(_move_aef_files, dir_intermed, dry_run, logger)] = "aef"
+
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Processing datasets"):
+                label = futures[future]
+                result = future.result()
+                if len(result) == 4:
+                    _, m, a, u = result
+                else:
+                    m, a, u = result
+                grand_moved += m
+                grand_already += a
+                grand_unmatched += u
+                if m or a:
+                    logger.info(f"{label}: {m} moved, {a} already in year folders, {u} unmatched")
+    else:
+        # -- SEQUENTIAL EXECUTION --
+        for rel_dir, pattern, location in tqdm(tasks, desc="Processing datasets"):
+            _, m, a, u = _process_pattern(
+                rel_dir, pattern, location, dir_download, dir_intermed, dry_run, logger,
+            )
+            grand_moved += m
+            grand_already += a
+            grand_unmatched += u
+            if m or a:
+                logger.info(f"{rel_dir}: {m} moved, {a} already in year folders, {u} unmatched")
+
+        # Handle AgERA5 special case
+        m, a, u = _move_agera5_files(dir_intermed, dry_run, logger)
         grand_moved += m
         grand_already += a
         grand_unmatched += u
-
         if m or a:
-            logger.info(f"{rel_dir}: {m} moved, {a} already in year folders, {u} unmatched")
+            logger.info(f"agera5: {m} moved, {a} already in year folders, {u} unmatched")
 
-    # Handle AgERA5 special case
-    m, a, u = _move_agera5_files(dir_intermed, dry_run, logger)
-    grand_moved += m
-    grand_already += a
-    grand_unmatched += u
-    if m or a:
-        logger.info(f"agera5: {m} moved, {a} already in year folders, {u} unmatched")
-
-    # Handle AEF special case
-    m, a, u = _move_aef_files(dir_intermed, dry_run, logger)
-    grand_moved += m
-    grand_already += a
-    grand_unmatched += u
-    if m or a:
-        logger.info(f"aef: {m} moved, {a} already in year folders, {u} unmatched")
+        # Handle AEF special case
+        m, a, u = _move_aef_files(dir_intermed, dry_run, logger)
+        grand_moved += m
+        grand_already += a
+        grand_unmatched += u
+        if m or a:
+            logger.info(f"aef: {m} moved, {a} already in year folders, {u} unmatched")
 
     logger.info(f"\n{tag}Migration summary:")
     logger.info(f"  {grand_moved} files {'would be ' if dry_run else ''}moved")
