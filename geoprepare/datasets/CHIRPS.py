@@ -232,8 +232,8 @@ def unzip_and_scale(
         src_path = src_dir / src_filename
         is_compressed = True
     else:  # v3
-        # For v3 prelim, always use 'sat' regardless of disagg setting
-        actual_disagg = "sat" if type_product == "prelim" else disagg
+        # For v3 prelim, filenames use 'prelim' as the disagg identifier
+        actual_disagg = "prelim" if type_product == "prelim" else disagg
         src_filename = get_chirps_filename(version, year, mon, day, actual_disagg, compressed=False)
         src_path = src_dir / src_filename
         is_compressed = False
