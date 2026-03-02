@@ -111,7 +111,7 @@ def harmonize_df(df, columns=None):
         columns = df.columns
     for col in columns:
         # Check if column contains string values, if yes then convert to lower case and replace spaces with underscores
-        if pd.api.types.is_string_dtype(df[col]):
+        if pd.api.types.is_string_dtype(df[col]) or df[col].dtype == "object":
             df[col] = df[col].str.replace(" ", "_").str.lower()
 
     return df
