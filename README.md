@@ -11,68 +11,32 @@
 -   Documentation: https://ritviksahajpal.github.io/geoprepare
 
 ## Installation
-> **Note:** The instructions below have only been tested on a Linux system
 
-### Install Anaconda
-We recommend that you use the conda package manager to install the `geoprepare` library and all its
-dependencies. If you do not have it installed already, you can get it from the [Anaconda distribution](https://www.anaconda.com/download#downloads)
-
-### Using the CDS API
-If you intend to download AgERA5 data, you will need to install the CDS API.
-You can do this by following the instructions [here](https://cds.climate.copernicus.eu/api-how-to)
-
-### Create a new conda environment (optional but highly recommended)
-`geoprepare` requires multiple Python GIS packages including `gdal` and `rasterio`. These packages are not always easy
-to install. To make the process easier, you can optionally create a new environment using the
-following commands, specify the python version you have on your machine (python >= 3.9 is recommended). we use the `pygis` library
-to install multiple Python GIS packages including `gdal` and `rasterio`.
-
-```bash
-conda create --name <name_of_environment> python=3.x
-conda activate <name_of_environment>
-conda install -c conda-forge mamba
-mamba install -c conda-forge gdal
-mamba install -c conda-forge rasterio
-mamba install -c conda-forge xarray
-mamba install -c conda-forge rioxarray
-mamba install -c conda-forge pyresample
-mamba install -c conda-forge cdsapi
-mamba install -c conda-forge pygis
-pip install wget
-pip install pyl4c
-```
-
-Install the octvi package to download MODIS data
-```bash
-pip install git+https://github.com/ritviksahajpal/octvi.git
-```
-
-Downloading from the NASA distributed archives (DAACs) requires a personal app key. Users must
-configure the module using a new console script, `octviconfig`. After installation, run `octviconfig`
-in your command prompt to prompt the input of your personal app key. Information on obtaining app keys
-can be found [here](https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#tokens)
-
-
-### Using PyPi (default)
+### Install from PyPI
 ```bash
 pip install --upgrade geoprepare
 ```
 
-### Using Github repository (for development)
+### Install from GitHub (development)
 ```bash
 pip install --upgrade --no-deps --force-reinstall git+https://github.com/ritviksahajpal/geoprepare.git
 ```
 
-### Local installation
-Navigate to the directory containing `pyproject.toml` and run the following command:
-```bash
-pip install .
-```
-
-For development (editable install):
+### Local editable install
 ```bash
 pip install -e ".[dev]"
 ```
+
+### CDS API (for AgERA5)
+If you intend to download AgERA5 data, install the CDS API by following the instructions [here](https://cds.climate.copernicus.eu/api-how-to).
+
+### MODIS data (octvi)
+Install the octvi package to download MODIS data:
+```bash
+pip install git+https://github.com/ritviksahajpal/octvi.git
+```
+
+Downloading from the NASA DAACs requires a personal app key. After installation, run `octviconfig` in your command prompt. Information on obtaining app keys can be found [here](https://ladsweb.modaps.eosdis.nasa.gov/tools-and-services/data-download-scripts/#tokens).
 
 ## Pipeline
 
@@ -160,385 +124,41 @@ geomerge.run(cfg_geoprepare)
 **Order matters:** Config files are loaded left-to-right. When the same key appears in multiple files, the last file wins. The tool-specific file (`geoextract.txt` or `geocif.txt`) must be last so its `[DEFAULT]` values (countries, method, etc.) override the shared defaults in `countries.txt`.
 
 ```python
-config_dir = "/path/to/config"  # full path to your config directory
+config_dir = "/path/to/config"
 
 cfg_geoprepare = [f"{config_dir}/geobase.txt", f"{config_dir}/countries.txt", f"{config_dir}/crops.txt", f"{config_dir}/geoextract.txt"]
 cfg_geocif = [f"{config_dir}/geobase.txt", f"{config_dir}/countries.txt", f"{config_dir}/crops.txt", f"{config_dir}/geocif.txt"]
 ```
 
-## Config file documentation
-
 ### geobase.txt
 
-Shared paths, dataset settings, boundary file column mappings, and logging. All directory paths are derived from `dir_base`.
+Shared paths, dataset settings, boundary file column mappings, and logging. Key sections:
 
-```ini
-[DATASETS]
-datasets = ['CHIRPS', 'CPC', 'NDVI', 'ESI', 'NSIDC', 'AEF']
-; Other available: 'CHIRPS-GEFS', 'AGERA5', 'FLDAS', 'LST', 'VHI', 'FPAR', 'SOIL-MOISTURE', 'AVHRR', 'VIIRS'
-
-[PATHS]
-dir_base = /gpfs/data1/cmongp1/GEO
-
-dir_inputs = ${dir_base}/inputs
-dir_logs = ${dir_base}/logs
-dir_download = ${dir_inputs}/download
-dir_intermed = ${dir_inputs}/intermed
-dir_metadata = ${dir_inputs}/metadata
-dir_condition = ${dir_inputs}/crop_condition
-dir_crop_inputs = ${dir_condition}/crop_t20
-
-dir_boundary_files = ${dir_metadata}/boundary_files
-dir_crop_calendars = ${dir_metadata}/crop_calendars
-dir_crop_masks = ${dir_metadata}/crop_masks
-dir_images = ${dir_metadata}/images
-dir_production_statistics = ${dir_metadata}/production_statistics
-
-dir_output = ${dir_base}/outputs
-
-; --- Per-dataset settings ---
-
-[AEF]
-; AlphaEarth Foundations satellite embeddings (2018-2024, 64 channels, 10m)
-; Source: https://source.coop/tge-labs/aef  |  License: CC-BY 4.0
-; Countries are read from geoextract.txt [DEFAULT] countries
-buffer = 0.5
-download_vrt = True
-start_year = 2018
-end_year = 2024
-
-[AGERA5]
-variables = ['Precipitation_Flux', 'Temperature_Air_2m_Max_24h', 'Temperature_Air_2m_Min_24h']
-
-[AVHRR]
-data_dir = https://www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access
-
-[CHIRPS]
-fill_value = -2147483648
-; CHIRPS version: 'v2' for CHIRPS-2.0 or 'v3' for CHIRPS-3.0
-version = v3
-; Disaggregation method for v3 only: 'sat' (IMERG) or 'rnl' (ERA5)
-; - 'sat': Uses NASA IMERG Late V07 for daily downscaling (available from 1998, 0.1° resolution)
-; - 'rnl': Uses ECMWF ERA5 for daily downscaling (full time coverage, 0.25° resolution)
-; Note: Prelim data is only available with 'sat' due to ERA5 latency (5-6 days)
-disagg = sat
-
-[CHIRPS-GEFS]
-fill_value = -2147483648
-data_dir = /pub/org/chc/products/EWX/data/forecasts/CHIRPS-GEFS_precip_v12/15day/precip_mean/
-
-[CPC]
-data_dir = ftp://ftp.cdc.noaa.gov/Datasets
-
-[ESI]
-data_dir = https://gis1.servirglobal.net//data//esi//
-list_products = ['4wk', '12wk']
-
-[FLDAS]
-use_spear = False
-data_types = ['forecast']
-variables = ['SoilMoist_tavg', 'TotalPrecip_tavg', 'Tair_tavg', 'Evap_tavg', 'TWS_tavg']
-leads = [0, 1, 2, 3, 4, 5]
-compute_anomalies = False
-
-[FPAR]
-data_dir = https://agricultural-production-hotspots.ec.europa.eu//data//indicators_fpar//fpar//
-
-[LST]
-num_update_days = 7
-
-[NDVI]
-product = MOD09CMG
-vi = ndvi
-scale_glam = False
-scale_mark = True
-print_missing = False
-
-[VIIRS]
-product = VNP09CMG
-vi = ndvi
-scale_glam = False
-scale_mark = True
-print_missing = False
-
-[NSIDC]
-
-[SOIL-MOISTURE]
-data_dir = https://gimms.gsfc.nasa.gov/SMOS/SMAP/L03/
-
-[VHI]
-data_historic = https://www.star.nesdis.noaa.gov/data/pub0018/VHPdata4users/VHP_4km_GeoTiff/
-data_current = https://www.star.nesdis.noaa.gov/pub/corp/scsb/wguo/data/Blended_VH_4km/geo_TIFF/
-
-; --- Boundary file column mappings ---
-; Section name = filename stem (without extension)
-; Maps source shapefile columns to standard internal names:
-;   adm0_col  -> ADM0_NAME (country)
-;   adm1_col  -> ADM1_NAME (admin level 1)
-;   adm2_col  -> ADM2_NAME (admin level 2, optional)
-;   id_col    -> ADM_ID    (unique feature ID)
-
-[adm_shapefile]
-adm0_col = ADMIN0
-adm1_col = ADMIN1
-adm2_col = ADMIN2
-id_col = FNID
-
-[gaul1_asap_v04]
-adm0_col = name0
-adm1_col = name1
-id_col = asap1_id
-
-[EWCM_Level_1]
-adm0_col = ADM0_NAME
-adm1_col = ADM1_NAME
-id_col = num_ID
-
-; Add more [boundary_stem] sections as needed for other shapefiles
-
-[LOGGING]
-level = ERROR
-
-[POOCH]
-; URL to download metadata.zip (boundary files, crop masks, calendars, etc.)
-; NOTE: Set this to your own hosted URL (e.g. Dropbox, S3, etc.)
-url = <your_metadata_zip_url>
-enabled = True
-
-[DEFAULT]
-logfile = log
-parallel_process = False
-fraction_cpus = 0.35
-start_year = 2001
-end_year = 2026
-```
+- **`[DATASETS]`** — Which datasets to download (e.g. `['CHIRPS', 'CPC', 'NDVI', 'ESI', 'NSIDC']`)
+- **`[PATHS]`** — All directory paths, derived from `dir_base`
+- **Per-dataset sections** (`[CHIRPS]`, `[CPC]`, `[FLDAS]`, etc.) — Dataset-specific settings like data URLs, variables, fill values
+- **Boundary file sections** (`[adm_shapefile]`, `[gaul1_asap_v04]`, etc.) — Column mappings from shapefile fields to standard names (`ADM0_NAME`, `ADM1_NAME`, `ADM_ID`)
+- **`[DEFAULT]`** — Shared defaults: `start_year`, `end_year`, `parallel_process`, `fraction_cpus`
 
 ### countries.txt
 
-Single source of truth for per-country config. Each country owns its `calendar_file`, `crops`, `eo_model`, and other settings. Shared by both geoprepare and geocif.
+Per-country configuration. Each country section specifies boundary file, admin level, seasons, crops, and EO variables. Countries are grouped by calendar category:
 
-```ini
-[DEFAULT]
-boundary_file = gaul1_asap_v04.shp
-admin_level = admin_1
-seasons = [1]
-crops = ['maize']
-category = AMIS
-use_cropland_mask = False
-calendar_file = crop_calendar.csv
-mask = cropland_v9.tif
-statistics_file = statistics.csv
-zone_file = countries.csv
-shp_region = GlobalCM_Regions_2025-11.shp
-eo_model = ['aef', 'nsidc_surface', 'nsidc_rootzone', 'ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'chirps_gefs', 'esi_4wk']
-annotate_regions = False
-
-;;; AMIS countries (inherit from DEFAULT, override crops if needed) ;;;
-[argentina]
-crops = ['soybean', 'winter_wheat', 'maize']
-
-[brazil]
-crops = ['maize', 'soybean', 'winter_wheat', 'rice']
-
-[india]
-crops = ['rice', 'maize', 'winter_wheat', 'soybean']
-
-[united_states_of_america]
-crops = ['rice', 'maize', 'winter_wheat']
-
-; ... (40+ AMIS countries, most inherit DEFAULT crops)
-
-;;; EWCM countries (full per-country config) ;;;
-[kenya]
-category = EWCM
-admin_level = admin_1
-seasons = [1, 2]
-use_cropland_mask = True
-boundary_file = adm_shapefile.gpkg
-calendar_file = EWCM_2026-01-05.xlsx
-crops = ['maize']
-
-[malawi]
-category = EWCM
-admin_level = admin_2
-use_cropland_mask = True
-boundary_file = adm_shapefile.gpkg
-calendar_file = EWCM_2026-01-05.xlsx
-crops = ['maize']
-
-[ethiopia]
-category = EWCM
-admin_level = admin_2
-use_cropland_mask = True
-boundary_file = adm_shapefile.gpkg
-calendar_file = EWCM_2026-01-05.xlsx
-crops = ['maize', 'sorghum', 'millet', 'rice', 'winter_wheat', 'teff']
-
-; ... (30+ EWCM countries, mostly Sub-Saharan Africa)
-
-;;; Other countries (custom boundary files, non-standard setups) ;;;
-[nepal]
-crops = ['rice']
-boundary_file = hermes_NPL_new_wgs_2.shp
-
-[illinois]
-admin_level = admin_3
-boundary_file = illinois_counties.shp
-```
+- **AMIS countries** — Inherit defaults, override `crops` as needed
+- **EWCM countries** — Set `category = EWCM`, `use_cropland_mask = True`, custom `calendar_file` and `boundary_file`
+- **`[DEFAULT]`** — Shared defaults including `eo_model` (list of EO variables to extract)
 
 ### crops.txt
 
-Crop mask filenames and calendar category settings. Calendar categories define shared settings (cropland masking, boundary files, growing seasons) for groups of countries.
-
-```ini
-;;; Crop masks ;;;
-[winter_wheat]
-mask = Percent_Winter_Wheat.tif
-
-[spring_wheat]
-mask = Percent_Spring_Wheat.tif
-
-[maize]
-mask = Percent_Maize.tif
-
-[soybean]
-mask = Percent_Soybean.tif
-
-[rice]
-mask = Percent_Rice.tif
-
-[teff]
-mask = cropland_v9.tif
-
-[sorghum]
-mask = cropland_v9.tif
-
-[millet]
-mask = cropland_v9.tif
-
-;;; Calendar categories ;;;
-[EWCM]
-use_cropland_mask = True
-shp_boundary = adm_shapefile.gpkg
-growing_seasons = [1]  ; 1 is primary/long season, 2 is secondary/short season
-
-[AMIS]
-```
+Crop mask filenames (e.g. `[maize] mask = Percent_Maize.tif`) and calendar category settings (`[EWCM]`, `[AMIS]`).
 
 ### geoextract.txt
 
-Extraction-only settings for geoprepare. Loaded last so its `[DEFAULT]` overrides shared defaults.
-
-```ini
-[DEFAULT]
-start_year = 2001
-end_year = 2026
-project_name = geocif
-method = JRC
-redo = False
-threshold = True
-floor = 20
-ceil = 90
-parallel_extract = True
-parallel_merge = True
-fraction_cpus = 0.6
-countries = ["malawi"]
-forecast_seasons = [2026]
-```
+Extraction settings for geoprepare. `[DEFAULT]` section sets `method`, `redo`, `threshold`, `floor`/`ceil`, `parallel_extract`, `countries`, and `forecast_seasons`.
 
 ### geocif.txt
 
-Indices, ML, and agmet settings for geocif. Country overrides go here when geocif needs different values than countries.txt (e.g., a subset of crops). Its `[DEFAULT]` section is loaded last and overrides shared defaults for geocif runs.
-
-```ini
-[AGMET]
-eo_plot = ['ndvi', 'cpc_tmax', 'cpc_tmin', 'chirps', 'esi_4wk', 'nsidc_surface', 'nsidc_rootzone']
-logo_harvest = harvest.png
-logo_geoglam = geoglam.png
-
-;;; Country overrides (only where geocif differs from countries.txt) ;;;
-[bangladesh]
-crops = ['rice']
-admin_level = admin_2
-boundary_file = bangladesh.shp
-annotate_regions = False
-input_file_path = ${PATHS:dir_output}/countries
-
-[ethiopia]
-crops = ['winter_wheat']
-
-[india]
-crops = ['soybean', 'maize', 'rice']
-
-[russian_federation]
-crops = ['winter_wheat', 'maize']
-
-[somalia]
-crops = ['maize']
-
-[ukraine]
-crops = ['winter_wheat', 'maize']
-
-;;; ML model definitions ;;;
-[linear]
-ml_model = True
-
-[gam]
-ml_model = True
-
-[analog]
-ML_model = False
-
-[median]
-ML_model = False
-
-[catboost]
-ML_model = True
-
-[desreg]
-ML_model = True
-
-[ngboost]
-ML_model = True
-
-[tabpfn]
-ML_model = True
-
-; ... (additional models: tabicl, cumulative_*, oblique, merf, cubist, ydf, etc.)
-
-[ML]
-model_type = REGRESSION
-target = Yield (tn per ha)
-feature_selection = multi
-lag_years = 3
-panel_model = True
-panel_model_region = Country
-median_years = 5
-lag_yield_as_feature = True
-run_latest_time_period = True
-run_every_time_period = 3
-cat_features = ["Harvest Year", "Region_ID", "Region"]
-loocv_var = Harvest Year
-check_yield_trend = True
-detrend_method = gaussian
-
-[LOGGING]
-log_level = ERROR
-
-[DEFAULT]
-data_source = harvest
-method = monthly_r
-project_name = geocif
-countries = ["malawi"]
-crops = ['maize']
-admin_level = admin_1
-models = ['catboost']
-seasons = [1]
-threshold = True
-floor = 20
-fraction_cpus = 0.7
-input_file_path = ${PATHS:dir_crop_inputs}/processed
-```
+ML and agmet settings for geocif. Contains `[AGMET]` plotting config, per-country crop overrides, ML model definitions, and `[ML]` hyperparameters.
 
 ## Supported datasets
 
@@ -595,76 +215,14 @@ dir_intermed/
 
 ## Upload package to PyPI
 
-Navigate to the **root of the geoprepare repository** (the directory containing `pyproject.toml`):
 ```bash
-cd /path/to/geoprepare
-```
-
-### Step 1: Update version
-Use `bump2version` to update the version in both `pyproject.toml` and `geoprepare/__init__.py`:
-
-**Using uv:**
-```bash
+# 1. Bump version
 uvx bump2version patch --current-version X.X.X --new-version X.X.Y pyproject.toml geoprepare/__init__.py
-```
 
-**Using pip:**
-```bash
-pip install bump2version
-bump2version patch --current-version X.X.X --new-version X.X.Y pyproject.toml geoprepare/__init__.py
-```
-
-Or manually edit the version in `pyproject.toml` and `geoprepare/__init__.py`.
-
-### Step 2: Clean old builds
-
-**Linux/macOS:**
-```bash
+# 2. Clean, build, upload
 rm -rf dist/ build/ *.egg-info/
-```
-
-**Windows (Command Prompt):**
-```cmd
-rmdir /s /q dist build geoprepare.egg-info
-```
-
-**Windows (PowerShell):**
-```powershell
-Remove-Item -Recurse -Force dist/, build/, *.egg-info/ -ErrorAction SilentlyContinue
-```
-
-### Step 3: Build and upload
-
-**Using uv (Linux/macOS):**
-```bash
 uv build
-uvx twine check dist/*
-uvx twine upload dist/geoprepare-X.X.X*
-```
-
-**Using uv (Windows):**
-```cmd
-uv build
-uvx twine check dist\geoprepare-X.X.X.tar.gz dist\geoprepare-X.X.X-py3-none-any.whl
-uvx twine upload dist\geoprepare-X.X.X.tar.gz dist\geoprepare-X.X.X-py3-none-any.whl
-```
-
-**Using pip:**
-```bash
-pip install build twine
-python -m build
-twine check dist/*
-twine upload dist/geoprepare-X.X.X*
-```
-
-Replace `X.X.X` with your current version and `X.X.Y` with the new version.
-
-### Optional: Configure PyPI credentials
-To avoid entering credentials each time, create a `~/.pypirc` file (Linux/macOS) or `%USERPROFILE%\.pypirc` (Windows):
-```ini
-[pypi]
-username = __token__
-password = pypi-YOUR_API_TOKEN_HERE
+uvx twine upload dist/geoprepare-X.X.Y*
 ```
 
 ## Credits

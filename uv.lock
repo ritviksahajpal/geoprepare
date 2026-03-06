@@ -7,6 +7,12 @@ resolution-markers = [
     "python_full_version < '3.10'",
 ]
 
+[manifest]
+overrides = [
+    { name = "cuda-bindings", marker = "python_full_version < '0'" },
+    { name = "cuda-pathfinder", marker = "python_full_version < '0'" },
+]
+
 [[package]]
 name = "alabaster"
 version = "0.7.16"
@@ -940,7 +946,7 @@ wheels = [
 
 [[package]]
 name = "geoprepare"
-version = "0.6.126"
+version = "0.6.135"
 source = { editable = "." }
 dependencies = [
     { name = "rich" },
