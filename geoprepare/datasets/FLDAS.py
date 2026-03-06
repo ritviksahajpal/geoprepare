@@ -508,15 +508,6 @@ def _download_fldas_wrapper(args):
     return download_fldas(*args)
 
 
-def _extract_and_process_wrapper(args):
-    """Wrapper to unpack tuple args for multiprocessing."""
-    return extract_and_process(*args)
-
-
-def _reproject_to_global_wrapper(args):
-    """Wrapper to unpack tuple args for multiprocessing."""
-    return reproject_to_global(*args)
-
 
 def run(geoprep):
     """
@@ -610,19 +601,8 @@ def run(geoprep):
     ]
     
     logger.info(f"Processing {len(process_tasks)} files...")
-    
-    if parallel_process:
-        with multiprocessing.Pool(num_workers) as p:
-            list(
-                tqdm(
-                    p.imap_unordered(_extract_and_process_wrapper, process_tasks),
-                    total=len(process_tasks),
-                    desc="Process FLDAS",
-                )
-            )
-    else:
-        for args in tqdm(process_tasks, desc="Process FLDAS"):
-            extract_and_process(*args)
+    for args in tqdm(process_tasks, desc="Process FLDAS"):
+        extract_and_process(*args)
 
     # =========================================================================
     # Step 3: Reproject to 0.05° global grid (3600x7200)
@@ -636,19 +616,8 @@ def run(geoprep):
     ]
 
     logger.info(f"Reprojecting {len(reproj_tasks)} files to global grid...")
-
-    if parallel_process:
-        with multiprocessing.Pool(num_workers) as p:
-            list(
-                tqdm(
-                    p.imap_unordered(_reproject_to_global_wrapper, reproj_tasks),
-                    total=len(reproj_tasks),
-                    desc="Reproject FLDAS",
-                )
-            )
-    else:
-        for args in tqdm(reproj_tasks, desc="Reproject FLDAS"):
-            reproject_to_global(*args)
+    for args in tqdm(reproj_tasks, desc="Reproject FLDAS"):
+        reproject_to_global(*args)
     
     logger.info("FLDAS processing complete")
 

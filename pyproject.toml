@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprepare"
-version = "0.6.136"
+version = "0.6.141"
 description = "A Python package to prepare (download, extract, process input data) for GEOCIF and related models"
 readme = "README.md"
 license = {text = "MIT"}
@@ -128,7 +128,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.bumpversion]
-current_version = "0.6.136"
+current_version = "0.6.141"
 commit = true
 tag = true
 
@@ -146,4 +146,19 @@ replace = '__version__ = "{new_version}"'
 override-dependencies = [
     "cuda-bindings; python_version < '0'",
     "cuda-pathfinder; python_version < '0'",
+    "nvidia-cublas-cu12; python_version < '0'",
+    "nvidia-cuda-cupti-cu12; python_version < '0'",
+    "nvidia-cuda-nvrtc-cu12; python_version < '0'",
+    "nvidia-cuda-runtime-cu12; python_version < '0'",
+    "nvidia-cudnn-cu12; python_version < '0'",
+    "nvidia-cufft-cu12; python_version < '0'",
+    "nvidia-cufile-cu12; python_version < '0'",
+    "nvidia-curand-cu12; python_version < '0'",
+    "nvidia-cusolver-cu12; python_version < '0'",
+    "nvidia-cusparse-cu12; python_version < '0'",
+    "nvidia-cusparselt-cu12; python_version < '0'",
+    "nvidia-nccl-cu12; python_version < '0'",
+    "nvidia-nvjitlink-cu12; python_version < '0'",
+    "nvidia-nvshmem-cu12; python_version < '0'",
+    "nvidia-nvtx-cu12; python_version < '0'",
 ]

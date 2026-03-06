@@ -10,6 +10,7 @@ Pipeline: extract (extract_EO.py) -> merge (geomerge.py) -> model (geocif)
 Output: {dir_output}/crop_t{threshold}/{country}/{country}_{crop}_s{season}.csv
 """
 import os
+import gc
 import ast
 import datetime
 import itertools
@@ -162,10 +163,16 @@ class GeoMerge(base.BaseGeo):
                 merge_cols = self.static_columns
 
             # Read and concat all files for this variable in one shot
-            var_frames = [
-                pd.read_csv(fl, usecols=read_cols)
-                for fl in var_files
-            ]
+            # Disable GC during bulk read to avoid progressive slowdown from
+            # cyclic GC scanning 1000+ small DataFrames
+            gc.disable()
+            try:
+                var_frames = [
+                    pd.read_csv(fl, usecols=read_cols)
+                    for fl in tqdm(var_files, desc=f"Reading {var} files", leave=False)
+                ]
+            finally:
+                gc.enable()
 
             if not var_frames:
                 continue
@@ -243,6 +250,7 @@ class GeoMerge(base.BaseGeo):
         # Add static information
         self.df_ccs.insert(pos + 5, "crop", self.crop)
         self.df_ccs.insert(pos + 6, "scale", self.scale)
+        self.df_ccs.insert(pos + 7, "growing_season", self.growing_season)
 
     def fillna(self, group, df_combination, df_stats):
         """
@@ -435,8 +443,7 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs = pd.concat(frames)
         self.df_ccs = self.df_ccs.reset_index(drop=True)
 
-        # TODO: Add a dictionary for the growing season so that we can accomodate multiple types of growth stages
-        # 5. Set growing_season to np.nan when crop_calendar is 1, 2 or 3
+        # 5. Clear growing_season for off-season rows (crop_calendar not 1, 2, or 3)
         self.df_ccs.loc[
             ~self.df_ccs["crop_calendar"].isin([1, 2, 3]), "growing_season"
         ] = np.nan
@@ -469,10 +476,13 @@ class GeoMerge(base.BaseGeo):
         ]
 
 
-def process_combination(combination, path_config_file, parallel=False):
+def process_combination(combination, path_config_file, parallel=False, df_eo=None):
     """
     Worker function for a single combination of (country, scale, crop, growing_season).
     Returns (combination, success_boolean) for reporting.
+
+    If df_eo is provided, skip the expensive merge_eo_files() call and use the
+    pre-read EO DataFrame instead.
     """
     country, scale, crop, growing_season = combination
 
@@ -489,9 +499,9 @@ def process_combination(combination, path_config_file, parallel=False):
         )
 
     # 1. Read statistics (you can pass read_all=True if needed)
-    gm.read_statistics(country, 
-                       crop, 
-                       growing_season, 
+    gm.read_statistics(country,
+                       crop,
+                       growing_season,
                        read_calendar=True,
                        read_statistics=False,
                        read_countries=True)
@@ -514,8 +524,11 @@ def process_combination(combination, path_config_file, parallel=False):
         gm.logger.error(f"Skipping {combination}: no calendar rows for country '{country}'")
         return (combination, False)
 
-    # 5. Merge all EO data
-    gm.df_ccs = gm.merge_eo_files()
+    # 5. Merge all EO data (or reuse pre-read data)
+    if df_eo is not None:
+        gm.df_ccs = df_eo.copy()
+    else:
+        gm.df_ccs = gm.merge_eo_files()
 
     # 6. Add static data, fill missing, add yield stats, etc.
     gm.add_static_information()
@@ -547,10 +560,77 @@ def process_combination(combination, path_config_file, parallel=False):
         return (combination, False)
 
 
+def process_group(group_key, group_combos, path_config_file, parallel=False):
+    """
+    Process a group of combinations that share the same EO data directory.
+    Reads EO data once, then processes each combination using the shared data.
+    Returns list of (combination, success_boolean) tuples.
+    """
+    results = []
+    country, scale, crop_folder = group_key
+
+    # Create one GeoMerge instance to read EO data
+    gm = GeoMerge(path_config_file)
+    gm.parse_config("DEFAULT")
+
+    if parallel:
+        gm.logger = log.SafeLogger(
+            name=f"geoprepare.merge.{country}",
+            level=gm.compute_logging_level(),
+        )
+
+    # Initialize with the first combination to set up merge_eo_files() dependencies
+    first_combo = group_combos[0]
+    _, _, first_crop, first_season = first_combo
+    gm.country_information(country, scale, first_crop, first_season)
+
+    # Override crop_folder if using cropland mask (merge_eo_files checks use_cropland_mask)
+    gm.logger.info(f"Reading EO data once for group {group_key} ({len(group_combos)} combinations)")
+
+    # Read EO data ONCE for the whole group
+    df_eo = gm.merge_eo_files()
+
+    # Process each combination using the shared EO data
+    for combo in group_combos:
+        try:
+            result = process_combination(combo, path_config_file, parallel, df_eo=df_eo)
+            results.append(result)
+        except Exception as e:
+            if parallel:
+                gm.logger.error(f"[ERROR] Combination {combo}: {e}")
+            else:
+                print(f"[ERROR] Combination {combo}: {e}")
+            results.append((combo, False))
+
+    return results
+
+
+def _group_combinations(parser, all_combinations):
+    """
+    Group combinations by EO data key (country, scale, crop_folder).
+    Combinations in the same group share the same EO data directory
+    and only need to read it once.
+    """
+    from collections import defaultdict
+    groups = defaultdict(list)
+
+    for combo in all_combinations:
+        country, scale, crop, _ = combo
+        use_cropland_mask = parser.getboolean(country, "use_cropland_mask")
+        crop_folder = "cr" if use_cropland_mask else crop
+        key = (country, scale, crop_folder)
+        groups[key].append(combo)
+
+    return dict(groups)
+
+
 def run(path_config_file=["geobase.txt", "geoextract.txt"]):
     """
     Main function that can run either sequentially or in parallel,
     depending on the `parallel` argument.
+
+    Combinations that share the same EO data directory are grouped together
+    so the EO data is read only once per group.
     """
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -558,8 +638,9 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
     gm_master = GeoMerge(path_config_file)
     gm_master.parse_config("DEFAULT")
 
-    # 2. Get all combinations
+    # 2. Get all combinations and group by EO data key
     all_combinations = gm_master.create_run_combinations()
+    groups = _group_combinations(gm_master.parser, all_combinations)
 
     from . import utils
     utils.display_run_summary("GeoMerge Runner", [
@@ -568,57 +649,47 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
         ("Countries", gm_master.countries),
         ("Years", f"{gm_master.start_year} - {gm_master.end_year}"),
         ("Combinations", str(len(all_combinations))),
+        ("EO groups", f"{len(groups)} (EO data read once per group)"),
         ("Parallel", str(gm_master.parallel_merge)),
         ("Intermed dir", str(gm_master.dir_intermed)),
         ("Output dir", str(gm_master.dir_output)),
     ])
 
+    results = []
+
     if not gm_master.parallel_merge:
         # -- SEQUENTIAL EXECUTION --
-        results = []
-        pbar = tqdm(all_combinations, total=len(all_combinations))
-        for combo in pbar:
-            pbar.set_description(f"Processing {combo}")
-            pbar.update()
-
-            combo_result, success = process_combination(combo, path_config_file)
-            results.append((combo_result, success))
-        succeeded = sum(s for _, s in results)
-        failed = [(c, s) for c, s in results if not s]
-        print(f"\nGeoMerge: {succeeded}/{len(results)} combinations produced output.")
-        if failed:
-            print(f"  Failed: {[c for c, _ in failed]}")
+        for key, group_combos in tqdm(groups.items(), desc="Processing groups"):
+            group_results = process_group(key, group_combos, path_config_file)
+            results.extend(group_results)
     else:
-        # -- PARALLEL EXECUTION --
-        results = []
-        num_cpus = int(gm_master.fraction_cpus * os.cpu_count())
+        # -- PARALLEL EXECUTION (one process per EO group) --
+        num_cpus = int(gm_master.fraction_cpus * (os.cpu_count() or 4))
         with ProcessPoolExecutor(max_workers=num_cpus) as executor:
-            # Submit tasks
-            future_to_combo = {
-                executor.submit(process_combination, combo, path_config_file, True): combo
-                for combo in all_combinations
+            future_to_key = {
+                executor.submit(process_group, key, group_combos, path_config_file, True): key
+                for key, group_combos in groups.items()
             }
 
-            # Use tqdm to track progress of tasks as they complete
             for future in tqdm(
-                as_completed(future_to_combo),
-                total=len(future_to_combo),
-                desc="Processing combos (parallel)",
-                leave=True
+                as_completed(future_to_key),
+                total=len(future_to_key),
+                desc="Processing groups (parallel)",
+                leave=True,
             ):
-                combo = future_to_combo[future]
+                key = future_to_key[future]
                 try:
-                    combo_result, success = future.result()
-                    results.append((combo_result, success))
+                    group_results = future.result()
+                    results.extend(group_results)
                 except Exception as e:
-                    print(f"[ERROR] Combination {combo}: {e}")
-                    results.append((combo, False))
+                    print(f"[ERROR] Group {key}: {e}")
+                    results.extend([(c, False) for c in groups[key]])
 
-        succeeded = sum(s for _, s in results)
-        failed = [(c, s) for c, s in results if not s]
-        print(f"\nGeoMerge: {succeeded}/{len(results)} combinations produced output.")
-        if failed:
-            print(f"  Failed: {[c for c, _ in failed]}")
+    succeeded = sum(s for _, s in results)
+    failed = [(c, s) for c, s in results if not s]
+    print(f"\nGeoMerge: {succeeded}/{len(results)} combinations produced output.")
+    if failed:
+        print(f"  Failed: {[c for c, _ in failed]}")
 
 
 if __name__ == "__main__":
