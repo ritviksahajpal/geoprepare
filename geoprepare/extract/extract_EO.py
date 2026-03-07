@@ -250,13 +250,12 @@ def get_end_doy(year: int) -> int:
     return 367 if calendar.isleap(year) else 366
 
 
-def get_default_empty_str(country: str, region: str, region_id: str, date_part: str) -> str:
+def get_default_empty_str(country: str, region: str, region_id: str, lat: float, lon: float, date_part: str) -> str:
     """
     Return a CSV line with NaN placeholders if no data was found.
     """
-    # You mentioned 6 numeric columns: mean, counts, etc.
     empty_values = ",".join([str(np.nan)] * 6)
-    return f"{country},{region},{region_id},{date_part},{empty_values}"
+    return f"{country},{region},{region_id},{lat},{lon},{date_part},{empty_values}"
 
 
 def read_or_skip_existing_day(doy: int, existing_rows: list[list[str]]) -> str | None:
@@ -315,7 +314,7 @@ def write_daily_stats_to_csv(daily_stats: list[str], path_output: Path, var: str
     # CSV header matching geom_extract output: stats(mean) + counts(total, valid_data,
     # valid_data_after_masking, weight_sum, weight_sum_used)
     header = (
-        f"country,region,region_id,year,doy,{var},"
+        f"country,region,region_id,lat,lon,year,doy,{var},"
         "total_pixels,valid_data,valid_data_after_masking,"
         "weight_sum,weight_sum_used"
     )
@@ -336,6 +335,8 @@ def process_chirps_gefs(
     country: str,
     region: str,
     region_id: str,
+    lat: float,
+    lon: float,
     var: str,
     year: int,
     params,
@@ -350,7 +351,7 @@ def process_chirps_gefs(
 
     for jd in range(start_date, end_date):
         date_part = f"{ar.utcnow().year},{jd}"
-        empty_str = get_default_empty_str(country, region, region_id, date_part)
+        empty_str = get_default_empty_str(country, region, region_id, lat, lon, date_part)
 
         # Suppose you have a function that knows how to build the filename:
         # get_var_fname(params, var, year, jd) -> str
@@ -369,7 +370,7 @@ def process_chirps_gefs(
 
         values_str = extract_stats(row["geometry"], var, indicator_ds, afi_ds, limit)
         if values_str:
-            daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
+            daily_stats.append(f"{country},{region},{region_id},{lat},{lon},{date_part},{values_str}")
         else:
             daily_stats.append(empty_str)
 
@@ -388,6 +389,8 @@ def process_regular_var(
     country: str,
     region: str,
     region_id: str,
+    lat: float,
+    lon: float,
     end_doy: int,
     existing_rows: list[list[str]],
     use_partial_file: bool,
@@ -400,7 +403,7 @@ def process_regular_var(
     """
     for doy in range(1, end_doy):
         date_part = f"{year},{doy}"
-        empty_str = get_default_empty_str(country, region, region_id, date_part)
+        empty_str = get_default_empty_str(country, region, region_id, lat, lon, date_part)
 
         # Build the filename (adjust as needed to match your naming scheme).
         fname = get_var_fname(params, var, year, doy)
@@ -434,7 +437,7 @@ def process_regular_var(
         # Extract stats - pass open datasets for both indicator and AFI
         values_str = extract_stats(row["geometry"], var, indicator_ds, afi_ds, limit)
         if values_str:
-            daily_stats.append(f"{country},{region},{region_id},{date_part},{values_str}")
+            daily_stats.append(f"{country},{region},{region_id},{lat},{lon},{date_part},{values_str}")
         else:
             daily_stats.append(empty_str)
 
@@ -475,7 +478,7 @@ def process_aef(params, country, crop, scale, afi_file, df_country):
 
     # 4. Open both rasters once, iterate over regions
     aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
-    header = ",".join(["country", "region", "region_id"] + aef_cols)
+    header = ",".join(["country", "region", "region_id", "lat", "lon"] + aef_cols)
 
     with rasterio.open(aef_path) as aef_src, rasterio.open(afi_file) as afi_src:
         for _, row in df_country.iterrows():
@@ -484,6 +487,9 @@ def process_aef(params, country, crop, scale, afi_file, df_country):
 
             region = row[admin_name].lower().replace(" ", "_")
             region_id = row[admin_id]
+            centroid = row.geometry.centroid
+            lat = round(centroid.y, 6)
+            lon = round(centroid.x, 6)
 
             path_output = dir_output / f"{region}_{region_id}_aef_{crop}.csv"
             if path_output.exists() and not params.redo:
@@ -515,7 +521,7 @@ def process_aef(params, country, crop, scale, afi_file, df_country):
 
             # Write single-row CSV for this region
             values = ",".join(map(str, band_means))
-            line = f"{country},{region},{region_id},{values}"
+            line = f"{country},{region},{region_id},{lat},{lon},{values}"
             df_result = pd.read_csv(io.StringIO(f"{header}\n{line}"))
             df_result.to_csv(path_output, index=False)
 
@@ -593,6 +599,9 @@ def process(val):
 
             region = row[admin_name].lower().replace(" ", "_")
             region_id = row[admin_id]
+            centroid = row.geometry.centroid
+            lat = round(centroid.y, 6)
+            lon = round(centroid.x, 6)
 
             # Build the path for this region-year CSV
             path_output = build_output_path(dir_output, region, region_id, year, var, crop)
@@ -613,6 +622,8 @@ def process(val):
                     country,
                     region,
                     region_id,
+                    lat,
+                    lon,
                     var,
                     year,
                     params,
@@ -631,6 +642,8 @@ def process(val):
                     country,
                     region,
                     region_id,
+                    lat,
+                    lon,
                     end_doy,
                     existing_rows,
                     use_partial,
@@ -696,6 +709,10 @@ def build_combinations(params, skip_vars=None):
         df_country = df_cmask[
             df_cmask["ADM0_NAME"].str.lower().str.replace(" ", "_") == mask_country
         ]
+
+        # Ensure WGS84 for centroid lat/lon computation
+        if df_country.crs and df_country.crs.to_epsg() != 4326:
+            df_country = df_country.to_crs(epsg=4326)
 
         # Build mask path
         for crop in crops:

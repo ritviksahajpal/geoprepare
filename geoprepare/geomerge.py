@@ -64,7 +64,7 @@ class GeoMerge(base.BaseGeo):
         self.scale = scale
         self.growing_season = growing_season
 
-        self.static_columns = ["country", "region", "region_id", "year", "doy"]
+        self.static_columns = ["country", "region", "region_id", "lat", "lon", "year", "doy"]
         self.eo_model = ast.literal_eval(
             self.parser.get(country, "eo_model")
         )  # list of EO variables to use in the model
@@ -156,7 +156,7 @@ class GeoMerge(base.BaseGeo):
             # AEF: 64-band average data (no doy or year column)
             if var == "aef":
                 aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
-                read_cols = ["country", "region", "region_id"] + aef_cols
+                read_cols = ["country", "region", "region_id", "lat", "lon"] + aef_cols
                 merge_cols = ["country", "region", "region_id"]
             else:
                 read_cols = self.static_columns + [var]
