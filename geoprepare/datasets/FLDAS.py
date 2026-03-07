@@ -46,6 +46,7 @@ Steps:
 import logging
 import multiprocessing
 import os
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
@@ -429,6 +430,15 @@ def reproject_to_global(
             dst = global_dir / f"fldas_{var}_{year}{month:02d}_global.tif"
             file_pairs.append((src, dst))
 
+    # Build target 0.05° global grid ONCE (identical for all files)
+    tgt_lons = np.linspace(-180 + GLOBAL_RES / 2, 180 - GLOBAL_RES / 2, GLOBAL_WIDTH)
+    tgt_lats = np.linspace(90 - GLOBAL_RES / 2, -90 + GLOBAL_RES / 2, GLOBAL_HEIGHT)
+    tgt_lon2d, tgt_lat2d = np.meshgrid(tgt_lons, tgt_lats)
+    tgt_def = pyresample.geometry.SwathDefinition(lons=tgt_lon2d, lats=tgt_lat2d)
+
+    # Cache source geometry — all FLDAS files share the same grid
+    cached_src_def = None
+
     for src_path, dst_path in file_pairs:
         if dst_path.exists() or not src_path.exists():
             continue
@@ -441,35 +451,26 @@ def reproject_to_global(
 
             band = ds.GetRasterBand(1)
             src_arr = band.ReadAsArray()
-            gt = ds.GetGeoTransform()
             src_height, src_width = src_arr.shape
 
-            # Build source lat/lon arrays from geotransform
-            src_lons = np.array([gt[0] + (j + 0.5) * gt[1] for j in range(src_width)])
-            src_lats = np.array([gt[3] + (i + 0.5) * gt[5] for i in range(src_height)])
-            src_lon2d, src_lat2d = np.meshgrid(src_lons, src_lats)
+            # Build source geometry once (all FLDAS files have the same grid)
+            if cached_src_def is None:
+                gt = ds.GetGeoTransform()
+                src_lons = gt[0] + (np.arange(src_width) + 0.5) * gt[1]
+                src_lats = gt[3] + (np.arange(src_height) + 0.5) * gt[5]
+                src_lon2d, src_lat2d = np.meshgrid(src_lons, src_lats)
+                cached_src_def = pyresample.geometry.SwathDefinition(
+                    lons=src_lon2d, lats=src_lat2d
+                )
 
             ds = None
-
-            # Build target 0.05° global grid
-            tgt_lons = np.linspace(-180 + GLOBAL_RES / 2, 180 - GLOBAL_RES / 2, GLOBAL_WIDTH)
-            tgt_lats = np.linspace(90 - GLOBAL_RES / 2, -90 + GLOBAL_RES / 2, GLOBAL_HEIGHT)
-            tgt_lon2d, tgt_lat2d = np.meshgrid(tgt_lons, tgt_lats)
-
-            # Define swath geometries
-            src_def = pyresample.geometry.SwathDefinition(
-                lons=src_lon2d, lats=src_lat2d
-            )
-            tgt_def = pyresample.geometry.SwathDefinition(
-                lons=tgt_lon2d, lats=tgt_lat2d
-            )
 
             # Mask nodata before resampling
             src_masked = np.where(src_arr == NODATA_VALUE, np.nan, src_arr)
 
             # Nearest-neighbor resample to global grid
             out_arr = pyresample.kd_tree.resample_nearest(
-                src_def,
+                cached_src_def,
                 src_masked,
                 tgt_def,
                 radius_of_influence=30000,  # 30 km (~0.25° at equator)
@@ -600,9 +601,10 @@ def run(geoprep):
         for mon in range(1, 13)
     ]
     
-    logger.info(f"Processing {len(process_tasks)} files...")
-    for args in tqdm(process_tasks, desc="Process FLDAS"):
-        extract_and_process(*args)
+    logger.info(f"Processing {len(process_tasks)} files with {num_workers} threads...")
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        list(tqdm(executor.map(lambda args: extract_and_process(*args), process_tasks),
+                  total=len(process_tasks), desc="Process FLDAS"))
 
     # =========================================================================
     # Step 3: Reproject to 0.05° global grid (3600x7200)
@@ -615,9 +617,10 @@ def run(geoprep):
         for mon in range(1, 13)
     ]
 
-    logger.info(f"Reprojecting {len(reproj_tasks)} files to global grid...")
-    for args in tqdm(reproj_tasks, desc="Reproject FLDAS"):
-        reproject_to_global(*args)
+    logger.info(f"Reprojecting {len(reproj_tasks)} files to global grid with {num_workers} threads...")
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        list(tqdm(executor.map(lambda args: reproject_to_global(*args), reproj_tasks),
+                  total=len(reproj_tasks), desc="Reproject FLDAS"))
     
     logger.info("FLDAS processing complete")
 
