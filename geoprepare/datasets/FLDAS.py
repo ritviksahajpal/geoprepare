@@ -243,6 +243,7 @@ def extract_and_process(
     src_path = src_dir / src_filename
     
     if not src_path.exists():
+        logger.warning(f"Source file not found, skipping: {src_path}")
         return
     
     # Set up output directories
@@ -398,6 +399,7 @@ def reproject_to_global(
     dir_intermed,
     variables,
     leads,
+    tgt_def,
 ):
     """
     Reproject processed FLDAS GeoTIFFs from native 0.25° to 0.05° global grid.
@@ -412,6 +414,7 @@ def reproject_to_global(
         dir_intermed: Directory for interim processed data
         variables: List of variables to reproject
         leads: List of lead times (forecast only)
+        tgt_def: Pre-built pyresample SwathDefinition for the target global grid
     """
     processed_dir = Path(dir_intermed) / "fldas" / data_type / "processed" / str(year)
     global_dir = Path(dir_intermed) / "fldas" / "global" / str(year)
@@ -429,12 +432,6 @@ def reproject_to_global(
             src = processed_dir / f"fldas_{var}_{year}{month:02d}.tif"
             dst = global_dir / f"fldas_{var}_{year}{month:02d}_global.tif"
             file_pairs.append((src, dst))
-
-    # Build target 0.05° global grid ONCE (identical for all files)
-    tgt_lons = np.linspace(-180 + GLOBAL_RES / 2, 180 - GLOBAL_RES / 2, GLOBAL_WIDTH)
-    tgt_lats = np.linspace(90 - GLOBAL_RES / 2, -90 + GLOBAL_RES / 2, GLOBAL_HEIGHT)
-    tgt_lon2d, tgt_lat2d = np.meshgrid(tgt_lons, tgt_lats)
-    tgt_def = pyresample.geometry.SwathDefinition(lons=tgt_lon2d, lats=tgt_lat2d)
 
     # Cache source geometry — all FLDAS files share the same grid
     cached_src_def = None
@@ -601,17 +598,22 @@ def run(geoprep):
         for mon in range(1, 13)
     ]
     
-    logger.info(f"Processing {len(process_tasks)} files with {num_workers} threads...")
-    with ThreadPoolExecutor(max_workers=num_workers) as executor:
-        list(tqdm(executor.map(lambda args: extract_and_process(*args), process_tasks),
-                  total=len(process_tasks), desc="Process FLDAS"))
+    logger.info(f"Processing {len(process_tasks)} files...")
+    for args in tqdm(process_tasks, desc="Process FLDAS"):
+        extract_and_process(*args)
 
     # =========================================================================
     # Step 3: Reproject to 0.05° global grid (3600x7200)
     # Matches standard grid used by CHIRPS, CPC, ESI, etc.
     # =========================================================================
+    # Build target grid ONCE and share across all thread calls
+    tgt_lons = np.linspace(-180 + GLOBAL_RES / 2, 180 - GLOBAL_RES / 2, GLOBAL_WIDTH)
+    tgt_lats = np.linspace(90 - GLOBAL_RES / 2, -90 + GLOBAL_RES / 2, GLOBAL_HEIGHT)
+    tgt_lon2d, tgt_lat2d = np.meshgrid(tgt_lons, tgt_lats)
+    tgt_def = pyresample.geometry.SwathDefinition(lons=tgt_lon2d, lats=tgt_lat2d)
+
     reproj_tasks = [
-        (dtype, yr, mon, dir_intermed, variables, leads)
+        (dtype, yr, mon, dir_intermed, variables, leads, tgt_def)
         for dtype in data_types
         for yr in range(start_year, end_year + 1)
         for mon in range(1, 13)
