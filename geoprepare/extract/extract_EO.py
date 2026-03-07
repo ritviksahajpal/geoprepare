@@ -446,6 +446,95 @@ def process_regular_var(
 # 3b. AEF processor (annual 64-band embeddings)
 # ---------------------------------------------------------------------
 AEF_NUM_BANDS = 64
+FLDAS_NUM_LEADS = 6
+
+
+def process_fldas(params, country, crop, scale, var, year, afi_file, df_country):
+    """
+    Extract crop-masked zonal means from FLDAS monthly forecast global TIFs.
+
+    For each admin region and month, extracts the mean of each lead time (0-5)
+    over crop-masked pixels from the reprojected 0.05° global TIFs.
+
+    Output CSV columns: country, region, region_id, lat, lon, year, month,
+                        {var}_lead0, {var}_lead1, ..., {var}_lead5
+    """
+    from rasterio.mask import mask as rio_mask
+
+    validate_scale(scale)
+    dir_output = prepare_output_directory(params, country, scale, crop, var)
+    admin_name, admin_id = get_admin_fields(scale)
+
+    # Crop mask threshold
+    threshold = params.parser.getboolean(country, "threshold")
+    limit = utils.crop_mask_limit(params, country, threshold)
+    afi_thresh = limit * 100
+
+    # FLDAS variable name without the "fldas_" prefix
+    fldas_var = var.replace("fldas_", "")
+
+    # Build header
+    lead_cols = [f"{var}_lead{i}" for i in range(FLDAS_NUM_LEADS)]
+    header = ",".join(["country", "region", "region_id", "lat", "lon", "year", "month"] + lead_cols)
+
+    # Directory containing reprojected global TIFs
+    global_dir = params.dir_intermed / "fldas" / "global" / str(year)
+    if not global_dir.exists():
+        params.logger.warning(f"FLDAS global dir not found: {global_dir}")
+        return
+
+    with rasterio.open(afi_file) as afi_src:
+        for _, row in df_country.iterrows():
+            if not row[admin_name]:
+                continue
+
+            region = row[admin_name].lower().replace(" ", "_")
+            region_id = row[admin_id]
+            centroid = row.geometry.centroid
+            lat = round(centroid.y, 6)
+            lon = round(centroid.x, 6)
+
+            path_output = dir_output / f"{region_id}_{region}_{year}_{var}_{crop}.csv"
+            if path_output.exists() and not params.redo:
+                continue
+
+            geom = [row.geometry.__geo_interface__]
+            lines = []
+
+            for month in range(1, 13):
+                yyyymm = f"{year}{month:02d}"
+                lead_means = []
+
+                for lead in range(FLDAS_NUM_LEADS):
+                    tif_path = global_dir / f"fldas_{fldas_var}_{yyyymm}_lead{lead}_global.tif"
+                    if not tif_path.exists():
+                        lead_means.append(float("nan"))
+                        continue
+
+                    try:
+                        with rasterio.open(tif_path) as src:
+                            data, _ = rio_mask(src, geom, crop=True, all_touched=True, nodata=-9999)
+                        afi_data, _ = rio_mask(afi_src, geom, crop=True, all_touched=True, nodata=0)
+
+                        crop_valid = afi_data[0] >= afi_thresh
+                        band = data[0].astype(np.float32)
+                        band[band == -9999] = np.nan
+                        valid = ~np.isnan(band) & crop_valid
+
+                        if valid.any():
+                            lead_means.append(float(np.nanmean(band[valid])))
+                        else:
+                            lead_means.append(float("nan"))
+                    except Exception as e:
+                        params.logger.warning(f"FLDAS extract failed for {region} {yyyymm} lead{lead}: {e}")
+                        lead_means.append(float("nan"))
+
+                values = ",".join(map(str, lead_means))
+                lines.append(f"{country},{region},{region_id},{lat},{lon},{year},{month},{values}")
+
+            if lines:
+                df_result = pd.read_csv(io.StringIO(f"{header}\n" + "\n".join(lines)))
+                df_result.to_csv(path_output, index=False)
 
 
 def process_aef(params, country, crop, scale, afi_file, df_country):
@@ -562,6 +651,11 @@ def process(val):
     # 2. Handle AEF separately (64-band average, not daily single-band)
     if var == "aef":
         process_aef(params, country, crop, scale, afi_file, df_country)
+        return combo_id
+
+    # 2b. Handle FLDAS separately (monthly forecast with 6 leads)
+    if var.startswith("fldas_"):
+        process_fldas(params, country, crop, scale, var, year, afi_file, df_country)
         return combo_id
 
     # 3. Skip 'chirps_gefs' if year != current year
@@ -764,6 +858,8 @@ def _get_var_directory(params, var, country):
     if var == "aef":
         country_slug = country.lower().replace(" ", "_")
         return params.dir_intermed / "aef" / country_slug
+    elif var.startswith("fldas_"):
+        return params.dir_intermed / "fldas" / "global"
     elif var == "nsidc_surface":
         return params.dir_intermed / "nsidc" / "daily" / "surface"
     elif var == "nsidc_rootzone":

@@ -133,9 +133,13 @@ class GeoMerge(base.BaseGeo):
         AEF_NUM_BANDS = 64
         df_result = None
 
-        # Process daily vars before AEF so df_result has a doy column;
-        # AEF (annual, no doy) merges on the year-level subset.
-        vars_ordered = sorted(self.eo_model, key=lambda v: v == "aef")
+        # Process daily vars first so df_result has year+doy rows;
+        # AEF (no doy) and FLDAS (monthly) merge onto these rows afterward.
+        FLDAS_NUM_LEADS = 6
+        vars_ordered = sorted(
+            self.eo_model,
+            key=lambda v: (1 if v == "aef" else 2 if v.startswith("fldas_") else 0),
+        )
 
         for var in tqdm(vars_ordered, desc=f"Merging EO variables ({self.country})"):
             
@@ -158,6 +162,11 @@ class GeoMerge(base.BaseGeo):
                 aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
                 read_cols = ["country", "region", "region_id", "lat", "lon"] + aef_cols
                 merge_cols = ["country", "region", "region_id"]
+            elif var.startswith("fldas_"):
+                # FLDAS: monthly data with 6 lead columns, merge on year+month
+                fldas_lead_cols = [f"{var}_lead{i}" for i in range(FLDAS_NUM_LEADS)]
+                read_cols = ["country", "region", "region_id", "year", "month"] + fldas_lead_cols
+                merge_cols = None  # handled specially below
             else:
                 read_cols = self.static_columns + [var]
                 merge_cols = self.static_columns
@@ -179,21 +188,39 @@ class GeoMerge(base.BaseGeo):
 
             df_var = pd.concat(var_frames, ignore_index=True)
 
-            # Drop duplicate rows, keeping first non-NaN
-            df_var = (
-                df_var.groupby(merge_cols, as_index=False)
-                .first()
-            )
+            if var.startswith("fldas_"):
+                # FLDAS: monthly data — broadcast to all DOYs via year+month join
+                fldas_merge_cols = ["country", "region", "region_id", "year", "month"]
+                df_var = df_var.groupby(fldas_merge_cols, as_index=False).first()
 
-            # Merge into result
-            if df_result is None:
-                df_result = df_var
+                if df_result is not None and "doy" in df_result.columns:
+                    # Compute month from year+doy so we can join
+                    df_result["_month"] = pd.to_datetime(
+                        df_result["year"] * 1000 + df_result["doy"], format="%Y%j"
+                    ).dt.month
+                    df_result = pd.merge(
+                        df_result, df_var,
+                        left_on=["country", "region", "region_id", "year", "_month"],
+                        right_on=fldas_merge_cols,
+                        how="left",
+                    )
+                    df_result.drop(columns=["_month", "month"], inplace=True)
             else:
-                df_result = pd.merge(
-                    df_result, df_var,
-                    on=merge_cols,
-                    how="outer" if var != "aef" else "left",
+                # Drop duplicate rows, keeping first non-NaN
+                df_var = (
+                    df_var.groupby(merge_cols, as_index=False)
+                    .first()
                 )
+
+                # Merge into result
+                if df_result is None:
+                    df_result = df_var
+                else:
+                    df_result = pd.merge(
+                        df_result, df_var,
+                        on=merge_cols,
+                        how="outer" if var != "aef" else "left",
+                    )
 
         if df_result is None:
             df_result = pd.DataFrame(columns=self.static_columns)
@@ -457,11 +484,18 @@ class GeoMerge(base.BaseGeo):
         self.move_columns_to_end(columns=eo_columns)
 
     def _expand_eo_columns(self):
-        """Expand 'aef' in eo_model to actual column names aef_1..aef_64."""
+        """Expand shorthand names in eo_model to actual column names.
+
+        - 'aef' -> aef_1..aef_64
+        - 'fldas_*' -> {var}_lead0..{var}_lead5
+        """
+        FLDAS_NUM_LEADS = 6
         expanded = []
         for var in self.eo_model:
             if var == "aef":
                 expanded.extend([f"aef_{i}" for i in range(1, 65)])
+            elif var.startswith("fldas_"):
+                expanded.extend([f"{var}_lead{i}" for i in range(FLDAS_NUM_LEADS)])
             else:
                 expanded.append(var)
         return expanded
