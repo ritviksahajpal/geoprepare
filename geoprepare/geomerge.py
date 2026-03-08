@@ -161,7 +161,7 @@ class GeoMerge(base.BaseGeo):
             # AEF: 64-band average data (no doy or year column)
             if var == "aef":
                 aef_cols = [f"aef_{i}" for i in range(1, AEF_NUM_BANDS + 1)]
-                read_cols = ["country", "region", "region_id", "lat", "lon"] + aef_cols
+                read_cols = ["country", "region", "region_id"] + aef_cols
                 merge_cols = ["country", "region", "region_id"]
             elif var.startswith("fldas_"):
                 # FLDAS: monthly data with 6 lead columns, merge on year+month
@@ -396,7 +396,7 @@ class GeoMerge(base.BaseGeo):
             df_group = self.read_calendar(group, year)
             frames.append(df_group)
 
-        df = pd.concat(frames)
+        df = pd.concat(frames).copy()
 
         return df
 
