@@ -387,8 +387,8 @@ class GeoMerge(base.BaseGeo):
         """
         frames = []
 
-        # Loop through each calendar_region and year combination
-        groups = self.df_ccs.groupby(["region", "year"])
+        # Defragment before groupby to avoid PerformanceWarning in the loop
+        groups = self.df_ccs.copy().groupby(["region", "year"])
         for name, group in tqdm(
             groups, desc=f"Adding calendar information to {self.scale}", leave=False
         ):
