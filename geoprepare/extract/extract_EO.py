@@ -409,7 +409,7 @@ def process_regular_var(
     If partial data exists for a given day, skip re-processing.
     Uses raster_cache to avoid repeated file opens for indicator rasters.
     """
-    for doy in tqdm(range(1, end_doy), desc=f"    {region} DOY", leave=False):
+    for doy in tqdm(range(1, end_doy), desc=f"    {region} {year} DOY", leave=False):
         date_part = f"{year},{doy}"
         empty_str = get_default_empty_str(country, region, region_id, lat, lon, date_part)
 
