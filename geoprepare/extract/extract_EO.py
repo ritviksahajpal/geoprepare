@@ -4,7 +4,6 @@ import io
 import ast
 import csv
 import glob
-import time
 import calendar
 import itertools
 import arrow as ar
@@ -410,8 +409,6 @@ def process_regular_var(
     If partial data exists for a given day, skip re-processing.
     Uses raster_cache to avoid repeated file opens for indicator rasters.
     """
-    t_file_check = t_cache = t_extract = 0.0
-
     for doy in tqdm(range(1, end_doy), desc=f"    {region} DOY", leave=False):
         date_part = f"{year},{doy}"
         empty_str = get_default_empty_str(country, region, region_id, lat, lon, date_part)
@@ -428,12 +425,9 @@ def process_regular_var(
             fl_var = params.dir_intermed / var / fname
 
         # If the file doesn't exist, store an empty row
-        t0 = time.perf_counter()
         if not os.path.isfile(fl_var):
-            t_file_check += time.perf_counter() - t0
             daily_stats.append(empty_str)
             continue
-        t_file_check += time.perf_counter() - t0
 
         # If partial data exists for this day, skip re-calculation
         if use_partial_file and existing_rows:
@@ -443,23 +437,17 @@ def process_regular_var(
                 continue
 
         # Open indicator raster via cache to avoid repeated opens across regions
-        t0 = time.perf_counter()
         indicator_ds = raster_cache.get(fl_var)
-        t_cache += time.perf_counter() - t0
         if indicator_ds is None:
             daily_stats.append(empty_str)
             continue
 
         # Extract stats - pass open datasets for both indicator and AFI
-        t0 = time.perf_counter()
         values_str = extract_stats(row["geometry"], var, indicator_ds, afi_ds, limit)
-        t_extract += time.perf_counter() - t0
         if values_str:
             daily_stats.append(f"{country},{region},{region_id},{lat},{lon},{date_part},{values_str}")
         else:
             daily_stats.append(empty_str)
-
-    params.logger.info(f"    {region}: file_check={t_file_check:.1f}s cache={t_cache:.1f}s extract={t_extract:.1f}s")
 
 
 # ---------------------------------------------------------------------
