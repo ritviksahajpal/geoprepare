@@ -188,6 +188,14 @@ def skip_chirps_gefs(var: str, year: int) -> bool:
     return (var == "chirps_gefs") and (year != current_year)
 
 
+NSIDC_START_YEAR = 2015  # SMAP L4 data starts March 2015
+
+
+def skip_nsidc(var: str, year: int) -> bool:
+    """Skip NSIDC vars for years before SMAP data availability."""
+    return var in ("nsidc_surface", "nsidc_rootzone") and year < NSIDC_START_YEAR
+
+
 def get_admin_fields(scale: str) -> tuple[str, str]:
     """
     Return the admin name and ID fields based on the scale.
@@ -658,8 +666,10 @@ def process(val):
         process_fldas(params, country, crop, scale, var, year, afi_file, df_country)
         return combo_id
 
-    # 3. Skip 'chirps_gefs' if year != current year
+    # 3. Skip datasets outside their availability range
     if skip_chirps_gefs(var, year):
+        return combo_id
+    if skip_nsidc(var, year):
         return combo_id
 
     # 4. Prepare the output directory
