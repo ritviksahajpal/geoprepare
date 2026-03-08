@@ -416,13 +416,7 @@ def process_regular_var(
         # Build the filename (adjust as needed to match your naming scheme).
         fname = get_var_fname(params, var, year, doy)
 
-        # Inline logic for nsidc_surface and nsidc_rootzone
-        if var == "nsidc_surface":
-            fl_var = params.dir_intermed / "nsidc" / "daily" / "surface" / fname
-        elif var == "nsidc_rootzone":
-            fl_var = params.dir_intermed / "nsidc" / "daily" / "rootzone" / fname
-        else:
-            fl_var = params.dir_intermed / var / fname
+        fl_var = _get_var_directory(params, var, country) / fname
 
         # If the file doesn't exist, store an empty row
         if not os.path.isfile(fl_var):

@@ -12,7 +12,6 @@ Output: {dir_output}/crop_t{threshold}/{country}/{country}_{crop}_s{season}.csv
 import os
 import gc
 import ast
-import datetime
 import itertools
 import pandas as pd
 import numpy as np
@@ -243,113 +242,22 @@ class GeoMerge(base.BaseGeo):
 
         pos = len(self.static_columns)
 
-        # Add datetime based on year and day of year, make this the first column
-        self.df_ccs.insert(
-            0,
-            "datetime",
-            self.df_ccs.apply(
-                lambda x: datetime.datetime.strptime(f"{x.year} {x.doy}", "%Y %j"),
-                axis=1,
-            ),
+        # Add datetime based on year and day of year (vectorized)
+        dt = pd.to_datetime(
+            self.df_ccs["year"] * 1000 + self.df_ccs["doy"], format="%Y%j"
         )
+        self.df_ccs.insert(0, "datetime", dt)
 
-        # Add day of month, name of month, both abbreviated and full as well month number
-        self.df_ccs.insert(
-            pos + 1,
-            "day",
-            self.df_ccs.apply(lambda x: x.datetime.strftime("%d"), axis=1),
-        )
-        self.df_ccs.insert(
-            pos + 2,
-            "abbr_month",
-            self.df_ccs.apply(lambda x: x.datetime.strftime("%b"), axis=1),
-        )
-        self.df_ccs.insert(
-            pos + 3,
-            "name_month",
-            self.df_ccs.apply(lambda x: x.datetime.strftime("%B"), axis=1),
-        )
-        self.df_ccs.insert(
-            pos + 4,
-            "month",
-            self.df_ccs.apply(lambda x: x.datetime.strftime("%m"), axis=1),
-        )
+        # Add day/month columns (vectorized via .dt accessor)
+        self.df_ccs.insert(pos + 1, "day", dt.dt.strftime("%d"))
+        self.df_ccs.insert(pos + 2, "abbr_month", dt.dt.strftime("%b"))
+        self.df_ccs.insert(pos + 3, "name_month", dt.dt.strftime("%B"))
+        self.df_ccs.insert(pos + 4, "month", dt.dt.strftime("%m"))
 
         # Add static information
         self.df_ccs.insert(pos + 5, "crop", self.crop)
         self.df_ccs.insert(pos + 6, "scale", self.scale)
         self.df_ccs.insert(pos + 7, "growing_season", self.growing_season)
-
-    def fillna(self, group, df_combination, df_stats):
-        """
-        Fill missing values in the dataframe with the unique values in that column
-        Args:
-            group (): Groups defined by Region (admin_1/admin_2), year combination
-            df_combination (): Unique combination of scale, calendar_region, category, growing_season
-            df_stats (): Yield, area and production statistics
-
-        Returns:
-
-        """
-        df_sub = df_stats[
-            ["country", self.scale, "year", "crop", "yield", "area", "production"]
-        ]
-
-        group = pd.merge(
-            group,
-            df_combination,
-            left_on=["region"],
-            right_on=[self.scale],
-            how="inner",
-        )
-
-        # Rename self.scale to region
-        df_sub = df_sub.rename(columns={self.scale: "region"})
-
-        group = pd.merge(
-            group, df_sub, on=["country", "region", "year", "crop"], how="left"
-        )
-
-        # Remove self.scale column from group
-        group = group.drop(columns=[self.scale])
-
-        return group
-
-    def add_statistics(self):
-        """
-        Add yield, area and production statistics to the dataframe
-        Returns:
-
-        """
-        # Subset statstics dataframe for current growing_season and crop
-        df_stats = self.df_statistics[
-            (self.df_statistics["country"] == self.country)
-            & (self.df_statistics["crop"] == self.crop)
-            & (self.df_statistics["growing_season"] == self.growing_season)
-        ]
-
-        # select appropriate region column based on scale
-        if self.scale == "admin_1":
-            df_stats = df_stats[df_stats["admin_2"].isna()]
-        else:
-            df_stats = df_stats[~df_stats["admin_2"].isna()]
-
-        # For each country, scale combination get the scale, calendar_region, category combination
-        df_combination = df_stats[
-            [self.scale, "calendar_region", "category", "growing_season"]
-        ]
-        df_combination = df_combination.drop_duplicates()
-
-        # Fill in missing values
-        groups = self.df_ccs.groupby(["region", "year"])
-        frames = []
-        for name, group in groups:
-            df_group = self.fillna(group, df_combination, df_stats)
-            frames.append(df_group)
-
-        df = pd.concat(frames)
-
-        return df
 
     def read_calendar(self, group, year):
         """
@@ -568,7 +476,6 @@ def process_combination(combination, path_config_file, parallel=False, df_eo=Non
     # 6. Add static data, fill missing, add yield stats, etc.
     gm.add_static_information()
     gm.df_ccs = utils.fill_missing_values(gm.df_ccs, gm._expand_eo_columns())
-    # gm.df_ccs = gm.add_statistics()
 
     # Assign calendar_region from spatial overlay of admin units → EWCM regions
     path_admin_shp = gm.dir_boundary_files / gm.parser.get(country, "boundary_file")
