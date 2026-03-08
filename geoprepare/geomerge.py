@@ -141,8 +141,9 @@ class GeoMerge(base.BaseGeo):
             key=lambda v: (1 if v == "aef" else 2 if v.startswith("fldas_") else 0),
         )
 
-        for var in tqdm(vars_ordered, desc=f"Merging EO variables ({self.country})"):
-            
+        pbar = tqdm(vars_ordered, desc=f"Merging EO variables ({self.country})")
+        for var in pbar:
+            pbar.set_postfix_str(var)
             crop_folder_name = "cr" if self.use_cropland_mask else self.crop
             path_var_files = (
                 self.dir_output
