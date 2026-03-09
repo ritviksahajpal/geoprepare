@@ -341,12 +341,9 @@ class GeoMerge(base.BaseGeo):
 
             group.loc[0:idx_end, "harvest_season"] = int(group["year"].unique()[0])
 
-            if group["hemisphere"].unique()[0] == "N" and self.crop in ("ww", "winter_wheat"):
-                group.loc[idx_start:365, "harvest_season"] = np.nan
-            else:
-                group.loc[idx_start:365, "harvest_season"] = int(
-                    group["year"].unique()[0] + 1
-                )
+            group.loc[idx_start:365, "harvest_season"] = int(
+                group["year"].unique()[0] + 1
+            )
 
         return group
 
