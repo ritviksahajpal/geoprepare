@@ -371,14 +371,15 @@ def process(params):
 
     # Build set of timestamps already converted (both vars present)
     existing = set()
-    for f in dir_subdaily.rglob("nasa_usda_soil_moisture_*_sm_surface_global.tif"):
+    surface_files = list(dir_subdaily.rglob("nasa_usda_soil_moisture_*_sm_surface_global.tif"))
+    for f in tqdm(surface_files, desc="Scanning converted files", leave=False):
         ts = f.stem.split("nasa_usda_soil_moisture_")[1].split("_sm_surface")[0]
         rootzone = f.parent / f.name.replace("sm_surface", "sm_rootzone")
         if rootzone.exists():
             existing.add(ts)
 
     # Filter to only unconverted H5 files (scan year subdirs)
-    h5_files = list(dir_out.rglob("*.h5"))
+    h5_files = list(tqdm(dir_out.rglob("*.h5"), desc="Scanning H5 files", leave=False))
     pending = []
     for f in h5_files:
         name = f.name
