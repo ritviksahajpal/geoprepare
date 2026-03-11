@@ -159,17 +159,18 @@ def download_date_range(params, start_date, end_date):
         end_date = end_date.datetime
 
     # Iterate through date range
-    current_date = start_date
+    total_days = (end_date - start_date).days + 1
     total_downloaded = 0
     total_failed = 0
 
-    while current_date <= end_date:
+    current_date = start_date
+    for _ in tqdm(range(total_days), desc="NSIDC"):
         urls = get_file_urls_for_day(current_date)
 
         year_dir = dir_out / str(current_date.year)
         os.makedirs(year_dir, exist_ok=True)
 
-        for url, filename in tqdm(urls, desc=f"Downloading {current_date.strftime('%Y-%m-%d')}", leave=False):
+        for url, filename in tqdm(urls, desc=f"  {current_date.strftime('%Y-%m-%d')}", leave=False):
             if download_file(session, url, filename, year_dir, params.logger):
                 total_downloaded += 1
             else:
