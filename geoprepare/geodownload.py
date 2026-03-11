@@ -116,6 +116,9 @@ def run(path_config_file=["geobase.txt"]):
             geoprep.data_dir = geoprep.parser.get("SOIL-MOISTURE", "data_dir")
         elif dataset == "NSIDC":
             from .datasets import NSIDC as obj
+
+            geoprep.start_year = geoprep.parser.getint("NSIDC", "start_year")
+            geoprep.end_year = geoprep.parser.getint("NSIDC", "end_year")
         elif dataset == "AVHRR":
             from .datasets import AVHRR as obj
 
