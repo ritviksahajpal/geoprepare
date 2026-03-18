@@ -543,7 +543,7 @@ def process_aef(params, country, crop, scale, afi_file, df_country):
     """
     Extract crop-masked zonal means from the average AEF 64-band TIF.
 
-    Uses aef_avg_global.tif (multi-year average) instead of per-year files.
+    Uses aef_avg_{country}.tif (multi-year average) instead of per-year files.
     For each admin region, computes the mean of each band over crop-masked pixels.
 
     Output CSV columns: country, region, region_id, aef_1 .. aef_64
@@ -557,7 +557,7 @@ def process_aef(params, country, crop, scale, afi_file, df_country):
 
     # 2. Build AEF average file path
     country_slug = country.lower().replace(" ", "_")
-    aef_path = params.dir_intermed / "aef" / country_slug / "aef_avg_global.tif"
+    aef_path = params.dir_intermed / "aef" / country_slug / f"aef_avg_{country_slug}.tif"
     if not aef_path.exists():
         params.logger.warning(f"AEF average file not found: {aef_path}")
         return
@@ -893,7 +893,8 @@ def validate_datasets(params):
 
             if var == "aef":
                 # AEF extraction needs the average file specifically
-                aef_avg = dir_var / "aef_avg_global.tif"
+                country_slug = country.lower().replace(" ", "_")
+                aef_avg = dir_var / f"aef_avg_{country_slug}.tif"
                 if not aef_avg.exists():
                     missing.append((country, var, str(aef_avg)))
             elif not dir_var.exists() or not any(dir_var.rglob("*.tif")):

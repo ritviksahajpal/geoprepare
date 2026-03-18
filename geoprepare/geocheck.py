@@ -124,7 +124,7 @@ def _expected_aef(dir_intermed, start_year, end_year, parser):
 
     for country in countries:
         for year in range(check_start, check_end + 1):
-            fname = f"aef_{year}_global.tif"
+            fname = f"aef_{year}_{country}.tif"
             yield aef_dir / country / fname, f"AEF/{country}/{fname}"
 
 

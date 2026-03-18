@@ -323,7 +323,7 @@ def to_global(params, year, country):
     Each 0.05-degree cell is the average of all underlying ~10 m pixels.
     Areas with no data are set to NaN.
 
-    Output: dir_intermed/aef/{country}/aef_{year}_global.tif  (64-band Float32 GeoTIFF)
+    Output: dir_intermed/aef/{country}/aef_{year}_{country}.tif  (64-band Float32 GeoTIFF)
     """
     from osgeo import gdal
 
@@ -335,7 +335,7 @@ def to_global(params, year, country):
     output_dir = Path(params.dir_intermed) / "aef" / country_slug / str(year)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    output_file = output_dir / f"aef_{year}_global.tif"
+    output_file = output_dir / f"aef_{year}_{country_slug}.tif"
     redo = getattr(params, "redo", False)
     if output_file.exists() and not redo:
         params.logger.info(f"Skipping {output_file} (already exists)")
@@ -393,20 +393,22 @@ def _country_output_dir(dir_intermed, country):
 
 
 def _all_yearly_files_exist(dir_intermed, country, years):
-    """Check if all per-country yearly global AEF files already exist."""
+    """Check if all per-country yearly AEF files already exist."""
     out_dir = _country_output_dir(dir_intermed, country)
-    return all((out_dir / str(y) / f"aef_{y}_global.tif").exists() for y in years)
+    country_slug = country.lower().replace(" ", "_")
+    return all((out_dir / str(y) / f"aef_{y}_{country_slug}.tif").exists() for y in years)
 
 
 def compute_average_aef(params, country, years):
     """
     Average yearly AEF TIFs into a single multi-year mean file.
 
-    Reads aef_{year}_global.tif for each year, computes per-band pixel-wise
-    nanmean across years, and writes aef_avg_global.tif in the same directory.
+    Reads aef_{year}_{country}.tif for each year, computes per-band pixel-wise
+    nanmean across years, and writes aef_avg_{country}.tif in the same directory.
     """
     out_dir = _country_output_dir(params.dir_intermed, country)
-    avg_file = out_dir / "aef_avg_global.tif"
+    country_slug = country.lower().replace(" ", "_")
+    avg_file = out_dir / f"aef_avg_{country_slug}.tif"
 
     redo = getattr(params, "redo", False)
     if avg_file.exists() and not redo:
@@ -416,7 +418,7 @@ def compute_average_aef(params, country, years):
     # Collect existing yearly files
     yearly_files = []
     for y in years:
-        f = out_dir / str(y) / f"aef_{y}_global.tif"
+        f = out_dir / str(y) / f"aef_{y}_{country_slug}.tif"
         if f.exists():
             yearly_files.append(f)
 

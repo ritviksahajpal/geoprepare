@@ -160,7 +160,7 @@ def _move_agera5_files(dir_intermed, dry_run, logger):
 def _move_aef_files(dir_intermed, dry_run, logger):
     """Handle AEF per-country subdirectories (skip avg files)."""
     total_moved = total_already = total_unmatched = 0
-    aef_pattern = r"aef_(?P<year>\d{4})_global\.tif"
+    aef_pattern = r"aef_(?P<year>\d{4})_\w+\.tif"
 
     aef_dir = dir_intermed / "aef"
     if not aef_dir.exists():
