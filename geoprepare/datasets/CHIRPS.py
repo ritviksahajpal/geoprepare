@@ -369,18 +369,19 @@ def reproject_to_global(
         # CHIRPS v2 native grid is 2000x7200 (50N to 50S at 0.05°)
         # CHIRPS v3 may have different dimensions - handle accordingly
         if in_height == 2000 and in_width == 7200:
-            # Standard CHIRPS grid: place in rows 800-2800 (50N to 50S in 90N to 90S grid)
+            # CHIRPS v2: 50N to 50S → rows 800-2800
             out_arr[800:2800, :] = data
+        elif in_height == 2400 and in_width == 7200:
+            # CHIRPS v3: 60N to 60S → rows 600-3000
+            out_arr[600:3000, :] = data
         elif in_height == 3600 and in_width == 7200:
             # Already global grid
             out_arr = data
         else:
-            # Handle other grid sizes by computing offset
-            # Assuming 0.05° resolution centered on equator
             lat_offset = (3600 - in_height) // 2
             lon_offset = (7200 - in_width) // 2
             out_arr[lat_offset:lat_offset + in_height, lon_offset:lon_offset + in_width] = data
-            logger.warning(f"Non-standard grid size {in_height}x{in_width}, placed with offset")
+            logger.warning(f"Non-standard grid size {in_height}x{in_width}")
 
         driver = gdal.GetDriverByName("GTiff")
         dst = driver.Create(
@@ -523,11 +524,33 @@ def run(geoprep):
     # Step 3: Reproject to global grid
     # The reproject function handles final vs prelim priority internally
     # =========================================================================
-    reproj_tasks = [
-        (yr, jd, dir_intermed, fill_value, version)
-        for yr in range(start_year, end_year + 1)
-        for jd in range(1, (366 if isleap(yr) else 365) + 1)
-    ]
+    reproj_tasks = []
+    version_str = "v2.0" if version == "v2" else "v3.0"
+    for yr in range(start_year, end_year + 1):
+        global_dir = dir_intermed / "chirps" / version / "global" / str(yr)
+        final_dir = dir_intermed / "chirps" / version / "final" / "scaled" / str(yr)
+        prelim_dir = dir_intermed / "chirps" / version / "prelim" / "scaled" / str(yr)
+
+        # Single listdir per directory (fast on GPFS vs thousands of stat calls)
+        global_files = set(os.listdir(global_dir)) if global_dir.exists() else set()
+        final_files = set(os.listdir(final_dir)) if final_dir.exists() else set()
+        prelim_files = set(os.listdir(prelim_dir)) if prelim_dir.exists() else set()
+
+        max_jd = 366 if isleap(yr) else 365
+        for jd in range(1, max_jd + 1):
+            out_name = f"chirps_{version_str}_{yr}{jd:03d}_global.tif"
+            scaled_name = f"chirps_{version_str}_{yr}{jd:03d}_scaled.tif"
+            marker_name = f".{yr}{jd:03d}_from_prelim"
+
+            out_exists = out_name in global_files
+            final_exists = scaled_name in final_files
+            prelim_exists = scaled_name in prelim_files
+
+            if not out_exists and (final_exists or prelim_exists):
+                reproj_tasks.append((yr, jd, dir_intermed, fill_value, version))
+            elif out_exists and marker_name in global_files and final_exists:
+                reproj_tasks.append((yr, jd, dir_intermed, fill_value, version))
+    logger.info(f"Reproject: {len(reproj_tasks)} files need processing")
     if parallel_process:
         with multiprocessing.Pool(num_workers) as p:
             list(

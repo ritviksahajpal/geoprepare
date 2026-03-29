@@ -52,7 +52,6 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import numpy as np
-import pyresample
 import xarray as xr
 import requests
 from osgeo import gdal, osr
@@ -399,13 +398,12 @@ def reproject_to_global(
     dir_intermed,
     variables,
     leads,
-    tgt_def,
 ):
     """
     Reproject processed FLDAS GeoTIFFs from native 0.25° to 0.05° global grid.
 
-    Uses nearest-neighbor resampling via pyresample to match the standard
-    3600x7200 global grid used by CHIRPS, CPC, ESI, etc.
+    Uses np.repeat for nearest-neighbor upsampling (5× in each dimension)
+    and array placement into the standard 3600×7200 global grid.
 
     Args:
         data_type: 'forecast' or 'openloop'
@@ -414,7 +412,6 @@ def reproject_to_global(
         dir_intermed: Directory for interim processed data
         variables: List of variables to reproject
         leads: List of lead times (forecast only)
-        tgt_def: Pre-built pyresample SwathDefinition for the target global grid
     """
     processed_dir = Path(dir_intermed) / "fldas" / data_type / "processed" / str(year)
     global_dir = Path(dir_intermed) / "fldas" / "global" / str(year)
@@ -433,8 +430,8 @@ def reproject_to_global(
             dst = global_dir / f"fldas_{var}_{year}{month:02d}_global.tif"
             file_pairs.append((src, dst))
 
-    # Cache source geometry — all FLDAS files share the same grid
-    cached_src_def = None
+    # Cache geotransform — all FLDAS files share the same grid
+    cached_gt = None
 
     for src_path, dst_path in file_pairs:
         if dst_path.exists() or not src_path.exists():
@@ -448,34 +445,27 @@ def reproject_to_global(
 
             band = ds.GetRasterBand(1)
             src_arr = band.ReadAsArray()
-            src_height, src_width = src_arr.shape
 
-            # Build source geometry once (all FLDAS files have the same grid)
-            if cached_src_def is None:
-                gt = ds.GetGeoTransform()
-                src_lons = gt[0] + (np.arange(src_width) + 0.5) * gt[1]
-                src_lats = gt[3] + (np.arange(src_height) + 0.5) * gt[5]
-                src_lon2d, src_lat2d = np.meshgrid(src_lons, src_lats)
-                cached_src_def = pyresample.geometry.SwathDefinition(
-                    lons=src_lon2d, lats=src_lat2d
-                )
+            if cached_gt is None:
+                cached_gt = ds.GetGeoTransform()
+                raw_scale = abs(cached_gt[1]) / GLOBAL_RES
+                if abs(raw_scale - round(raw_scale)) > 1e-6:
+                    logger.error(f"Non-integer scale factor {raw_scale}, cannot use array placement")
+                    ds = None
+                    return
+                cached_scale = int(round(raw_scale))
+                cached_row_start = int(round((90 - cached_gt[3]) / GLOBAL_RES))
+                cached_col_start = int(round((cached_gt[0] + 180) / GLOBAL_RES))
 
             ds = None
 
-            # Mask nodata before resampling
-            src_masked = np.where(src_arr == NODATA_VALUE, np.nan, src_arr)
+            # Upsample: repeat each pixel into a scale×scale block
+            upsampled = np.repeat(np.repeat(src_arr, cached_scale, axis=0), cached_scale, axis=1)
 
-            # Nearest-neighbor resample to global grid
-            out_arr = pyresample.kd_tree.resample_nearest(
-                cached_src_def,
-                src_masked,
-                tgt_def,
-                radius_of_influence=30000,  # 30 km (~0.25° at equator)
-                fill_value=np.nan,
-            )
-
-            # Restore nodata
-            out_arr = np.where(np.isnan(out_arr), NODATA_VALUE, out_arr).astype(np.float32)
+            # Place into global grid
+            out_arr = np.full((GLOBAL_HEIGHT, GLOBAL_WIDTH), NODATA_VALUE, dtype=np.float32)
+            out_arr[cached_row_start:cached_row_start + upsampled.shape[0],
+                    cached_col_start:cached_col_start + upsampled.shape[1]] = upsampled
 
             # Write global GeoTIFF
             driver = gdal.GetDriverByName("GTiff")
@@ -596,6 +586,8 @@ def run(geoprep):
         for dtype in data_types
         for yr in range(start_year, end_year + 1)
         for mon in range(1, 13)
+        if ((dir_forecast if dtype == "forecast" else dir_openloop)
+            / str(yr) / get_fldas_filename(dtype, yr, mon)).exists()
     ]
     
     logger.info(f"Processing {len(process_tasks)} files...")
@@ -606,17 +598,13 @@ def run(geoprep):
     # Step 3: Reproject to 0.05° global grid (3600x7200)
     # Matches standard grid used by CHIRPS, CPC, ESI, etc.
     # =========================================================================
-    # Build target grid ONCE and share across all thread calls
-    tgt_lons = np.linspace(-180 + GLOBAL_RES / 2, 180 - GLOBAL_RES / 2, GLOBAL_WIDTH)
-    tgt_lats = np.linspace(90 - GLOBAL_RES / 2, -90 + GLOBAL_RES / 2, GLOBAL_HEIGHT)
-    tgt_lon2d, tgt_lat2d = np.meshgrid(tgt_lons, tgt_lats)
-    tgt_def = pyresample.geometry.SwathDefinition(lons=tgt_lon2d, lats=tgt_lat2d)
-
     reproj_tasks = [
-        (dtype, yr, mon, dir_intermed, variables, leads, tgt_def)
+        (dtype, yr, mon, dir_intermed, variables, leads)
         for dtype in data_types
         for yr in range(start_year, end_year + 1)
         for mon in range(1, 13)
+        if ((dir_forecast if dtype == "forecast" else dir_openloop)
+            / str(yr) / get_fldas_filename(dtype, yr, mon)).exists()
     ]
 
     logger.info(f"Reprojecting {len(reproj_tasks)} files to global grid with {num_workers} threads...")
