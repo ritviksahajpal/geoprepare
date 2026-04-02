@@ -271,8 +271,10 @@ def read_or_skip_existing_day(doy: int, existing_rows: list[list[str]]) -> str |
     If partial file has data for this day-of-year (index = doy-1), return it. Otherwise None.
     """
     try:
-        # The 6th position (index=5) is the first numeric column in your CSV.
-        if existing_rows[doy - 1][5] != "":
+        # Index 7 is the actual data column (e.g. chirps value) in the CSV:
+        # country(0),region(1),region_id(2),lat(3),lon(4),year(5),doy(6),var(7),...
+        val = existing_rows[doy - 1][7]
+        if val != "" and val.lower() != "nan":
             return ",".join(existing_rows[doy - 1])
     except IndexError:
         pass
