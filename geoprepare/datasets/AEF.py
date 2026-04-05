@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 # Base URL for AEF data
 AEF_BASE_URL = "https://data.source.coop/tge-labs/aef/v1/annual"
+AEF_NUM_BANDS = 64
 AEF_INDEX_PARQUET_URL = f"{AEF_BASE_URL}/aef_index.parquet"
 
 
@@ -462,6 +463,130 @@ def compute_average_aef(params, country, years):
     params.logger.info(f"Created {avg_file}")
 
 
+def _init_gee():
+    """Initialize Google Earth Engine. Returns True if successful."""
+    try:
+        import ee
+        ee.Initialize()
+        return True
+    except ImportError:
+        logger.warning(
+            "earthengine-api not installed. Install with: pip install earthengine-api"
+        )
+        return False
+    except Exception as e:
+        logger.warning(f"GEE initialization failed: {e}. Run ee.Authenticate() first.")
+        return False
+
+
+def download_aef_gee(params, country, year, output_file, extent):
+    """
+    Download AEF embeddings for a country/year via Google Earth Engine.
+
+    Server-side: mosaic + reduceResolution(mean) to 0.05 deg.
+    Downloads as numpy array, writes GeoTIFF with rasterio.
+    """
+    import ee
+    import io
+    import math
+
+    west, east, south, north = extent
+    res = 0.05
+
+    # Snap extent to 0.05 deg grid
+    west_s = math.floor(west / res) * res
+    south_s = math.floor(south / res) * res
+    east_s = math.ceil(east / res) * res
+    north_s = math.ceil(north / res) * res
+
+    width = round((east_s - west_s) / res)
+    height = round((north_s - south_s) / res)
+
+    params.logger.info(
+        f"GEE grid: {width}x{height} pixels, "
+        f"extent [{west_s:.2f}, {south_s:.2f}, {east_s:.2f}, {north_s:.2f}]"
+    )
+
+    # Build GEE image: mosaic -> reduceResolution -> reproject
+    collection = ee.ImageCollection("GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL")
+    image = collection.filterDate(f"{year}-01-01", f"{year + 1}-01-01").mosaic()
+    image = image.reduceResolution(
+        reducer=ee.Reducer.mean(),
+        bestEffort=True,
+        maxPixels=65536,
+    ).reproject(crs="EPSG:4326", crsTransform=[res, 0, -180, 0, -res, 90])
+
+    band_names = [f"A{i:02d}" for i in range(AEF_NUM_BANDS)]
+
+    # Download in latitude strips if the response would exceed ~40 MB
+    MAX_BYTES = 40 * 1024 * 1024
+    bytes_per_row = width * AEF_NUM_BANDS * 4  # float32
+    max_rows = max(1, MAX_BYTES // bytes_per_row)
+
+    result = np.full((AEF_NUM_BANDS, height, width), np.nan, dtype=np.float32)
+
+    row_offset = 0
+    strip_north = north_s
+    remaining = height
+    strip_num = 0
+
+    while remaining > 0:
+        strip_height = min(max_rows, remaining)
+        strip_num += 1
+
+        if height > max_rows:
+            params.logger.info(f"  Downloading strip {strip_num} ({strip_height} rows)...")
+
+        request = {
+            "expression": image,
+            "fileFormat": "NUMPY_NDARRAY",
+            "bandIds": band_names,
+            "grid": {
+                "dimensions": {"width": width, "height": strip_height},
+                "affineTransform": {
+                    "scaleX": res,
+                    "shearX": 0,
+                    "translateX": west_s,
+                    "shearY": 0,
+                    "scaleY": -res,
+                    "translateY": strip_north,
+                },
+                "crsCode": "EPSG:4326",
+            },
+        }
+        data = np.load(io.BytesIO(ee.data.computePixels(request)))
+
+        for i, band in enumerate(band_names):
+            result[i, row_offset : row_offset + strip_height, :] = data[band]
+
+        row_offset += strip_height
+        strip_north -= strip_height * res
+        remaining -= strip_height
+
+    # Write GeoTIFF
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    from rasterio.transform import from_origin
+
+    transform = from_origin(west_s, north_s, res, res)
+    meta = {
+        "driver": "GTiff",
+        "dtype": "float32",
+        "count": AEF_NUM_BANDS,
+        "height": height,
+        "width": width,
+        "crs": "EPSG:4326",
+        "transform": transform,
+        "nodata": float("nan"),
+        "compress": "deflate",
+        "predictor": 2,
+        "tiled": True,
+    }
+    with rasterio.open(output_file, "w", **meta) as dst:
+        dst.write(result)
+
+    params.logger.info(f"Wrote {output_file} ({AEF_NUM_BANDS} bands, {width}x{height})")
+
+
 def run(geoprep):
     """
     Main entry point for AEF processing.
@@ -477,6 +602,7 @@ def run(geoprep):
             - aef_countries: List of country names to download (from config)
             - aef_buffer: Buffer in degrees around country extent
             - aef_download_vrt: Whether to download VRT files
+            - aef_source: "gee" (Google Earth Engine) or "tiles" (source.coop HTTP)
     """
     # Extract parameters from geoprep object
     start_year = geoprep.start_year
@@ -523,6 +649,65 @@ def run(geoprep):
 
     logger.info(f"Countries needing download/resample: {countries_to_process}")
 
+    # Determine data source
+    aef_source = getattr(geoprep, "aef_source", "gee")
+    use_gee = aef_source == "gee"
+
+    # If GEE requested, try to initialize; fall back to tiles on failure
+    if use_gee:
+        if _init_gee():
+            logger.info("Using Google Earth Engine for AEF download")
+        else:
+            logger.warning("Falling back to tile-based download")
+            use_gee = False
+
+    if use_gee:
+        _run_gee(geoprep, countries, countries_to_process, years_to_download, buffer)
+    else:
+        _run_tiles(
+            geoprep, countries, countries_to_process, years_to_download,
+            buffer, download_vrt, index_cache_path, dir_download,
+            parallel_process, fraction_cpus,
+        )
+
+
+def _run_gee(geoprep, countries, countries_to_process, years, buffer):
+    """Download AEF via Google Earth Engine (server-side resample to 0.05 deg)."""
+    redo = getattr(geoprep, "redo", False)
+
+    for country in countries:
+        logger.info(f"--- Processing AEF for {country} (GEE) ---")
+
+        if country not in countries_to_process:
+            logger.info(f"All yearly files exist for {country}, skipping")
+            compute_average_aef(geoprep, country, years)
+            continue
+
+        extent = get_country_lat_lon_extent([country], buffer=buffer)
+        logger.info(
+            f"Extent (with {buffer} deg buffer): "
+            f"W={extent[0]:.2f}, E={extent[1]:.2f}, "
+            f"S={extent[2]:.2f}, N={extent[3]:.2f}"
+        )
+
+        country_slug = country.lower().replace(" ", "_")
+        for year in tqdm(years, desc=f"GEE AEF ({country})"):
+            out_dir = Path(geoprep.dir_intermed) / "aef" / country_slug / str(year)
+            output_file = out_dir / f"aef_{year}_{country_slug}.tif"
+            if output_file.exists() and not redo:
+                logger.info(f"Skipping {output_file} (exists)")
+                continue
+            download_aef_gee(geoprep, country, year, output_file, extent)
+
+        compute_average_aef(geoprep, country, years)
+
+
+def _run_tiles(
+    geoprep, countries, countries_to_process, years,
+    buffer, download_vrt, index_cache_path, dir_download,
+    parallel_process, fraction_cpus,
+):
+    """Download AEF tiles from source.coop and resample locally."""
     # Set up directories
     download_dir = dir_download / "aef"
     download_dir.mkdir(parents=True, exist_ok=True)
@@ -541,25 +726,25 @@ def run(geoprep):
 
     # Process each country
     for country in countries:
-        logger.info(f"--- Processing AEF for {country} ---")
+        logger.info(f"--- Processing AEF for {country} (tiles) ---")
 
         # Skip download/resample if all yearly files exist
         if country not in countries_to_process:
             logger.info(f"All yearly files exist for {country}, skipping download/resample")
-            compute_average_aef(geoprep, country, years_to_download)
+            compute_average_aef(geoprep, country, years)
             continue
 
         # Get country extent
         extent = get_country_lat_lon_extent([country], buffer=buffer)
         logger.info(
-            f"Extent (with {buffer}° buffer): "
-            f"West={extent[0]:.4f}°, East={extent[1]:.4f}°, "
-            f"South={extent[2]:.4f}°, North={extent[3]:.4f}°"
+            f"Extent (with {buffer} deg buffer): "
+            f"W={extent[0]:.4f}, E={extent[1]:.4f}, "
+            f"S={extent[2]:.4f}, N={extent[3]:.4f}"
         )
 
         # Find matching tiles
         logger.info("Finding tiles covering the specified area...")
-        matching_tiles = find_tiles_for_extent(index_gdf, extent, years=years_to_download)
+        matching_tiles = find_tiles_for_extent(index_gdf, extent, years=years)
         logger.info(f"Found {len(matching_tiles)} matching tiles")
 
         if len(matching_tiles) == 0:
@@ -596,13 +781,13 @@ def run(geoprep):
             if len(failed_downloads) > 5:
                 logger.warning(f"  ... and {len(failed_downloads) - 5} more")
 
-        # Resample to 0.05° global grid (per country subfolder)
-        logger.info(f"Resampling tiles to 0.05° global grid for {country}...")
-        for year in tqdm(years_to_download, desc=f"Resampling AEF ({country})"):
+        # Resample to 0.05 deg global grid (per country subfolder)
+        logger.info(f"Resampling tiles to 0.05 deg global grid for {country}...")
+        for year in tqdm(years, desc=f"Resampling AEF ({country})"):
             to_global(geoprep, year, country)
 
         # Compute average AEF
-        compute_average_aef(geoprep, country, years_to_download)
+        compute_average_aef(geoprep, country, years)
 
 
 if __name__ == "__main__":

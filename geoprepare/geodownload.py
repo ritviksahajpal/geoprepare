@@ -188,6 +188,10 @@ def run(path_config_file=["geobase.txt"]):
             geoprep.aef_index_cache = geoprep.parser.get(
                 "AEF", "index_cache", fallback=None
             )
+            # Data source: "gee" (Google Earth Engine) or "tiles" (source.coop HTTP)
+            geoprep.aef_source = geoprep.parser.get(
+                "AEF", "aef_source", fallback="gee"
+            )
         else:
             raise ValueError(f"{dataset} not implemented")
 

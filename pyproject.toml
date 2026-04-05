@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprepare"
-version = "0.6.164"
+version = "0.6.165"
 description = "A Python package to prepare (download, extract, process input data) for GEOCIF and related models"
 readme = "README.md"
 license = {text = "MIT"}
@@ -54,6 +54,9 @@ docs = [
     "mkdocs-material",
     "mkdocs-jupyter",
     "mkdocs-git-revision-date-plugin",
+]
+gee = [
+    "earthengine-api",
 ]
 
 [project.urls]
@@ -128,7 +131,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.bumpversion]
-current_version = "0.6.164"
+current_version = "0.6.165"
 commit = true
 tag = true
 
