@@ -411,7 +411,10 @@ def process_regular_var(
     If partial data exists for a given day, skip re-processing.
     Uses raster_cache to avoid repeated file opens for indicator rasters.
     """
-    for doy in tqdm(range(1, end_doy), desc=f"    {region} {year} DOY", leave=False):
+    doy_range = range(1, end_doy)
+    if not getattr(params, "parallel_extract", False):
+        doy_range = tqdm(doy_range, desc=f"    {region} {year} DOY", leave=False)
+    for doy in doy_range:
         date_part = f"{year},{doy}"
         empty_str = get_default_empty_str(country, region, region_id, lat, lon, date_part)
 
@@ -691,7 +694,10 @@ def process(val):
             return combo_id
 
         # 8. Iterate over each row (region) in df_country
-        for _, row in tqdm(df_country.iterrows(), total=len(df_country), desc=f"  {var} {year} regions", leave=False):
+        region_iter = df_country.iterrows()
+        if not getattr(params, "parallel_extract", False):
+            region_iter = tqdm(region_iter, total=len(df_country), desc=f"  {var} {year} regions", leave=False)
+        for _, row in region_iter:
 
             # Skip rows missing an admin name
             if not row[admin_name]:
