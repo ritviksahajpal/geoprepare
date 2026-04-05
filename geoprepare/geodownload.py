@@ -295,7 +295,7 @@ def _extract_date_from_filename(filename):
 
 
 def print_download_summary(geoprep, datasets):
-    """Print a rich table showing the last available date per dataset."""
+    """Print a rich table showing the last available date per dataset and save to text file."""
     from rich.console import Console
     from rich.table import Table
 
@@ -305,37 +305,52 @@ def print_download_summary(geoprep, datasets):
     table.add_column("Last Date", style="green")
     table.add_column("Files", justify="right", style="yellow")
 
+    rows = []
     for dataset in datasets:
         dirs = _get_intermed_dirs(geoprep, dataset)
         for label, dir_path in dirs:
             if dataset == "AEF":
-                # AEF is yearly, just count subdirectories with TIFs
                 if dir_path.exists():
                     years = sorted(
                         p.parent.name for p in dir_path.rglob("aef_*_*.tif")
                         if p.parent.name.isdigit()
                     )
                     if years:
-                        table.add_row(dataset, label, f"{years[0]}-{years[-1]}", str(len(set(years))))
+                        rows.append((dataset, label, f"{years[0]}-{years[-1]}", str(len(set(years)))))
                     else:
-                        table.add_row(dataset, label, "-", "0")
+                        rows.append((dataset, label, "-", "0"))
                 else:
-                    table.add_row(dataset, label, "-", "0")
+                    rows.append((dataset, label, "-", "0"))
                 continue
 
             if not dir_path.exists():
-                table.add_row(dataset, label, "-", "0")
+                rows.append((dataset, label, "-", "0"))
                 continue
 
             tifs = sorted(f.name for f in dir_path.iterdir() if f.suffix == ".tif")
             if not tifs:
-                table.add_row(dataset, label, "-", "0")
+                rows.append((dataset, label, "-", "0"))
                 continue
 
             last_date = _extract_date_from_filename(tifs[-1])
-            table.add_row(dataset, label, last_date, str(len(tifs)))
+            rows.append((dataset, label, last_date, str(len(tifs))))
 
-    Console().print(table)
+    for row in rows:
+        table.add_row(*row)
+
+    console = Console()
+    console.print(table)
+
+    # Save as plain text file to dir_inputs (parent of dir_intermed)
+    summary_path = Path(geoprep.dir_intermed).parent / "download_summary.txt"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    lines = [f"Download Summary ({timestamp})", "=" * 60]
+    lines.append(f"{'Dataset':<15} {'Variable':<20} {'Last Date':<12} {'Files':>6}")
+    lines.append("-" * 60)
+    for ds, var, date, count in rows:
+        lines.append(f"{ds:<15} {var:<20} {date:<12} {count:>6}")
+    summary_path.write_text("\n".join(lines) + "\n")
+    console.print(f"[dim]Summary saved to {summary_path}[/dim]")
 
 
 if __name__ == "__main__":
