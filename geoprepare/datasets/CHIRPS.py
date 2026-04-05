@@ -251,7 +251,13 @@ def unzip_and_scale(
     # Skip if already processed
     if out_scaled.exists():
         return
-    
+
+    # Skip prelim scaling if final scaled version already exists for this day
+    if type_product == "prelim":
+        final_scaled = dir_intermed / "chirps" / version / "final" / "scaled" / str(year) / out_scaled.name
+        if final_scaled.exists():
+            return
+
     # Check if source file exists
     if not src_path.exists():
         return
@@ -283,6 +289,9 @@ def unzip_and_scale(
         arr = (data * 100).astype(np.int32)
         # Handle CHIRPS nodata value (-9999 in raw, becomes -999900 after *100)
         arr[data < -9990] = NODATA_VALUE
+        # Remove tiling keys inherited from source to avoid GDAL warning
+        for key in ("blockxsize", "blockysize", "tiled"):
+            profile.pop(key, None)
         profile.update(
             dtype=rasterio.int32,
             count=1,
