@@ -8,7 +8,9 @@ its own source URL, file format, and temporal coverage.
 Pipeline: download (geodownload.py) -> extract (geoextract.py) -> merge (geomerge.py)
 """
 import ast
+import re
 import datetime
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -193,6 +195,147 @@ def run(path_config_file=["geobase.txt"]):
         geoprep.pp_config(dataset)
         # Execute!
         obj.run(geoprep)
+
+    print_download_summary(geoprep, datasets)
+
+
+def _get_intermed_dirs(geoprep, dataset):
+    """Return list of (label, directory) for a dataset's intermediate files."""
+    d = geoprep.dir_intermed
+    year = str(geoprep.end_year)
+
+    if dataset == "CHIRPS":
+        version = geoprep.parser.get("CHIRPS", "version", fallback="v2")
+        return [("chirps", d / "chirps" / version / "global" / year)]
+    elif dataset == "NDVI":
+        return [("ndvi", d / "ndvi" / year)]
+    elif dataset == "VIIRS":
+        return [("gcvi", d / "gcvi" / year)]
+    elif dataset == "CPC":
+        return [
+            ("cpc_tmax", d / "cpc_tmax" / year),
+            ("cpc_tmin", d / "cpc_tmin" / year),
+            ("cpc_precip", d / "cpc_precip" / year),
+        ]
+    elif dataset == "ESI":
+        return [
+            ("esi_4wk", d / "esi_4wk" / year),
+            ("esi_12wk", d / "esi_12wk" / year),
+        ]
+    elif dataset == "LST":
+        return [("lst", d / "lst" / year)]
+    elif dataset == "FPAR":
+        return [("fpar", d / "fpar" / year)]
+    elif dataset == "NSIDC":
+        return [
+            ("nsidc_surface", d / "nsidc" / "daily" / "surface" / year),
+            ("nsidc_rootzone", d / "nsidc" / "daily" / "rootzone" / year),
+        ]
+    elif dataset == "SOIL-MOISTURE":
+        return [
+            ("soil_moisture_as1", d / "soil_moisture_as1" / year),
+            ("soil_moisture_as2", d / "soil_moisture_as2" / year),
+        ]
+    elif dataset == "CHIRPS-GEFS":
+        return [("chirps_gefs", d / "chirps_gefs" / year)]
+    elif dataset == "FLDAS":
+        return [("fldas", d / "fldas" / "global" / year)]
+    elif dataset == "AEF":
+        return [("aef", d / "aef")]
+    else:
+        return []
+
+
+def _extract_date_from_filename(filename):
+    """Extract a date string from a TIF filename using common patterns."""
+    name = filename
+
+    # CHIRPS-GEFS: data.{year}.{mm}{dd}.tif
+    m = re.search(r'data\.(\d{4})\.(\d{2})(\d{2})', name)
+    if m:
+        try:
+            dt = datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            return dt.strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+    # FLDAS monthly: fldas_{var}_{yyyymm}_lead
+    m = re.search(r'fldas_\w+_(\d{4})(\d{2})_lead', name)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}"
+
+    # NSIDC: {year}_{doy}
+    m = re.search(r'(\d{4})_(\d{3})_(?:surface|rootzone)', name)
+    if m:
+        try:
+            dt = datetime.datetime.strptime(f"{m.group(1)}{m.group(2)}", "%Y%j").date()
+            return dt.strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+    # NDVI/GCVI: {year}.{doy}
+    m = re.search(r'(\d{4})\.(\d{3})\.c6', name)
+    if m:
+        try:
+            dt = datetime.datetime.strptime(f"{m.group(1)}{m.group(2)}", "%Y%j").date()
+            return dt.strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+    # Generic year+doy pattern (CHIRPS, CPC, ESI, LST, FPAR, Soil Moisture)
+    m = re.search(r'(\d{4})(\d{3})', name)
+    if m:
+        try:
+            dt = datetime.datetime.strptime(f"{m.group(1)}{m.group(2)}", "%Y%j").date()
+            return dt.strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+    return "?"
+
+
+def print_download_summary(geoprep, datasets):
+    """Print a rich table showing the last available date per dataset."""
+    from rich.console import Console
+    from rich.table import Table
+
+    table = Table(title="Download Summary", show_lines=False)
+    table.add_column("Dataset", style="bold cyan")
+    table.add_column("Variable", style="white")
+    table.add_column("Last Date", style="green")
+    table.add_column("Files", justify="right", style="yellow")
+
+    for dataset in datasets:
+        dirs = _get_intermed_dirs(geoprep, dataset)
+        for label, dir_path in dirs:
+            if dataset == "AEF":
+                # AEF is yearly, just count subdirectories with TIFs
+                if dir_path.exists():
+                    years = sorted(
+                        p.parent.name for p in dir_path.rglob("aef_*_*.tif")
+                        if p.parent.name.isdigit()
+                    )
+                    if years:
+                        table.add_row(dataset, label, f"{years[0]}-{years[-1]}", str(len(set(years))))
+                    else:
+                        table.add_row(dataset, label, "-", "0")
+                else:
+                    table.add_row(dataset, label, "-", "0")
+                continue
+
+            if not dir_path.exists():
+                table.add_row(dataset, label, "-", "0")
+                continue
+
+            tifs = sorted(f.name for f in dir_path.iterdir() if f.suffix == ".tif")
+            if not tifs:
+                table.add_row(dataset, label, "-", "0")
+                continue
+
+            last_date = _extract_date_from_filename(tifs[-1])
+            table.add_row(dataset, label, last_date, str(len(tifs)))
+
+    Console().print(table)
 
 
 if __name__ == "__main__":
