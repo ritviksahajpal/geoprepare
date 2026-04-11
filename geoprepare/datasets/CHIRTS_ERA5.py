@@ -25,6 +25,7 @@ Steps:
 import logging
 import multiprocessing
 import os
+import time
 from calendar import isleap, monthrange
 from datetime import datetime
 from pathlib import Path
@@ -74,11 +75,19 @@ def download_chirts(var, year, dir_download, redo_last_year):
     url = get_chirts_url(var, year)
     logger.info(f"Listing CHIRTS-ERA5 {var} {year} at {url}")
 
-    try:
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-    except Exception as e:
-        logger.error(f"Failed to list {url}: {e}")
+    resp = None
+    for attempt in range(5):
+        try:
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+            break
+        except Exception as e:
+            wait = 2 ** attempt * 5
+            logger.warning(f"Failed to list {url} (attempt {attempt+1}/5): {e}")
+            if attempt < 4:
+                time.sleep(wait)
+    if resp is None or not resp.ok:
+        logger.error(f"Failed to list {url} after 5 attempts")
         return
 
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -88,13 +97,25 @@ def download_chirts(var, year, dir_download, redo_last_year):
         href = link["href"]
         out_file = out_dir / href.split("/")[-1]
         if not out_file.exists():
-            try:
-                r2 = requests.get(urljoin(url, href), timeout=60)
-                r2.raise_for_status()
-                with open(out_file, "wb") as f:
-                    f.write(r2.content)
-            except Exception as e:
-                logger.error(f"Failed to download {href}: {e}")
+            for attempt in range(5):
+                try:
+                    r2 = requests.get(urljoin(url, href), timeout=120)
+                    r2.raise_for_status()
+                    with open(out_file, "wb") as f:
+                        f.write(r2.content)
+                    break
+                except requests.exceptions.HTTPError as e:
+                    if e.response is not None and e.response.status_code in (429, 503):
+                        wait = 2 ** attempt * 5  # 5, 10, 20, 40, 80s
+                        logger.warning(f"Rate-limited ({e.response.status_code}), retry {attempt+1}/5 in {wait}s")
+                        time.sleep(wait)
+                    else:
+                        logger.error(f"Failed to download {href}: {e}")
+                        break
+                except Exception as e:
+                    logger.error(f"Failed to download {href}: {e}")
+                    break
+            time.sleep(0.5)  # throttle between requests
 
 
 # =========================================================================
