@@ -37,6 +37,8 @@ class GeoExtract(base.BaseGeo):
 
         self.redo = self.parser.getboolean("DEFAULT", "redo")
         self.parallel_extract = self.parser.getboolean("DEFAULT", "parallel_extract")
+        self.check_csv = self.parser.getboolean("DEFAULT", "check_csv", fallback=False)
+        self.clean_csv = self.parser.getboolean("DEFAULT", "clean_csv", fallback=False)
 
 
 def run(path_config_file="geoextract.txt"):
@@ -47,7 +49,7 @@ def run(path_config_file="geoextract.txt"):
     from . import utils
     eo_vars = ast.literal_eval(obj.parser.get(obj.countries[0], "eo_model"))
     num_cpus = int(obj.fraction_cpus * os.cpu_count()) if obj.parallel_extract else 1
-    utils.display_run_summary("GeoExtract Runner", [
+    summary_rows = [
         ("Usage", "from geoprepare import geoextract; geoextract.run(cfg)"),
         ("cfg", "[geobase.txt, countries.txt, crops.txt, geoextract.txt]"),
         ("Countries", obj.countries),
@@ -59,9 +61,17 @@ def run(path_config_file="geoextract.txt"):
         ("CPUs", str(num_cpus)),
         ("Intermed dir", str(obj.dir_intermed)),
         ("Output dir", str(obj.dir_output)),
-    ])
+    ]
+    if obj.check_csv or obj.clean_csv:
+        summary_rows.append(("Check CSV", str(obj.check_csv)))
+        summary_rows.append(("Clean CSV", str(obj.clean_csv)))
+    utils.display_run_summary("GeoExtract Runner", summary_rows)
 
     from .extract import extract_EO as ee
+
+    if obj.check_csv or obj.clean_csv:
+        ee.check_or_clean_csvs(obj)
+        return
 
     ee.run(obj)
 

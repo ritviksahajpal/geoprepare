@@ -74,7 +74,18 @@ def get_var(var: str, indicator_arr: np.ndarray) -> ma.MaskedArray:
         "lst": lambda x: ma.masked_where(
             x * 0.02 - 273.15 < -123.15,
             x * 0.02 - 273.15
-        )
+        ),
+        # Daymet V4 (North America only). Native units:
+        #   tmin/tmax = degC, prcp = mm/day, vp = Pa, srad = W/m2,
+        #   swe = kg/m2, dayl = seconds/day.
+        # Daymet uses -9999 as fill; geoprepare rasters use the same value.
+        "daymet_tmin": lambda x: ma.masked_where(x <= -1000, x),
+        "daymet_tmax": lambda x: ma.masked_where(x <= -1000, x),
+        "daymet_prcp": lambda x: ma.masked_less(x, 0.0),
+        "daymet_vp":   lambda x: ma.masked_less(x, 0.0),
+        "daymet_srad": lambda x: ma.masked_less(x, 0.0),
+        "daymet_swe":  lambda x: ma.masked_less(x, 0.0),
+        "daymet_dayl": lambda x: ma.masked_less(x, 0.0),
     }
 
     if var in processors:

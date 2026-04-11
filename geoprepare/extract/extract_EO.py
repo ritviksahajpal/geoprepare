@@ -123,7 +123,18 @@ def get_var_fname(params, var, year, doy):
         "lai": f"{year}/MCD15A2H.A{year_doy}_Lai_500m_mosaic_0p05.tif",
         "fpar": f"{year}/MCD15A2H.A{year_doy}_Fpar_500m_mosaic_0p05.tif",
         "chirps_gefs": f"{year}/data.{year}.{month:02d}{day_of_month:02d}.tif",
-        "lst": f"{year}/MOD11C1.A{year_doy}_global.tif"
+        "lst": f"{year}/MOD11C1.A{year_doy}_global.tif",
+        # Daymet V4 daily weather (North America only, bbox-subset 0.05deg)
+        "daymet_tmin": f"{year}/daymet_tmin_{year_doy}_bbox.tif",
+        "daymet_tmax": f"{year}/daymet_tmax_{year_doy}_bbox.tif",
+        "daymet_prcp": f"{year}/daymet_prcp_{year_doy}_bbox.tif",
+        "daymet_vp":   f"{year}/daymet_vp_{year_doy}_bbox.tif",
+        "daymet_srad": f"{year}/daymet_srad_{year_doy}_bbox.tif",
+        "daymet_swe":  f"{year}/daymet_swe_{year_doy}_bbox.tif",
+        "daymet_dayl": f"{year}/daymet_dayl_{year_doy}_bbox.tif",
+        # CHIRTS-ERA5 daily temperature (global 0.05deg)
+        "chirts_era5_tmax": f"{year}/chirts_era5_tmax_{year_doy}_global.tif",
+        "chirts_era5_tmin": f"{year}/chirts_era5_tmin_{year_doy}_global.tif",
     }
 
     # CHIRPS needs version-aware path to match download output structure:
@@ -332,6 +343,72 @@ def write_daily_stats_to_csv(daily_stats: list[str], path_output: Path, var: str
 
     df_result = pd.read_csv(io.StringIO("\n".join(daily_stats)))
     df_result.to_csv(path_output, index=False)
+
+
+def check_or_clean_csvs(params) -> None:
+    """
+    Scan output CSVs for incomplete/corrupt files.
+
+    If params.clean_csv is True, delete them; otherwise just report.
+    A CSV is incomplete if it has fewer rows than expected
+    (365 data rows + 1 header for non-leap, 366 + 1 for leap).
+    """
+    logger = params.logger
+    output_dir = Path(params.dir_output)
+    delete = getattr(params, "clean_csv", False)
+
+    if not output_dir.exists():
+        logger.warning(f"Output directory does not exist: {output_dir}")
+        return
+
+    csv_files = list(output_dir.rglob("*.csv"))
+    logger.info(f"Scanning {len(csv_files)} CSV files in {output_dir} ...")
+
+    incomplete = []
+    for f in tqdm(csv_files, desc="Checking CSVs"):
+        # Extract year from filename: {region_id}_{region}_{year}_{var}_{crop}.csv
+        parts = f.stem.split("_")
+        year = None
+        for p in parts:
+            if p.isdigit() and len(p) == 4:
+                try:
+                    y = int(p)
+                    if 1900 < y < 2100:
+                        year = y
+                        break
+                except ValueError:
+                    pass
+
+        if year is None:
+            continue
+
+        expected_rows = get_end_doy(year)  # 366 or 367 (includes header)
+        try:
+            if f.stat().st_size == 0:
+                incomplete.append(f)
+                continue
+            with f.open() as fh:
+                row_count = sum(1 for _ in fh)
+            if row_count < expected_rows:
+                incomplete.append(f)
+        except Exception:
+            incomplete.append(f)
+
+    logger.info(f"Total files scanned: {len(csv_files)}")
+    logger.info(f"Incomplete/corrupt files: {len(incomplete)}")
+
+    if incomplete:
+        for f in incomplete[:20]:
+            logger.info(f"  {f}")
+        if len(incomplete) > 20:
+            logger.info(f"  ... and {len(incomplete) - 20} more")
+
+        if delete:
+            for f in incomplete:
+                f.unlink()
+            logger.info(f"Deleted {len(incomplete)} incomplete CSV files")
+    else:
+        logger.info("All CSV files are complete")
 
 
 # ---------------------------------------------------------------------

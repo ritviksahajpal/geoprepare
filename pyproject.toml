@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprepare"
-version = "0.6.166"
+version = "0.6.169"
 description = "A Python package to prepare (download, extract, process input data) for GEOCIF and related models"
 readme = "README.md"
 license = {text = "MIT"}
@@ -57,6 +57,14 @@ docs = [
 ]
 gee = [
     "earthengine-api",
+    "tenacity",
+]
+daymet = [
+    "earthaccess",
+    "pydap",
+    "xarray",
+    "rioxarray",
+    "netcdf4",
 ]
 
 [project.urls]
@@ -131,7 +139,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.bumpversion]
-current_version = "0.6.166"
+current_version = "0.6.169"
 commit = true
 tag = true
 

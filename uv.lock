@@ -11,6 +11,21 @@ resolution-markers = [
 overrides = [
     { name = "cuda-bindings", marker = "python_full_version < '0'" },
     { name = "cuda-pathfinder", marker = "python_full_version < '0'" },
+    { name = "nvidia-cublas-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cudnn-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cufft-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cufile-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-curand-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cusolver-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cusparse-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-cusparselt-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-nccl-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-nvjitlink-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-nvshmem-cu12", marker = "python_full_version < '0'" },
+    { name = "nvidia-nvtx-cu12", marker = "python_full_version < '0'" },
 ]
 
 [[package]]
@@ -946,7 +961,7 @@ wheels = [
 
 [[package]]
 name = "geoprepare"
-version = "0.6.135"
+version = "0.6.159"
 source = { editable = "." }
 dependencies = [
     { name = "rich" },

@@ -360,9 +360,15 @@ class GeoMerge(base.BaseGeo):
         self.df_ccs = pd.merge(self.df_ccs, df_countries, on="country", how="left")
 
         # 3. Add average_temperature
-        if "cpc_tmax" in self.df_ccs.columns and "cpc_tmin" in self.df_ccs.columns:
+        tmax_col = tmin_col = None
+        if "chirts_era5_tmax" in self.df_ccs.columns and "chirts_era5_tmin" in self.df_ccs.columns:
+            tmax_col, tmin_col = "chirts_era5_tmax", "chirts_era5_tmin"
+        elif "cpc_tmax" in self.df_ccs.columns and "cpc_tmin" in self.df_ccs.columns:
+            tmax_col, tmin_col = "cpc_tmax", "cpc_tmin"
+
+        if tmax_col and tmin_col:
             self.df_ccs["average_temperature"] = (
-                self.df_ccs["cpc_tmax"] + self.df_ccs["cpc_tmin"]
+                self.df_ccs[tmax_col] + self.df_ccs[tmin_col]
             ) / 2.0
 
         # 4. Add harvest season information
@@ -486,6 +492,27 @@ def process_combination(combination, path_config_file, parallel=False, df_eo=Non
     )
     gm.df_ccs["calendar_region"] = gm.df_ccs["region"].map(region_lookup)
 
+    # Filter out regions that have no calendar data for this crop.
+    # (e.g. poppy is only grown in 4 of myanmar's 17 admin regions)
+    valid_regions = set(
+        gm.df_calendar.loc[gm.df_calendar["country2"] == country, "calendar_region"].unique()
+    )
+    before_regions = set(gm.df_ccs["region"].unique())
+    gm.df_ccs = gm.df_ccs[gm.df_ccs["calendar_region"].isin(valid_regions)]
+    after_regions = set(gm.df_ccs["region"].unique())
+    dropped = sorted(before_regions - after_regions)
+    if dropped:
+        gm.logger.warning(
+            f"{country}/{crop}: dropped {len(dropped)} regions with no calendar data: "
+            f"{', '.join(dropped[:10])}{'...' if len(dropped) > 10 else ''}"
+        )
+
+    if gm.df_ccs.empty:
+        gm.logger.error(
+            f"Skipping {combination}: no admin regions have calendar data for {crop}"
+        )
+        return (combination, False)
+
     gm.df_ccs = gm.add_calendar()
     gm.post_process()
 
@@ -581,11 +608,20 @@ def run(path_config_file=["geobase.txt", "geoextract.txt"]):
     all_combinations = gm_master.create_run_combinations()
     groups = _group_combinations(gm_master.parser, all_combinations)
 
+    # Build per-country crop list from all_combinations for display
+    crops_by_country = {}
+    for country in gm_master.countries:
+        crops_by_country[country] = sorted({c[2] for c in all_combinations if c[0] == country})
+    crops_display = " | ".join(
+        f"{c}: {', '.join(crops)}" for c, crops in crops_by_country.items()
+    )
+
     from . import utils
     utils.display_run_summary("GeoMerge Runner", [
         ("Usage", "from geoprepare import geomerge; geomerge.run(cfg)"),
         ("cfg", "[geobase.txt, countries.txt, crops.txt, geoextract.txt]"),
         ("Countries", gm_master.countries),
+        ("Crops", crops_display),
         ("Years", f"{gm_master.start_year} - {gm_master.end_year}"),
         ("Combinations", str(len(all_combinations))),
         ("EO groups", f"{len(groups)} (EO data read once per group)"),

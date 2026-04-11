@@ -192,6 +192,38 @@ def run(path_config_file=["geobase.txt"]):
             geoprep.aef_source = geoprep.parser.get(
                 "AEF", "aef_source", fallback="gee"
             )
+        elif dataset == "DAYMET":
+            from .datasets import Daymet as obj
+
+            # Daymet V4 daily weather (North America only).
+            # Requires: pip install "geoprepare[daymet]" + NASA Earthdata Login.
+            geoprep.daymet_bbox = ast.literal_eval(
+                geoprep.parser.get("DAYMET", "bbox")
+            )
+            geoprep.daymet_variables = ast.literal_eval(
+                geoprep.parser.get(
+                    "DAYMET", "variables",
+                    fallback="['tmin', 'tmax', 'prcp']",
+                )
+            )
+            # Optional per-dataset year override (defaults to DEFAULT years)
+            geoprep.start_year = geoprep.parser.getint(
+                "DAYMET", "start_year", fallback=geoprep.start_year
+            )
+            geoprep.end_year = geoprep.parser.getint(
+                "DAYMET", "end_year", fallback=geoprep.end_year
+            )
+        elif dataset == "CHIRTS-ERA5":
+            from .datasets import CHIRTS_ERA5 as obj
+
+            geoprep.fill_value = geoprep.parser.getint(
+                "CHIRTS-ERA5", "fill_value", fallback=-9999
+            )
+            geoprep.chirts_variables = ast.literal_eval(
+                geoprep.parser.get(
+                    "CHIRTS-ERA5", "variables", fallback="['tmax', 'tmin']"
+                )
+            )
         else:
             raise ValueError(f"{dataset} not implemented")
 
@@ -246,6 +278,21 @@ def _get_intermed_dirs(geoprep, dataset):
         return [("fldas", d / "fldas" / "global" / year)]
     elif dataset == "AEF":
         return [("aef", d / "aef")]
+    elif dataset == "DAYMET":
+        daymet_vars = ast.literal_eval(
+            geoprep.parser.get(
+                "DAYMET", "variables",
+                fallback="['tmin', 'tmax', 'prcp']",
+            )
+        )
+        return [(f"daymet_{v}", d / f"daymet_{v}" / year) for v in daymet_vars]
+    elif dataset == "CHIRTS-ERA5":
+        chirts_vars = ast.literal_eval(
+            geoprep.parser.get(
+                "CHIRTS-ERA5", "variables", fallback="['tmax', 'tmin']"
+            )
+        )
+        return [(f"chirts_era5_{v}", d / f"chirts_era5_{v}" / year) for v in chirts_vars]
     else:
         return []
 

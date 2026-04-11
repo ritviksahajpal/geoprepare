@@ -489,6 +489,16 @@ def download_aef_gee(params, country, year, output_file, extent):
     import ee
     import io
     import math
+    from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=5, max=20),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
+    def _compute_pixels(request):
+        return ee.data.computePixels(request)
 
     west, east, south, north = extent
     res = 0.05
@@ -554,7 +564,7 @@ def download_aef_gee(params, country, year, output_file, extent):
                 "crsCode": "EPSG:4326",
             },
         }
-        data = np.load(io.BytesIO(ee.data.computePixels(request)))
+        data = np.load(io.BytesIO(_compute_pixels(request)))
 
         for i, band in enumerate(band_names):
             result[i, row_offset : row_offset + strip_height, :] = data[band]

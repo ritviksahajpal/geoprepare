@@ -138,6 +138,7 @@ class BaseGeo:
             "mz": "maize", "sb": "soybean", "rc": "rice",
             "sw": "spring_wheat", "ww": "winter_wheat",
             "ml": "millet", "tf": "teff", "sr": "sorghum",
+            "pp": "poppy",
         }
         return mapping.get(crop, crop)
 
