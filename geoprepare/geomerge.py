@@ -347,10 +347,49 @@ class GeoMerge(base.BaseGeo):
 
         return group
 
+    # Fallback pairs: (primary high-res column, coarser global fallback).
+    # If both columns exist after merge, NaN in the primary is filled from
+    # the fallback, then the fallback column is dropped — downstream code
+    # only sees the primary name.  Activates automatically when the user
+    # extracts both datasets in eo_model.
+    _FALLBACK_PAIRS = [
+        ("chirps", "cpc_precip"),
+        ("chirts_era5_tmax", "cpc_tmax"),
+        ("chirts_era5_tmin", "cpc_tmin"),
+        ("daymet_tmax", "cpc_tmax"),
+        ("daymet_tmin", "cpc_tmin"),
+        ("daymet_prcp", "cpc_precip"),
+    ]
+
+    def _apply_fallback(self):
+        """Fill NaN in primary EO columns from coarser fallback sources.
+
+        Only activates when both primary and fallback columns exist in
+        self.df_ccs (i.e. user listed both in ``eo_model``).  Drops the
+        fallback column after fill so downstream code never sees the
+        coarser source.
+        """
+        for primary, fallback in self._FALLBACK_PAIRS:
+            if primary not in self.df_ccs.columns or fallback not in self.df_ccs.columns:
+                continue
+            n_before = int(self.df_ccs[primary].isna().sum())
+            self.df_ccs[primary] = self.df_ccs[primary].fillna(self.df_ccs[fallback])
+            n_filled = n_before - int(self.df_ccs[primary].isna().sum())
+            if n_filled > 0:
+                self.logger.info(
+                    f"Fallback: filled {n_filled} NaN in '{primary}' from '{fallback}'"
+                )
+            self.df_ccs = self.df_ccs.drop(columns=[fallback])
+
     def post_process(self):
         # 1. Scale NDVI
         if "ndvi" in self.df_ccs.columns:
             self.df_ccs.loc[:, "ndvi"] = (self.df_ccs["ndvi"] - 50.0) / 200.0
+
+        # 1b. Fill gaps in primary EO columns from coarser fallback sources
+        #     (e.g. CHIRPS NaN above 60°N filled from CPC).  Must run before
+        #     average_temperature computation so the filled values feed through.
+        self._apply_fallback()
 
         # 2. Assign hemisphere and temperate/tropical zones
         # Rename 'region' in df_countries to 'zone' to avoid clash with admin 'region'
