@@ -109,7 +109,17 @@ class GeoMerge(base.BaseGeo):
 
             for scale in self.scales:
                 for crop in self.crops:
+                    crop_name = self.get_crop_full_name(crop)
                     for growing_season in self.growing_seasons:
+                        # Wheat crops have a single season — skip season 2+
+                        # to avoid producing a duplicate _s2.csv with
+                        # identical data (calendar sheet is season-agnostic).
+                        if crop_name in ("winter_wheat", "spring_wheat") and growing_season > 1:
+                            self.logger.warning(
+                                f"Skipping {crop_name} season {growing_season} "
+                                f"for {country} — wheat has only 1 season"
+                            )
+                            continue
                         all_combinations.extend(
                             list(
                                 itertools.product(
