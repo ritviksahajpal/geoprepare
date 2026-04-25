@@ -731,22 +731,23 @@ def process(val):
     validate_scale(scale)
 
     combo_id = (country, crop, var, year)
+    num_regions = len(df_country)
 
     # 2. Handle AEF separately (64-band average, not daily single-band)
     if var == "aef":
         process_aef(params, country, crop, scale, afi_file, df_country)
-        return combo_id
+        return combo_id, num_regions
 
     # 2b. Handle FLDAS separately (monthly forecast with 6 leads)
     if var.startswith("fldas_"):
         process_fldas(params, country, crop, scale, var, year, afi_file, df_country)
-        return combo_id
+        return combo_id, num_regions
 
     # 3. Skip datasets outside their availability range
     if skip_chirps_gefs(var, year):
-        return combo_id
+        return combo_id, 0
     if skip_nsidc(var, year):
-        return combo_id
+        return combo_id, 0
 
     # 4. Prepare the output directory
     dir_output = prepare_output_directory(params, country, scale, crop, var)
@@ -768,7 +769,7 @@ def process(val):
         
         if afi_ds is None:
             params.logger.warning(f"AFI file not found: {afi_file}")
-            return combo_id
+            return combo_id, 0
 
         # 8. Iterate over each row (region) in df_country
         region_iter = df_country.iterrows()
@@ -836,7 +837,7 @@ def process(val):
             # 10. Write the results to CSV
             write_daily_stats_to_csv(daily_stats, path_output, var)
 
-    return combo_id
+    return combo_id, num_regions
 
 
 # ========================
@@ -896,6 +897,16 @@ def build_combinations(params, skip_vars=None):
         # Ensure WGS84 for centroid lat/lon computation
         if df_country.crs and df_country.crs.to_epsg() != 4326:
             df_country = df_country.to_crs(epsg=4326)
+
+        # Dissolve admin2 polygons into admin1 when using admin_1 scale
+        # with a shapefile that has admin2 granularity
+        if admin_level == "admin_1" and "ADM2_NAME" in df_country.columns:
+            n_before = len(df_country)
+            df_country = df_country.dissolve(by="ADM1_NAME", as_index=False)
+            params.logger.info(
+                f"{country}: dissolved {n_before} admin2 polygons "
+                f"→ {len(df_country)} admin1 regions"
+            )
 
         # Build mask path
         for crop in crops:
@@ -1003,6 +1014,15 @@ def run(params):
         int(params.fraction_cpus * cpu_count()) if params.parallel_extract else 1
     )
 
+    # Count total regions across all combos for progress bar granularity,
+    # excluding combos that will be skipped at runtime (chirps_gefs wrong year,
+    # nsidc pre-2015) so the bar reaches 100%.
+    total_regions = sum(
+        len(val[7]) for val in list_combinations  # val[7] = df_country
+        if not skip_chirps_gefs(val[4], val[5])    # val[4]=var, val[5]=year
+        and not skip_nsidc(val[4], val[5])
+    )
+
     # Count combinations per country for progress tracking
     country_totals = {}
     for combo in list_combinations:
@@ -1023,19 +1043,20 @@ def run(params):
         # Swap to pickle-safe logger for multiprocessing
         original_logger = _swap_logger_for_parallel(params)
         with Pool(num_cpus) as p:
-            with tqdm(total=len(list_combinations)) as pbar:
-                for combo_id in p.imap_unordered(process, list_combinations):
+            with tqdm(total=total_regions) as pbar:
+                for combo_id, num_regions in p.imap_unordered(process, list_combinations):
                     _update_pbar(pbar, combo_id)
-                    pbar.update()
+                    pbar.update(num_regions)
         # Restore original logger
         params.logger = original_logger
     else:
-        with tqdm(total=len(list_combinations)) as pbar:
+        with tqdm(total=total_regions) as pbar:
             for val in list_combinations:
-                process(val)
-                combo_id = (val[1], val[2], val[4], val[5])
+                country, crop, var, year = val[1], val[2], val[4], val[5]
+                pbar.set_description(f"{country} {crop} {var} {year}")
+                combo_id, num_regions = process(val)
                 _update_pbar(pbar, combo_id)
-                pbar.update()
+                pbar.update(num_regions)
 
 
 if __name__ == "__main__":

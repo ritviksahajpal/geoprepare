@@ -224,6 +224,8 @@ def run(path_config_file=["geobase.txt"]):
                     "CHIRTS-ERA5", "variables", fallback="['tmax', 'tmin']"
                 )
             )
+        elif dataset == "NOAA-S2S":
+            from .datasets import NOAA_S2S as obj
         else:
             raise ValueError(f"{dataset} not implemented")
 
@@ -293,6 +295,9 @@ def _get_intermed_dirs(geoprep, dataset):
             )
         )
         return [(f"chirts_era5_{v}", d / f"chirts_era5_{v}" / year) for v in chirts_vars]
+    elif dataset == "NOAA-S2S":
+        dl = geoprep.dir_download
+        return [("noaa_s2s", Path(dl) / "noaa_s2s")]
     else:
         return []
 

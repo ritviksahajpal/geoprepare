@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Download, scale, and reproject CHIRTS-ERA5 daily temperature data.
+Download and reproject CHIRTS-ERA5 daily temperature data.
 
 CHIRTS-ERA5 provides daily maximum (Tmax) and minimum (Tmin) temperature
 at 0.05° resolution from CHC/UCSB, using ERA5 reanalysis for temporal
@@ -19,14 +19,14 @@ Filename pattern:
 
 Steps:
   1. Scrape year directory listing and download .tif files.
-  2. Scale floating-point °C to integer (×100) with nodata sentinel.
-  3. Reproject to a global 3600×7200 grid matching crop masks.
+  2. Scale floating-point °C to integer (×100) and reproject to a global
+     3600×7200 grid matching crop masks in a single step.
 """
 import logging
 import multiprocessing
 import os
 import time
-from calendar import isleap, monthrange
+from calendar import monthrange
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
@@ -36,6 +36,7 @@ import rasterio
 import requests
 from bs4 import BeautifulSoup
 from osgeo import gdal, osr
+from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
 from tqdm import tqdm
 
 logging.basicConfig(
@@ -45,6 +46,26 @@ logger = logging.getLogger(__name__)
 
 NODATA_VALUE = -9999
 BASE_URL = "https://data.chc.ucsb.edu/experimental/CHIRTS-ERA5"
+
+_SESSION = requests.Session()
+_SESSION.headers["User-Agent"] = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/131.0.0.0 Safari/537.36"
+)
+
+
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=5, max=80),
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+    reraise=True,
+)
+def _fetch(url, timeout=60):
+    """HTTP GET with retry on transient failures."""
+    resp = _SESSION.get(url, timeout=timeout)
+    resp.raise_for_status()
+    return resp
 
 # Map config variable name → filename component
 _VAR_LABEL = {"tmax": "Tmax", "tmin": "Tmin"}
@@ -64,30 +85,31 @@ def get_chirts_filename(var, year, mon, day):
 # =========================================================================
 # Step 1: Download
 # =========================================================================
-def download_chirts(var, year, dir_download, redo_last_year):
+def download_chirts(var, year, dir_download):
     """Scrape the year directory and download any missing .tif files."""
-    if not redo_last_year and year < datetime.today().year - 1:
-        return
-
     out_dir = dir_download / f"chirts_era5/{var}/{year}"
     os.makedirs(out_dir, exist_ok=True)
+
+    # For past years, check if all expected daily files exist locally
+    if year < datetime.today().year:
+        all_present = True
+        for m in range(1, 13):
+            for d in range(1, monthrange(year, m)[1] + 1):
+                if not (out_dir / get_chirts_filename(var, year, m, d)).exists():
+                    all_present = False
+                    break
+            if not all_present:
+                break
+        if all_present:
+            return
 
     url = get_chirts_url(var, year)
     logger.info(f"Listing CHIRTS-ERA5 {var} {year} at {url}")
 
-    resp = None
-    for attempt in range(5):
-        try:
-            resp = requests.get(url, timeout=30)
-            resp.raise_for_status()
-            break
-        except Exception as e:
-            wait = 2 ** attempt * 5
-            logger.warning(f"Failed to list {url} (attempt {attempt+1}/5): {e}")
-            if attempt < 4:
-                time.sleep(wait)
-    if resp is None or not resp.ok:
-        logger.error(f"Failed to list {url} after 5 attempts")
+    try:
+        resp = _fetch(url, timeout=30)
+    except Exception as e:
+        logger.error(f"Failed to list {url}: {e}")
         return
 
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -97,32 +119,20 @@ def download_chirts(var, year, dir_download, redo_last_year):
         href = link["href"]
         out_file = out_dir / href.split("/")[-1]
         if not out_file.exists():
-            for attempt in range(5):
-                try:
-                    r2 = requests.get(urljoin(url, href), timeout=120)
-                    r2.raise_for_status()
-                    with open(out_file, "wb") as f:
-                        f.write(r2.content)
-                    break
-                except requests.exceptions.HTTPError as e:
-                    if e.response is not None and e.response.status_code in (429, 503):
-                        wait = 2 ** attempt * 5  # 5, 10, 20, 40, 80s
-                        logger.warning(f"Rate-limited ({e.response.status_code}), retry {attempt+1}/5 in {wait}s")
-                        time.sleep(wait)
-                    else:
-                        logger.error(f"Failed to download {href}: {e}")
-                        break
-                except Exception as e:
-                    logger.error(f"Failed to download {href}: {e}")
-                    break
-            time.sleep(0.5)  # throttle between requests
+            try:
+                r2 = _fetch(urljoin(url, href), timeout=120)
+                with open(out_file, "wb") as f:
+                    f.write(r2.content)
+            except Exception as e:
+                logger.error(f"Failed to download {href}: {e}")
+            time.sleep(2)  # throttle between requests
 
 
 # =========================================================================
-# Step 2: Scale to integer
+# Step 2: Scale + reproject to global grid in one pass
 # =========================================================================
-def scale_to_int(var, year, mon, day, dir_download, dir_intermed):
-    """Read float °C, multiply by 100, write as int32 GeoTIFF."""
+def process_to_global(var, year, mon, day, dir_download, dir_intermed, fill_value):
+    """Read raw float °C, scale ×100 to int32, place into 3600×7200 global grid."""
     src_path = (
         dir_download / f"chirts_era5/{var}/{year}"
         / get_chirts_filename(var, year, mon, day)
@@ -131,77 +141,40 @@ def scale_to_int(var, year, mon, day, dir_download, dir_intermed):
         return
 
     jd = datetime(year, mon, day).timetuple().tm_yday
-    scaled_dir = dir_intermed / f"chirts_era5_{var}" / "scaled" / str(year)
-    os.makedirs(scaled_dir, exist_ok=True)
-    out_scaled = scaled_dir / f"chirts_era5_{var}_{year}{jd:03d}_scaled.tif"
+    global_dir = dir_intermed / f"chirts_era5_{var}" / str(year)
+    os.makedirs(global_dir, exist_ok=True)
+    out_tif = global_dir / f"chirts_era5_{var}_{year}{jd:03d}_global.tif"
 
-    if out_scaled.exists():
+    if out_tif.exists():
         return
 
     try:
         with rasterio.open(src_path) as src:
-            profile = src.profile.copy()
             data = src.read(1).astype(float)
 
+        # Mask nodata before scaling to avoid corrupting the sentinel
+        nodata_mask = data == NODATA_VALUE
         arr = (data * 100).astype(np.int32)
-        arr[data < -9990] = NODATA_VALUE
+        arr[nodata_mask] = NODATA_VALUE
 
-        for key in ("blockxsize", "blockysize", "tiled"):
-            profile.pop(key, None)
-        profile.update(dtype=rasterio.int32, count=1, nodata=NODATA_VALUE)
-
-        with rasterio.open(out_scaled, "w", **profile) as dst:
-            dst.write(arr, 1)
-    except Exception as e:
-        logger.error(f"Failed to scale {src_path}: {e}")
-
-
-# =========================================================================
-# Step 3: Reproject to global grid
-# =========================================================================
-def reproject_to_global(year, jd, dir_intermed, fill_value, var):
-    """Reproject scaled TIFF into 3600×7200 global grid."""
-    global_dir = dir_intermed / f"chirts_era5_{var}" / str(year)
-    os.makedirs(global_dir, exist_ok=True)
-
-    out_tif = global_dir / f"chirts_era5_{var}_{year}{jd:03d}_global.tif"
-    if out_tif.exists():
-        return
-
-    scaled_path = (
-        dir_intermed / f"chirts_era5_{var}" / "scaled" / str(year)
-        / f"chirts_era5_{var}_{year}{jd:03d}_scaled.tif"
-    )
-    if not scaled_path.exists():
-        return
-
-    try:
-        ds = gdal.Open(str(scaled_path))
-        if ds is None:
-            logger.error(f"Failed to open {scaled_path}")
-            return
-
-        band = ds.GetRasterBand(1)
-        data = band.ReadAsArray()
-        in_height, in_width = data.shape
-
+        in_height, in_width = arr.shape
         out_arr = np.full((3600, 7200), fill_value, dtype=np.int32)
 
         if in_height == 2000 and in_width == 7200:
             # 50N to 50S
-            out_arr[800:2800, :] = data
+            out_arr[800:2800, :] = arr
         elif in_height == 2400 and in_width == 7200:
             # 60N to 60S
-            out_arr[600:3000, :] = data
+            out_arr[600:3000, :] = arr
         elif in_height == 3600 and in_width == 7200:
-            out_arr = data
+            out_arr = arr
         else:
             lat_offset = (3600 - in_height) // 2
             lon_offset = (7200 - in_width) // 2
             out_arr[
                 lat_offset : lat_offset + in_height,
                 lon_offset : lon_offset + in_width,
-            ] = data
+            ] = arr
             logger.warning(f"Non-standard grid size {in_height}x{in_width}")
 
         driver = gdal.GetDriverByName("GTiff")
@@ -214,10 +187,9 @@ def reproject_to_global(year, jd, dir_intermed, fill_value, var):
         dst.GetRasterBand(1).WriteArray(out_arr)
         dst.FlushCache()
 
-        ds = None
         dst = None
     except Exception as e:
-        logger.error(f"Failed to reproject {scaled_path}: {e}")
+        logger.error(f"Failed to process {src_path}: {e}")
 
 
 # =========================================================================
@@ -227,12 +199,8 @@ def _download_wrapper(args):
     return download_chirts(*args)
 
 
-def _scale_wrapper(args):
-    return scale_to_int(*args)
-
-
-def _reproject_wrapper(args):
-    return reproject_to_global(*args)
+def _process_wrapper(args):
+    return process_to_global(*args)
 
 
 # =========================================================================
@@ -251,7 +219,6 @@ def run(geoprep):
     end_year = geoprep.end_year
     dir_download = Path(geoprep.dir_download)
     dir_intermed = Path(geoprep.dir_intermed)
-    redo_last_year = geoprep.redo_last_year
     parallel_process = geoprep.parallel_process
     fraction_cpus = geoprep.fraction_cpus
     fill_value = geoprep.fill_value
@@ -262,7 +229,7 @@ def run(geoprep):
 
     # Step 1: Download
     download_tasks = [
-        (var, yr, dir_download, redo_last_year)
+        (var, yr, dir_download)
         for var in variables
         for yr in range(start_year, end_year + 1)
     ]
@@ -277,57 +244,24 @@ def run(geoprep):
         for args in tqdm(download_tasks, desc="Download CHIRTS-ERA5"):
             download_chirts(*args)
 
-    # Step 2: Scale to integer
-    scale_tasks = [
-        (var, yr, m, d, dir_download, dir_intermed)
+    # Step 2: Scale + reproject to global grid
+    process_tasks = [
+        (var, yr, m, d, dir_download, dir_intermed, fill_value)
         for var in variables
         for yr in range(start_year, end_year + 1)
         for m in range(1, 13)
         for d in range(1, monthrange(yr, m)[1] + 1)
+        if (dir_download / f"chirts_era5/{var}/{yr}"
+            / get_chirts_filename(var, yr, m, d)).exists()
     ]
+    logger.info(f"Processing {len(process_tasks)} CHIRTS-ERA5 files to global grid")
     if parallel_process:
         with multiprocessing.Pool(num_workers) as p:
             list(tqdm(
-                p.imap_unordered(_scale_wrapper, scale_tasks),
-                total=len(scale_tasks),
-                desc="Scale CHIRTS-ERA5",
+                p.imap_unordered(_process_wrapper, process_tasks),
+                total=len(process_tasks),
+                desc="Process CHIRTS-ERA5",
             ))
     else:
-        for args in tqdm(scale_tasks, desc="Scale CHIRTS-ERA5"):
-            scale_to_int(*args)
-
-    # Step 3: Reproject to global grid
-    reproj_tasks = []
-    for var in variables:
-        for yr in range(start_year, end_year + 1):
-            global_dir = dir_intermed / f"chirts_era5_{var}" / str(yr)
-            scaled_dir = dir_intermed / f"chirts_era5_{var}" / "scaled" / str(yr)
-
-            global_files = (
-                set(os.listdir(global_dir)) if global_dir.exists() else set()
-            )
-            scaled_files = (
-                set(os.listdir(scaled_dir)) if scaled_dir.exists() else set()
-            )
-
-            max_jd = 366 if isleap(yr) else 365
-            for jd in range(1, max_jd + 1):
-                out_name = f"chirts_era5_{var}_{yr}{jd:03d}_global.tif"
-                scaled_name = f"chirts_era5_{var}_{yr}{jd:03d}_scaled.tif"
-
-                if out_name not in global_files and scaled_name in scaled_files:
-                    reproj_tasks.append(
-                        (yr, jd, dir_intermed, fill_value, var)
-                    )
-
-    logger.info(f"Reproject: {len(reproj_tasks)} CHIRTS-ERA5 files need processing")
-    if parallel_process:
-        with multiprocessing.Pool(num_workers) as p:
-            list(tqdm(
-                p.imap_unordered(_reproject_wrapper, reproj_tasks),
-                total=len(reproj_tasks),
-                desc="Reproject CHIRTS-ERA5",
-            ))
-    else:
-        for args in tqdm(reproj_tasks, desc="Reproject CHIRTS-ERA5"):
-            reproject_to_global(*args)
+        for args in tqdm(process_tasks, desc="Process CHIRTS-ERA5"):
+            process_to_global(*args)

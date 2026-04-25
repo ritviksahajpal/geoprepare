@@ -247,7 +247,7 @@ def assign_admin_to_regions(
         os.makedirs(dir_cache, exist_ok=True)
         ah = _file_hash(path_admin_shp)
         rh = _file_hash(path_region_shp)
-        cached = _cache_path(dir_cache, _normalize(country), ah, rh)
+        cached = _cache_path(dir_cache, f"{_normalize(country)}_{scale}", ah, rh)
         if cached.is_file():
             log.info(f"Loading cached region lookup: {cached}")
             return pd.read_csv(cached)

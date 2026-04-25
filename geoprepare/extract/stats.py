@@ -69,6 +69,8 @@ def get_var(var: str, indicator_arr: np.ndarray) -> ma.MaskedArray:
         ),
         "chirps": lambda x: ma.masked_less(x, 0.0) / 100.0,
         "chirps_gefs": lambda x: ma.masked_less(x, 0.0) / 100.0,
+        "chirts_era5_tmax": lambda x: ma.masked_where(x <= -9990, x) / 100.0,
+        "chirts_era5_tmin": lambda x: ma.masked_where(x <= -9990, x) / 100.0,
         "cpc_tmax": lambda x: ma.masked_less(x, -273.15),
         "cpc_tmin": lambda x: ma.masked_less(x, -273.15),
         "lst": lambda x: ma.masked_where(
