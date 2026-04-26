@@ -316,22 +316,33 @@ def _load_fnid_mapping(shapefile_path):
     return fnid_to_info
 
 
-def process_all(dir_download, dir_output, shapefile_path, countries=None):
-    """
-    Process all downloaded S2S NetCDF files and output CSVs per country.
+S2S_NUM_LEADS = 6
+S2S_VAR_PREFIX = "s2s"  # output columns: s2s_t2m_lead1, s2s_tprate_lead1, etc.
 
-    Output: {dir_output}/noaa_s2s/{country}/{var}_{data_type}.csv
+
+def process_all(dir_download, dir_output, shapefile_path, countries=None,
+                scale="admin_1", crop="cr", threshold_dir="crop_t20"):
+    """
+    Process all downloaded S2S NetCDF files and output per-region CSVs
+    matching the FLDAS extraction output format.
+
+    Output per region/year CSV at:
+      {dir_output}/{threshold_dir}/{country}/{scale}/{crop}/s2s_{var}/
+          {fnid}_{region}_{year}_s2s_{var}_{crop}.csv
+
+    CSV columns: country, region, region_id, year, month,
+                 s2s_{var}_lead1, ..., s2s_{var}_lead6
     """
     import pandas as pd
 
     base_dir = Path(dir_download) / "noaa_s2s"
-    out_base = Path(dir_output) / "noaa_s2s"
 
     fnid_to_info = _load_fnid_mapping(shapefile_path)
     logger.info(f"Loaded {len(fnid_to_info)} FNID mappings")
 
     for data_type in DATA_TYPES:
         for var in VARIABLES:
+            s2s_var = f"{S2S_VAR_PREFIX}_{var}"
             all_rows = []
 
             # Collect all .nc files for this data_type/var across all models
@@ -355,24 +366,67 @@ def process_all(dir_download, dir_output, shapefile_path, countries=None):
 
             df = pd.DataFrame(all_rows)
 
-            # Write per-country CSVs
-            for country, df_country in df.groupby("country"):
+            # Compute multi-model mean across models per (fnid, init_month, year, lead)
+            mean_col = f"{var}_mean"
+            group_cols = ["country", "admin1", "admin2", "fnid", "init_month", "year", "lead"]
+            df_mm = df.groupby(group_cols, as_index=False)[mean_col].mean()
+
+            # Pivot leads into columns: s2s_{var}_lead1 ... s2s_{var}_lead6
+            df_mm["lead_col"] = df_mm["lead"].apply(lambda x: f"{s2s_var}_lead{x}")
+            pivot_cols = ["country", "admin1", "admin2", "fnid", "init_month", "year"]
+            df_pivot = df_mm.pivot_table(
+                index=pivot_cols, columns="lead_col", values=mean_col
+            ).reset_index()
+            df_pivot.columns.name = None
+
+            # Rename init_month → month to match FLDAS format
+            df_pivot.rename(columns={"init_month": "month"}, inplace=True)
+
+            # Ensure all lead columns exist (lead1..lead6)
+            for lead in range(1, S2S_NUM_LEADS + 1):
+                col = f"{s2s_var}_lead{lead}"
+                if col not in df_pivot.columns:
+                    df_pivot[col] = float("nan")
+
+            lead_cols = [f"{s2s_var}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)]
+
+            # Write per-region/year CSVs matching extraction output structure
+            for (country, fnid), df_region in df_pivot.groupby(["country", "fnid"]):
                 country_slug = country.lower().replace(" ", "_")
 
-                # Filter by requested countries if specified
                 if countries and country_slug not in [
                     c.lower().replace(" ", "_") for c in countries
                 ]:
                     continue
 
-                out_dir = out_base / country_slug
+                info = fnid_to_info.get(fnid, {})
+                admin1 = (info.get("admin1", "") or "").lower().replace(" ", "_")
+                admin2 = (info.get("admin2", "") or "").lower().replace(" ", "_")
+                region = admin2 if admin2 and scale == "admin_2" else admin1
+
+                # Output directory matching geoextract structure
+                out_dir = (
+                    Path(dir_output) / threshold_dir / country_slug
+                    / scale / crop / s2s_var
+                )
                 out_dir.mkdir(parents=True, exist_ok=True)
 
-                out_file = out_dir / f"{var}_{data_type}.csv"
-                df_country.to_csv(out_file, index=False)
-                logger.info(
-                    f"  {country}: {len(df_country)} rows → {out_file}"
-                )
+                for year, df_year in df_region.groupby("year"):
+                    out_file = out_dir / f"{fnid}_{region}_{year}_{s2s_var}_{crop}.csv"
+
+                    df_out = pd.DataFrame({
+                        "country": country_slug,
+                        "region": region,
+                        "region_id": fnid,
+                        "year": int(year),
+                        "month": df_year["month"].values,
+                    })
+                    for col in lead_cols:
+                        df_out[col] = df_year[col].values
+
+                    df_out.to_csv(out_file, index=False)
+
+            logger.info(f"  {data_type}/{var}: wrote per-region CSVs")
 
 
 def run(geoprep):
@@ -396,5 +450,5 @@ def run(geoprep):
     # Step 1: Download
     download_all(dir_download)
 
-    # Step 2: Process and output CSVs
+    # Step 2: Process and output per-region CSVs
     process_all(dir_download, dir_output, shapefile_path, countries)

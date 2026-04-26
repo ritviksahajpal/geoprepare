@@ -858,7 +858,7 @@ def build_combinations(params, skip_vars=None):
         use_cropland_mask = params.parser.getboolean(country, "use_cropland_mask")
         crops = ast.literal_eval(params.parser.get(country, "crops"))
         vars_list = [v for v in ast.literal_eval(params.parser.get(country, "eo_model"))
-                     if (country, v) not in skip_vars]
+                     if (country, v) not in skip_vars and not v.startswith("s2s_")]
         admin_level = params.parser.get(country, "admin_level")
         scales = [admin_level]
 
@@ -982,7 +982,8 @@ def validate_datasets(params):
 
         for var in vars_list:
             # chirps_gefs is only for current year forecasts — skip validation
-            if var == "chirps_gefs":
+            # s2s_* variables bypass geoextract (pre-extracted polygon data)
+            if var == "chirps_gefs" or var.startswith("s2s_"):
                 continue
 
             dir_var = _get_var_directory(params, var, country)

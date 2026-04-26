@@ -147,7 +147,7 @@ class GeoMerge(base.BaseGeo):
         FLDAS_NUM_LEADS = 6
         vars_ordered = sorted(
             self.eo_model,
-            key=lambda v: (1 if v == "aef" else 2 if v.startswith("fldas_") else 0),
+            key=lambda v: (1 if v == "aef" else 2 if v.startswith("fldas_") or v.startswith("s2s_") else 0),
         )
 
         pbar = tqdm(vars_ordered, desc=f"Merging EO variables ({self.country})")
@@ -177,6 +177,12 @@ class GeoMerge(base.BaseGeo):
                 fldas_lead_cols = [f"{var}_lead{i}" for i in range(FLDAS_NUM_LEADS)]
                 read_cols = ["country", "region", "region_id", "year", "month"] + fldas_lead_cols
                 merge_cols = None  # handled specially below
+            elif var.startswith("s2s_"):
+                # NOAA S2S: monthly seasonal forecasts with 6 lead columns
+                S2S_NUM_LEADS = 6
+                s2s_lead_cols = [f"{var}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)]
+                read_cols = ["country", "region", "region_id", "year", "month"] + s2s_lead_cols
+                merge_cols = None  # handled like FLDAS via year+month join
             else:
                 read_cols = self.static_columns + [var]
                 merge_cols = self.static_columns
@@ -198,10 +204,10 @@ class GeoMerge(base.BaseGeo):
 
             df_var = pd.concat(var_frames, ignore_index=True)
 
-            if var.startswith("fldas_"):
-                # FLDAS: monthly data — broadcast to all DOYs via year+month join
-                fldas_merge_cols = ["country", "region", "region_id", "year", "month"]
-                df_var = df_var.groupby(fldas_merge_cols, as_index=False).first()
+            if var.startswith("fldas_") or var.startswith("s2s_"):
+                # FLDAS / S2S: monthly data — broadcast to all DOYs via year+month join
+                monthly_merge_cols = ["country", "region", "region_id", "year", "month"]
+                df_var = df_var.groupby(monthly_merge_cols, as_index=False).first()
 
                 if df_result is not None and "doy" in df_result.columns:
                     # Compute month from year+doy so we can join
@@ -211,7 +217,7 @@ class GeoMerge(base.BaseGeo):
                     df_result = pd.merge(
                         df_result, df_var,
                         left_on=["country", "region", "region_id", "year", "_month"],
-                        right_on=fldas_merge_cols,
+                        right_on=monthly_merge_cols,
                         how="left",
                     )
                     df_result.drop(columns=["_month", "month"], inplace=True)
@@ -449,14 +455,18 @@ class GeoMerge(base.BaseGeo):
 
         - 'aef' -> aef_1..aef_64
         - 'fldas_*' -> {var}_lead0..{var}_lead5
+        - 's2s_*' -> {var}_lead1..{var}_lead6
         """
         FLDAS_NUM_LEADS = 6
+        S2S_NUM_LEADS = 6
         expanded = []
         for var in self.eo_model:
             if var == "aef":
                 expanded.extend([f"aef_{i}" for i in range(1, 65)])
             elif var.startswith("fldas_"):
                 expanded.extend([f"{var}_lead{i}" for i in range(FLDAS_NUM_LEADS)])
+            elif var.startswith("s2s_"):
+                expanded.extend([f"{var}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)])
             else:
                 expanded.append(var)
         return expanded
