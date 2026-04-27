@@ -347,10 +347,11 @@ def _load_fnid_mapping(shapefile_path):
     gdf = gp.read_file(shapefile_path)
     fnid_to_info = {}
     for _, row in gdf.iterrows():
+        admin2 = row.get("ADMIN2", "")
         fnid_to_info[row["FNID"]] = {
             "country": row["ADMIN0"],
-            "admin1": row.get("ADMIN1", ""),
-            "admin2": row.get("ADMIN2", "") or "",
+            "admin1": row.get("ADMIN1", "") or "",
+            "admin2": admin2 if isinstance(admin2, str) else "",
         }
     return fnid_to_info
 
@@ -360,7 +361,8 @@ S2S_VAR_PREFIX = "s2s"  # output columns: s2s_t2m_lead1, s2s_tprate_lead1, etc.
 
 
 def process_all(dir_download, dir_output, shapefile_path, countries=None,
-                scale="admin_1", crop="cr", threshold_dir="crop_t20"):
+                scale="admin_1", crop="cr", threshold_dir="crop_t20",
+                gap_fill="climatology"):
     """
     Process all downloaded S2S NetCDF files and output per-region CSVs
     matching the FLDAS extraction output format.
@@ -379,12 +381,14 @@ def process_all(dir_download, dir_output, shapefile_path, countries=None,
     fnid_to_info = _load_fnid_mapping(shapefile_path)
     logger.info(f"Loaded {len(fnid_to_info)} FNID mappings")
 
-    for data_type in DATA_TYPES:
-        for var in VARIABLES:
-            s2s_var = f"{S2S_VAR_PREFIX}_{var}"
-            all_rows = []
+    # Process each variable: collect hindcast + forecast rows, then gap-fill
+    for var in VARIABLES:
+        s2s_var = f"{S2S_VAR_PREFIX}_{var}"
+        mean_col = f"{var}_mean"
+        all_rows = []
 
-            # Collect all .nc files for this data_type/var across all models
+        # Process both hindcasts and forecasts for this variable
+        for data_type in DATA_TYPES:
             nc_files = []
             for model in MODELS:
                 model_dir = base_dir / data_type / var / model
@@ -400,72 +404,97 @@ def process_all(dir_download, dir_output, shapefile_path, countries=None,
                 rows = process_file(nc_path, fnid_to_info, var, data_type)
                 all_rows.extend(rows)
 
-            if not all_rows:
+        if not all_rows:
+            continue
+
+        df = pd.DataFrame(all_rows)
+        logger.info(f"  {var}: {len(df)} total rows from hindcasts + forecasts")
+
+        # Fill NaN admin2 to avoid groupby dropping rows with NaN keys
+        df["admin2"] = df["admin2"].fillna("")
+
+        # Compute multi-model mean across models per (fnid, init_month, year, lead)
+        group_cols = ["country", "admin1", "admin2", "fnid", "init_month", "year", "lead"]
+        df_mm = df.groupby(group_cols, as_index=False)[mean_col].mean()
+
+        # Pivot leads into columns: s2s_{var}_lead1 ... s2s_{var}_lead6
+        df_mm["lead_col"] = df_mm["lead"].apply(lambda x: f"{s2s_var}_lead{x}")
+        pivot_cols = ["country", "admin1", "admin2", "fnid", "init_month", "year"]
+        df_pivot = df_mm.pivot_table(
+            index=pivot_cols, columns="lead_col", values=mean_col
+        ).reset_index()
+        df_pivot.columns.name = None
+
+        # Rename init_month → month to match FLDAS format
+        df_pivot.rename(columns={"init_month": "month"}, inplace=True)
+
+        # Ensure all lead columns exist (lead1..lead6)
+        lead_cols = [f"{s2s_var}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)]
+        for col in lead_cols:
+            if col not in df_pivot.columns:
+                df_pivot[col] = float("nan")
+
+        # Gap-fill years between hindcast end and forecast start
+        if gap_fill == "climatology" and not df_pivot.empty:
+            existing_years = sorted(df_pivot["year"].unique())
+            if len(existing_years) >= 2:
+                hindcast_end = max(y for y in existing_years if y <= 2016)
+                forecast_start = min(y for y in existing_years if y > 2016) if any(y > 2016 for y in existing_years) else None
+                gap_years = list(range(hindcast_end + 1, forecast_start)) if forecast_start else list(range(hindcast_end + 1, 2026))
+
+                if gap_years:
+                    # Compute climatology: mean per (country, admin1, admin2, fnid, month) across hindcast years
+                    hindcast_data = df_pivot[df_pivot["year"] <= hindcast_end]
+                    clim_cols = ["country", "admin1", "admin2", "fnid", "month"]
+                    climatology = hindcast_data.groupby(clim_cols, as_index=False)[lead_cols].mean()
+
+                    gap_frames = []
+                    for gap_year in gap_years:
+                        clim_copy = climatology.copy()
+                        clim_copy["year"] = gap_year
+                        gap_frames.append(clim_copy)
+
+                    df_gap = pd.concat(gap_frames, ignore_index=True)
+                    df_pivot = pd.concat([df_pivot, df_gap], ignore_index=True)
+                    logger.info(f"  {var}: gap-filled {len(gap_years)} years ({gap_years[0]}-{gap_years[-1]}) with hindcast climatology")
+
+        # Write per-region/year CSVs matching extraction output structure
+        for (country, fnid), df_region in df_pivot.groupby(["country", "fnid"]):
+            country_slug = country.lower().replace(" ", "_")
+
+            if countries and country_slug not in [
+                c.lower().replace(" ", "_") for c in countries
+            ]:
                 continue
 
-            df = pd.DataFrame(all_rows)
+            info = fnid_to_info.get(fnid, {})
+            admin1 = (info.get("admin1", "") or "").lower().replace(" ", "_")
+            admin2 = (info.get("admin2", "") or "").lower().replace(" ", "_")
+            region = admin2 if admin2 and scale == "admin_2" else admin1
 
-            # Compute multi-model mean across models per (fnid, init_month, year, lead)
-            mean_col = f"{var}_mean"
-            group_cols = ["country", "admin1", "admin2", "fnid", "init_month", "year", "lead"]
-            df_mm = df.groupby(group_cols, as_index=False)[mean_col].mean()
+            # Output directory matching geoextract structure
+            out_dir = (
+                Path(dir_output) / threshold_dir / country_slug
+                / scale / crop / s2s_var
+            )
+            out_dir.mkdir(parents=True, exist_ok=True)
 
-            # Pivot leads into columns: s2s_{var}_lead1 ... s2s_{var}_lead6
-            df_mm["lead_col"] = df_mm["lead"].apply(lambda x: f"{s2s_var}_lead{x}")
-            pivot_cols = ["country", "admin1", "admin2", "fnid", "init_month", "year"]
-            df_pivot = df_mm.pivot_table(
-                index=pivot_cols, columns="lead_col", values=mean_col
-            ).reset_index()
-            df_pivot.columns.name = None
+            for year, df_year in df_region.groupby("year"):
+                out_file = out_dir / f"{fnid}_{region}_{int(year)}_{s2s_var}_{crop}.csv"
 
-            # Rename init_month → month to match FLDAS format
-            df_pivot.rename(columns={"init_month": "month"}, inplace=True)
+                df_out = pd.DataFrame({
+                    "country": country_slug,
+                    "region": region,
+                    "region_id": fnid,
+                    "year": int(year),
+                    "month": df_year["month"].values,
+                })
+                for col in lead_cols:
+                    df_out[col] = df_year[col].values
 
-            # Ensure all lead columns exist (lead1..lead6)
-            for lead in range(1, S2S_NUM_LEADS + 1):
-                col = f"{s2s_var}_lead{lead}"
-                if col not in df_pivot.columns:
-                    df_pivot[col] = float("nan")
+                df_out.to_csv(out_file, index=False)
 
-            lead_cols = [f"{s2s_var}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)]
-
-            # Write per-region/year CSVs matching extraction output structure
-            for (country, fnid), df_region in df_pivot.groupby(["country", "fnid"]):
-                country_slug = country.lower().replace(" ", "_")
-
-                if countries and country_slug not in [
-                    c.lower().replace(" ", "_") for c in countries
-                ]:
-                    continue
-
-                info = fnid_to_info.get(fnid, {})
-                admin1 = (info.get("admin1", "") or "").lower().replace(" ", "_")
-                admin2 = (info.get("admin2", "") or "").lower().replace(" ", "_")
-                region = admin2 if admin2 and scale == "admin_2" else admin1
-
-                # Output directory matching geoextract structure
-                out_dir = (
-                    Path(dir_output) / threshold_dir / country_slug
-                    / scale / crop / s2s_var
-                )
-                out_dir.mkdir(parents=True, exist_ok=True)
-
-                for year, df_year in df_region.groupby("year"):
-                    out_file = out_dir / f"{fnid}_{region}_{year}_{s2s_var}_{crop}.csv"
-
-                    df_out = pd.DataFrame({
-                        "country": country_slug,
-                        "region": region,
-                        "region_id": fnid,
-                        "year": int(year),
-                        "month": df_year["month"].values,
-                    })
-                    for col in lead_cols:
-                        df_out[col] = df_year[col].values
-
-                    df_out.to_csv(out_file, index=False)
-
-            logger.info(f"  {data_type}/{var}: wrote per-region CSVs")
+        logger.info(f"  {var}: wrote per-region CSVs")
 
 
 def run(geoprep):
@@ -494,8 +523,11 @@ def run(geoprep):
     # Step 1: Download
     download_all(dir_download)
 
+    gap_fill = getattr(geoprep, "s2s_gap_fill", "climatology")
+
     # Step 2: Process and output per-region CSVs
     process_all(
         dir_download, dir_output, shapefile_path, countries,
         scale=scale, crop=crop, threshold_dir=threshold_dir,
+        gap_fill=gap_fill,
     )
