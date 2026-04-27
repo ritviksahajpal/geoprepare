@@ -247,6 +247,7 @@ def run(path_config_file=["geobase.txt"]):
             limit_val = extract_parser.getint(first_country, limit_type)
             geoprep.s2s_threshold_dir = f"crop_t{limit_val}" if threshold else f"crop_p{limit_val}"
             geoprep.s2s_crop = "cr" if extract_parser.getboolean(first_country, "use_cropland_mask") else extract_parser.get(first_country, "crops")
+            geoprep.s2s_project_name = extract_parser.get("DEFAULT", "project_name")
         else:
             raise ValueError(f"{dataset} not implemented")
 

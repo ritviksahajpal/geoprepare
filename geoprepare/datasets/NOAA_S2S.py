@@ -488,6 +488,8 @@ def run(geoprep):
     scale = getattr(geoprep, "s2s_scale", "admin_1")
     threshold_dir = getattr(geoprep, "s2s_threshold_dir", "crop_t20")
     crop = getattr(geoprep, "s2s_crop", "cr")
+    project_name = getattr(geoprep, "s2s_project_name", "")
+    dir_output = dir_output / project_name
 
     # Step 1: Download
     download_all(dir_download)
