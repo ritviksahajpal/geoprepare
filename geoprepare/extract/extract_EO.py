@@ -122,7 +122,7 @@ def get_var_fname(params, var, year, doy):
         "nsidc_rootzone": f"{year}/nasa_usda_soil_moisture_{year}_{str(doy).zfill(3)}_rootzone_global.tif",
         "lai": f"{year}/MCD15A2H.A{year_doy}_Lai_500m_mosaic_0p05.tif",
         "fpar": f"{year}/MCD15A2H.A{year_doy}_Fpar_500m_mosaic_0p05.tif",
-        "chirps_gefs": f"{year}/data.{year}.{month:02d}{day_of_month:02d}.tif",
+        "chirps_gefs": f"{year}/c3g_{year}.{month:02d}.{day_of_month:02d}.tif",
         "lst": f"{year}/MOD11C1.A{year_doy}_global.tif",
         # Daymet V4 daily weather (North America only, bbox-subset 0.05deg)
         "daymet_tmin": f"{year}/daymet_tmin_{year_doy}_bbox.tif",

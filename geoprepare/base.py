@@ -51,7 +51,8 @@ class BaseGeo:
             raise ValueError("Parser not initialized")
         else:
             self.logger.info(f"Downloading {section}")
-            self.logger.info(pformat(dict(self.parser[section])))
+            if self.parser.has_section(section):
+                self.logger.info(pformat(dict(self.parser[section])))
 
     def compute_logging_level(self):
         level = 10

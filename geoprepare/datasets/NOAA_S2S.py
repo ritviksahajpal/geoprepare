@@ -153,8 +153,11 @@ def process_file(nc_path, fnid_to_info, var, data_type):
 
         data = ds.variables[data_var_name][:]  # (FNID, number, reference_time, L)
 
-        # Read reference_time (seconds since 1970-01-01)
-        ref_times = ds.variables["reference_time"][:]
+        # Read reference_time if it exists (hindcasts have 24 years, forecasts may have 1 or none)
+        if "reference_time" in ds.variables:
+            ref_times = ds.variables["reference_time"][:]
+        else:
+            ref_times = None
 
         # Read lead months
         leads = ds.variables["L"][:]
@@ -162,7 +165,7 @@ def process_file(nc_path, fnid_to_info, var, data_type):
         # Extract model name from filename
         model_name = nc_path.stem.split(f"_{data_type}")[0]
 
-        # Extract init month from filename
+        # Extract init month and year from filename
         # Hindcast: MODEL_hindcasts_MM_1993-2016_var.nc
         # Forecast: MODEL_forecasts_MMYYYY_var.nc
         parts = nc_path.stem.split(f"_{data_type}_")[1]
@@ -171,6 +174,24 @@ def process_file(nc_path, fnid_to_info, var, data_type):
         else:
             init_month = int(parts[:2])
 
+        # Build list of (ref_time_index, year) pairs
+        from datetime import datetime, timezone
+        time_entries = []
+        if ref_times is not None:
+            for t_idx, ref_time in enumerate(ref_times):
+                try:
+                    rt = float(ref_time)
+                    if np.isnan(rt):
+                        continue
+                    year = datetime.fromtimestamp(rt, tz=timezone.utc).year
+                    time_entries.append((t_idx, year))
+                except (ValueError, OSError):
+                    continue
+        else:
+            # Forecast files without reference_time: extract year from filename
+            forecast_year = int(parts[2:6]) if len(parts) >= 6 else datetime.now().year
+            time_entries.append((0, forecast_year))
+
         # Process each FNID
         for i, fnid in enumerate(fnids):
             if fnid not in fnid_to_info:
@@ -178,19 +199,20 @@ def process_file(nc_path, fnid_to_info, var, data_type):
 
             info = fnid_to_info[fnid]
 
-            # data[i] shape: (number, reference_time, L)
+            # data[i] shape varies: (number, L) or (number, reference_time, L)
             region_data = np.array(data[i])
 
-            for t_idx, ref_time in enumerate(ref_times):
-                # Convert reference_time to year
-                from datetime import datetime, timezone
-                year = datetime.fromtimestamp(
-                    float(ref_time), tz=timezone.utc
-                ).year
-
+            for t_idx, year in time_entries:
                 for l_idx, lead in enumerate(leads):
-                    # Slice: all ensemble members for this (ref_time, lead)
-                    ensemble = region_data[:, t_idx, l_idx]
+                    # Handle different array shapes
+                    if region_data.ndim == 3:
+                        # (number, reference_time, L)
+                        ensemble = region_data[:, t_idx, l_idx]
+                    elif region_data.ndim == 2:
+                        # (number, L) — no reference_time dimension
+                        ensemble = region_data[:, l_idx]
+                    else:
+                        continue
 
                     # Filter NaN
                     valid = ensemble[~np.isnan(ensemble)]
@@ -203,7 +225,6 @@ def process_file(nc_path, fnid_to_info, var, data_type):
                     # Convert temperature from Kelvin to Celsius
                     if var == "t2m":
                         value_mean -= 273.15
-                        value_spread = value_spread  # std doesn't shift
 
                     rows.append({
                         "country": info["country"],
@@ -248,7 +269,7 @@ def _process_file_xarray(nc_path, fnid_to_info, var, data_type):
                     break
 
         data = ds[data_var_name].values
-        ref_times = ds["reference_time"].values
+        ref_times = ds["reference_time"].values if "reference_time" in ds else None
         leads = ds["L"].values
 
         model_name = nc_path.stem.split(f"_{data_type}")[0]
@@ -258,6 +279,21 @@ def _process_file_xarray(nc_path, fnid_to_info, var, data_type):
         else:
             init_month = int(parts[:2])
 
+        # Build time entries
+        import pandas as pd
+        from datetime import datetime
+        time_entries = []
+        if ref_times is not None:
+            for t_idx, ref_time in enumerate(ref_times):
+                try:
+                    year = pd.Timestamp(ref_time).year
+                    time_entries.append((t_idx, year))
+                except Exception:
+                    continue
+        else:
+            forecast_year = int(parts[2:6]) if len(parts) >= 6 else datetime.now().year
+            time_entries.append((0, forecast_year))
+
         for i, fnid in enumerate(fnids):
             if fnid not in fnid_to_info:
                 continue
@@ -265,12 +301,15 @@ def _process_file_xarray(nc_path, fnid_to_info, var, data_type):
             info = fnid_to_info[fnid]
             region_data = data[i]
 
-            for t_idx, ref_time in enumerate(ref_times):
-                import pandas as pd
-                year = pd.Timestamp(ref_time).year
-
+            for t_idx, year in time_entries:
                 for l_idx, lead in enumerate(leads):
-                    ensemble = region_data[:, t_idx, l_idx]
+                    if region_data.ndim == 3:
+                        ensemble = region_data[:, t_idx, l_idx]
+                    elif region_data.ndim == 2:
+                        ensemble = region_data[:, l_idx]
+                    else:
+                        continue
+
                     valid = ensemble[~np.isnan(ensemble)]
                     if len(valid) == 0:
                         continue

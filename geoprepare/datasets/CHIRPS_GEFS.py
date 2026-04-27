@@ -1,132 +1,161 @@
-###############################################################################
-# Ritvik Sahajpal
-# ritvik@umd.edu
-###############################################################################
-import os
+#!/usr/bin/env python3
+"""
+Download and reproject CHIRPS-GEFS v3 daily precipitation forecasts.
+
+CHIRPS-GEFS v3 provides 16-day global precipitation forecasts at 0.05°.
+Each init date has 16 TIF files (today + 15 future days).
+
+URL: https://data.chc.ucsb.edu/products/CHIRPS-GEFS/v3/daily/global/{year}/{MM}/{DD}/
+Filename: c3g_YYYY.MM.DD.tif
+
+Steps:
+  1. Scrape latest available init date, download 16 .tif files.
+  2. Scale to int (×100) and place into 3600×7200 global grid if needed.
+"""
 import glob
+import logging
+import os
+from pathlib import Path
+
 import arrow as ar
 import numpy as np
-from tqdm import tqdm
 import requests
-from osgeo import osr, gdal
 from bs4 import BeautifulSoup
+from osgeo import gdal, osr
+from tenacity import retry, stop_after_attempt, wait_exponential
+from tqdm import tqdm
 from urllib.parse import urljoin
 
+logger = logging.getLogger(__name__)
 
-def delete_existing_files(params, dir_out):
-    """
+BASE_URL = "https://data.chc.ucsb.edu/products/CHIRPS-GEFS/v3/daily/global/"
+MAX_LOOKBACK_DAYS = 15
 
-    Args:
-        dir_out:
+_SESSION = requests.Session()
+_SESSION.headers.update({
+    "User-Agent": "Mozilla/5.0 geoprepare/CHIRPS-GEFS"
+})
 
-    Returns:
 
-    """
-    # Delete current file(s) in CHIRPS-GEFS directory
-    filelist = glob.glob(os.path.join(dir_out, "*.tif"))
-
-    for f in tqdm(filelist, desc="Deleting existing CHIRPS-GEFS file(s)"):
-        # If today's file is already present, then do not delete
-        forecast_regex = "data-mean_" + ar.utcnow().to(
-            "America/New_York"
-        ).date().strftime("%Y%m%d")
-        if forecast_regex in f:
-            continue
-
-        # Else delete
-        try:
-            os.remove(f)
-        except:
-            params.logger.error("Unable to delete " + f)
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=2, min=4, max=120),
+    reraise=True,
+)
+def _fetch(url, timeout=120):
+    """Fetch URL with retry."""
+    resp = _SESSION.get(url, timeout=timeout)
+    resp.raise_for_status()
+    return resp
 
 
 def download_CHIRPS_GEFS(params, dir_out):
-    base_url = "https://data.chc.ucsb.edu/products/EWX/data/forecasts/CHIRPS-GEFS_precip_v12/daily_16day/"
-    MAX_DAYS = 15
-
+    """Download 16-day CHIRPS-GEFS v3 forecast files."""
     os.makedirs(dir_out, exist_ok=True)
-    params.logger.info(f"Downloading to {dir_out}")
-    delete_existing_files(params, dir_out)
+    logger.info(f"Downloading CHIRPS-GEFS v3 to {dir_out}")
 
-    for day_offset in range(MAX_DAYS):
+    for day_offset in range(MAX_LOOKBACK_DAYS):
         dt = ar.utcnow().to("America/New_York").shift(days=-day_offset)
-        download_url = base_url + f"{dt.year}/{dt.month:02d}/{dt.day:02d}"
+        url = f"{BASE_URL}{dt.year}/{dt.month:02d}/{dt.day:02d}/"
 
-        response = requests.get(download_url)
-        soup = BeautifulSoup(response.text, "html.parser")
-        tif_links = soup.select("a[href$='.tif']")
+        try:
+            resp = _fetch(url)
+        except Exception:
+            logger.info(f"No data for {dt.format('YYYY-MM-DD')}, trying previous day")
+            continue
 
-        if tif_links:
-            params.logger.info(f"Found {len(tif_links)} files for {dt.format('YYYY-MM-DD')}")
-            for link in tqdm(tif_links, desc=f"CHIRPS-GEFS {dt.format('YYYY-M-D')}"):
-                filename = os.path.join(dir_out, link["href"].split("/")[-1])
-                with open(filename, "wb") as f:
-                    f.write(requests.get(urljoin(download_url + "/", link["href"])).content)
-            return
+        soup = BeautifulSoup(resp.text, "html.parser")
+        tif_links = [a for a in soup.select("a[href$='.tif']")]
 
-        params.logger.info(f"No CHIRPS-GEFS data for {dt.format('YYYY-MM-DD')}, trying previous day")
+        if not tif_links:
+            logger.info(f"No .tif files for {dt.format('YYYY-MM-DD')}, trying previous day")
+            continue
 
-    params.logger.warning(f"No CHIRPS-GEFS data found in the last {MAX_DAYS} days")
+        logger.info(f"Found {len(tif_links)} files for {dt.format('YYYY-MM-DD')}")
+        for link in tqdm(tif_links, desc=f"CHIRPS-GEFS {dt.format('YYYY-MM-DD')}"):
+            fname = link["href"].split("/")[-1]
+            out_path = Path(dir_out) / fname
+
+            if out_path.exists():
+                continue
+
+            try:
+                file_resp = _fetch(urljoin(url, link["href"]), timeout=300)
+                with open(out_path, "wb") as f:
+                    f.write(file_resp.content)
+            except Exception as e:
+                logger.error(f"Failed to download {fname}: {e}")
+                if out_path.exists():
+                    out_path.unlink()
+        return
+
+    logger.warning(f"No CHIRPS-GEFS data found in the last {MAX_LOOKBACK_DAYS} days")
 
 
 def to_global(params, dir_download):
-    """
-
-    Args:
-        params ():
-        dir_download ():
-
-    Returns:
-
-    """
-    # Get path of downloaded CHIRPS-GEFS file
-    filelist = glob.glob(os.path.join(dir_download, "*.tif"))
-    if len(filelist) != 16:
-        params.logger.warning(f"Expected 16 CHIRPS-GEFS files, found {len(filelist)} — skipping")
+    """Scale and reproject downloaded files to standard 3600x7200 global grid."""
+    filelist = glob.glob(os.path.join(dir_download, "c3g_*.tif"))
+    if not filelist:
+        logger.warning("No c3g_*.tif files found — skipping to_global")
         return
 
     current_year = ar.utcnow().to("America/New_York").year
     dir_out = params.dir_intermed / "chirps_gefs" / str(current_year)
     os.makedirs(dir_out, exist_ok=True)
-    delete_existing_files(params, dir_out)
 
     for forecast_file in filelist:
-        if not os.path.isfile(dir_out / os.path.basename(forecast_file)):
-            fl_out = dir_out / os.path.basename(forecast_file)
-            params.logger.info("Creating " + str(fl_out))
+        fl_out = dir_out / os.path.basename(forecast_file)
+        if fl_out.exists():
+            continue
 
-            # logger.info(type_product + ' global ' + dir_out / 'chirps_v2.0.' + str(year) + str(jd).zfill(3) + '_global.tif')
+        logger.info(f"Processing {os.path.basename(forecast_file)}")
+        try:
             ds = gdal.Open(forecast_file)
-
             b = ds.GetRasterBand(1)
-            bArr = gdal.Band.ReadAsArray(b)
-            outArr = np.empty([3600, 7200], dtype=int)
-            outArr[0:800, :] = params.fill_value
-            outArr[2800:3600, :] = params.fill_value
-            outArr[800:2800, :] = bArr * 100  # Multiply by 100 to match CHIRPS format
+            bArr = b.ReadAsArray()
+            in_height, in_width = bArr.shape
 
-            otype = gdal.GDT_Int32
+            outArr = np.full([3600, 7200], params.fill_value, dtype=np.int32)
+
+            if in_height == 3600 and in_width == 7200:
+                # Already global — just scale
+                outArr = (bArr * 100).astype(np.int32)
+            elif in_height == 2000 and in_width == 7200:
+                # 50N to 50S
+                outArr[800:2800, :] = (bArr * 100).astype(np.int32)
+            elif in_height == 2400 and in_width == 7200:
+                # 60N to 60S
+                outArr[600:3000, :] = (bArr * 100).astype(np.int32)
+            else:
+                # Unknown grid — try to center it
+                lat_offset = (3600 - in_height) // 2
+                lon_offset = (7200 - in_width) // 2
+                outArr[
+                    lat_offset:lat_offset + in_height,
+                    lon_offset:lon_offset + in_width,
+                ] = (bArr * 100).astype(np.int32)
+                logger.warning(f"Non-standard grid {in_height}x{in_width}")
+
             driver = gdal.GetDriverByName("GTiff")
-            dst_ds = driver.Create(str(fl_out), 7200, 3600, 1, otype)
-            outRasterSRS = osr.SpatialReference()
-            outRasterSRS.ImportFromEPSG(4326)
-            dst_ds.SetProjection(outRasterSRS.ExportToWkt())
+            dst_ds = driver.Create(str(fl_out), 7200, 3600, 1, gdal.GDT_Int32)
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(4326)
+            dst_ds.SetProjection(srs.ExportToWkt())
             dst_ds.SetGeoTransform((-180, 0.05, 0, 90, 0, -0.05))
+            dst_ds.GetRasterBand(1).SetNoDataValue(params.fill_value)
             dst_ds.GetRasterBand(1).WriteArray(outArr)
+            dst_ds.FlushCache()
 
             ds = None
             dst_ds = None
+        except Exception as e:
+            logger.error(f"Failed to process {forecast_file}: {e}")
+            if fl_out.exists():
+                fl_out.unlink()
 
 
 def run(params):
-    """
-
-    Args:
-        params ():
-
-    Returns:
-
-    """
+    """Main entry point for CHIRPS-GEFS v3 download + processing."""
     current_year = ar.utcnow().to("America/New_York").year
     dir_download = params.dir_download / "chirps_gefs" / str(current_year)
     os.makedirs(dir_download, exist_ok=True)
