@@ -434,13 +434,23 @@ def process_all(dir_download, dir_output, shapefile_path, countries=None,
             if col not in df_pivot.columns:
                 df_pivot[col] = float("nan")
 
-        # Gap-fill years between hindcast end and forecast start
+        # Gap-fill years between hindcast end and current year with climatology.
+        # Only the current year uses actual forecast data; all prior years
+        # after hindcast end (2017 through current_year-1) use climatology.
+        from datetime import datetime as _dt
+        current_year = _dt.now().year
+
         if gap_fill == "climatology" and not df_pivot.empty:
-            existing_years = sorted(df_pivot["year"].unique())
-            if len(existing_years) >= 2:
-                hindcast_end = max(y for y in existing_years if y <= 2016)
-                forecast_start = min(y for y in existing_years if y > 2016) if any(y > 2016 for y in existing_years) else None
-                gap_years = list(range(hindcast_end + 1, forecast_start)) if forecast_start else list(range(hindcast_end + 1, 2026))
+            hindcast_years = [y for y in df_pivot["year"].unique() if y <= 2016]
+            if hindcast_years:
+                hindcast_end = max(hindcast_years)
+                gap_years = list(range(hindcast_end + 1, current_year))
+
+                # Remove any incomplete forecast data for gap years
+                # (e.g., 2025 may have only months 10-12 from forecasts)
+                df_pivot = df_pivot[
+                    (df_pivot["year"] <= hindcast_end) | (df_pivot["year"] >= current_year)
+                ]
 
                 if gap_years:
                     # Compute climatology: mean per (country, admin1, admin2, fnid, month) across hindcast years
