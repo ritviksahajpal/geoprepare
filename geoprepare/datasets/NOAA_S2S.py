@@ -474,7 +474,7 @@ def run(geoprep):
     Args:
         geoprep: GeoDownload object with attributes:
             dir_download, dir_output, dir_boundary_files,
-            countries (optional).
+            s2s_countries, s2s_scale, s2s_threshold_dir, s2s_crop.
     """
     dir_download = Path(geoprep.dir_download)
     dir_output = Path(geoprep.dir_output)
@@ -484,10 +484,16 @@ def run(geoprep):
         Path(geoprep.dir_boundary_files) / "adm_shapefile.gpkg"
     )
 
-    countries = getattr(geoprep, "countries", None)
+    countries = getattr(geoprep, "s2s_countries", None)
+    scale = getattr(geoprep, "s2s_scale", "admin_1")
+    threshold_dir = getattr(geoprep, "s2s_threshold_dir", "crop_t20")
+    crop = getattr(geoprep, "s2s_crop", "cr")
 
     # Step 1: Download
     download_all(dir_download)
 
     # Step 2: Process and output per-region CSVs
-    process_all(dir_download, dir_output, shapefile_path, countries)
+    process_all(
+        dir_download, dir_output, shapefile_path, countries,
+        scale=scale, crop=crop, threshold_dir=threshold_dir,
+    )

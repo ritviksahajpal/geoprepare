@@ -226,6 +226,27 @@ def run(path_config_file=["geobase.txt"]):
             )
         elif dataset == "NOAA-S2S":
             from .datasets import NOAA_S2S as obj
+
+            # Read country/scale/threshold info from geoextract config
+            from pathlib import Path
+            config_dir = Path(path_config_file[0]).parent
+            extract_cfg = [
+                str(config_dir / "geobase.txt"),
+                str(config_dir / "countries.txt"),
+                str(config_dir / "geoextract.txt"),
+            ]
+            extract_parser = utils.read_config(extract_cfg)
+            geoprep.s2s_countries = ast.literal_eval(
+                extract_parser.get("DEFAULT", "countries")
+            )
+            # Get scale and threshold from first country
+            first_country = geoprep.s2s_countries[0]
+            geoprep.s2s_scale = extract_parser.get(first_country, "admin_level")
+            threshold = extract_parser.getboolean(first_country, "threshold")
+            limit_type = "floor" if threshold else "ceil"
+            limit_val = extract_parser.getint(first_country, limit_type)
+            geoprep.s2s_threshold_dir = f"crop_t{limit_val}" if threshold else f"crop_p{limit_val}"
+            geoprep.s2s_crop = "cr" if extract_parser.getboolean(first_country, "use_cropland_mask") else extract_parser.get(first_country, "crops")
         else:
             raise ValueError(f"{dataset} not implemented")
 
