@@ -471,6 +471,149 @@ class GeoMerge(base.BaseGeo):
                 expanded.append(var)
         return expanded
 
+    def add_pre_season_rows(self, n_months):
+        """
+        Add synthetic monthly rows for N months before the first in-season month.
+
+        These rows carry ONLY FLDAS/S2S lead columns (read from per-variable CSVs).
+        All observational EO columns (ndvi, chirps, chirts, esi, etc.) are NaN.
+        """
+        if n_months <= 0 or self.df_ccs.empty:
+            return
+
+        FLDAS_NUM_LEADS = 6
+        S2S_NUM_LEADS = 6
+
+        # Identify monthly-lead variables in eo_model
+        monthly_vars = [v for v in self.eo_model if v.startswith("fldas_") or v.startswith("s2s_")]
+        if not monthly_vars:
+            return
+
+        # Build lead column names
+        monthly_lead_cols = []
+        for v in monthly_vars:
+            if v.startswith("fldas_"):
+                monthly_lead_cols.extend([f"{v}_lead{i}" for i in range(FLDAS_NUM_LEADS)])
+            elif v.startswith("s2s_"):
+                monthly_lead_cols.extend([f"{v}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)])
+
+        # Read per-variable CSVs for monthly variables to get pre-season data
+        crop_folder_name = "cr" if self.use_cropland_mask else self.crop
+        monthly_data = {}  # {var: DataFrame with region_id, year, month, lead cols}
+        for var in monthly_vars:
+            path_var = (
+                self.dir_output / self.dir_threshold / self.country
+                / self.scale / crop_folder_name / var
+            )
+            var_files = list(path_var.rglob("*.csv")) if path_var.exists() else []
+            if var_files:
+                if var.startswith("fldas_"):
+                    lead_cols = [f"{var}_lead{i}" for i in range(FLDAS_NUM_LEADS)]
+                else:
+                    lead_cols = [f"{var}_lead{i}" for i in range(1, S2S_NUM_LEADS + 1)]
+                read_cols = ["region_id", "year", "month"] + lead_cols
+                frames = []
+                for f in var_files:
+                    try:
+                        df = pd.read_csv(f, usecols=lambda c: c in read_cols)
+                        frames.append(df)
+                    except Exception:
+                        continue
+                if frames:
+                    monthly_data[var] = pd.concat(frames, ignore_index=True)
+
+        if not monthly_data:
+            self.logger.warning("No monthly lead data found for pre-season rows")
+            return
+
+        # For each (region, harvest_season), find the first in-season month
+        pre_season_frames = []
+        for (region, harvest_season), grp in self.df_ccs.groupby(["region", "harvest_season"]):
+            if pd.isna(harvest_season):
+                continue
+
+            harvest_season = int(harvest_season)
+            in_season = grp[grp["crop_calendar"].isin([1, 2, 3])]
+            if in_season.empty:
+                continue
+
+            first_in_season_doy = int(in_season["doy"].min())
+            first_in_season_month = pd.Timestamp(f"{harvest_season}-01-01") + pd.Timedelta(days=first_in_season_doy - 1)
+            first_month = first_in_season_month.month
+
+            # Get region metadata from existing data
+            region_id = grp["region_id"].iloc[0]
+            country = grp["country"].iloc[0]
+            lat = grp["lat"].iloc[0] if "lat" in grp.columns else np.nan
+            lon = grp["lon"].iloc[0] if "lon" in grp.columns else np.nan
+            calendar_region = grp["calendar_region"].iloc[0] if "calendar_region" in grp.columns else np.nan
+
+            # Compute pre-season months (going backwards, wrapping around year)
+            pre_months = []
+            for i in range(1, n_months + 1):
+                m = first_month - i
+                y = harvest_season
+                if m <= 0:
+                    m += 12
+                    y -= 1
+                doy_mid = pd.Timestamp(f"{y}-{m:02d}-15").timetuple().tm_yday
+                pre_months.append((y, m, doy_mid))
+
+            for y, m, doy_mid in pre_months:
+                row = {
+                    "country": country,
+                    "region": region,
+                    "region_id": region_id,
+                    "year": y,
+                    "doy": doy_mid,
+                    "month": m,
+                    "harvest_season": float(harvest_season),
+                    "crop_calendar": 0.0,
+                    "calendar_region": calendar_region,
+                }
+                if "lat" in self.df_ccs.columns:
+                    row["lat"] = lat
+                if "lon" in self.df_ccs.columns:
+                    row["lon"] = lon
+
+                pre_season_frames.append(row)
+
+        if not pre_season_frames:
+            return
+
+        df_pre = pd.DataFrame(pre_season_frames)
+
+        # Add datetime column
+        df_pre["datetime"] = pd.to_datetime(
+            df_pre["year"] * 1000 + df_pre["doy"], format="%Y%j"
+        )
+
+        # Join monthly lead data onto pre-season rows
+        for var, df_monthly in monthly_data.items():
+            merge_keys = ["region_id", "year", "month"]
+            available_keys = [k for k in merge_keys if k in df_monthly.columns]
+            if len(available_keys) == len(merge_keys):
+                df_monthly_dedup = df_monthly.groupby(available_keys, as_index=False).first()
+                df_pre = pd.merge(df_pre, df_monthly_dedup, on=available_keys, how="left")
+
+        # Ensure all EO columns exist (as NaN for observational vars)
+        for col in self.df_ccs.columns:
+            if col not in df_pre.columns:
+                df_pre[col] = np.nan
+
+        # Reorder columns to match main dataframe
+        df_pre = df_pre.reindex(columns=self.df_ccs.columns)
+
+        # Append and sort
+        self.df_ccs = pd.concat([self.df_ccs, df_pre], ignore_index=True)
+        self.df_ccs = self.df_ccs.sort_values(
+            ["region", "year", "doy"]
+        ).reset_index(drop=True)
+
+        self.logger.info(
+            f"Added {len(df_pre)} pre-season rows ({n_months} months before planting)"
+        )
+
     def move_columns_to_end(self, columns=None):
         # Exclude elements from columns that are not in the dataframe
         columns = [x for x in columns if x in self.df_ccs.columns]
@@ -574,6 +717,11 @@ def process_combination(combination, path_config_file, parallel=False, df_eo=Non
 
     gm.df_ccs = gm.add_calendar()
     gm.post_process()
+
+    # 6b. Add pre-season rows with FLDAS/S2S lead columns
+    pre_season_months = gm.parser.getint("DEFAULT", "pre_season_months", fallback=0)
+    if pre_season_months > 0:
+        gm.add_pre_season_rows(pre_season_months)
 
     # 7. Store output to disk if not empty
     if not gm.df_ccs.empty:

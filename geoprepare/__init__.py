@@ -2,7 +2,7 @@
 
 __author__ = """Ritvik Sahajpal"""
 __email__ = "ritvik@umd.edu"
-__version__ = "0.6.200"
+__version__ = "0.6.201"
 
 from importlib.metadata import PackageNotFoundError, version
 
