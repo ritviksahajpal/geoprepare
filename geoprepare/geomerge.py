@@ -520,11 +520,29 @@ class GeoMerge(base.BaseGeo):
                     except Exception:
                         continue
                 if frames:
-                    monthly_data[var] = pd.concat(frames, ignore_index=True)
+                    df_concat = pd.concat(frames, ignore_index=True)
+                    # Harmonize: lowercase column names and region_id to match merged data
+                    df_concat.columns = [c.lower() for c in df_concat.columns]
+                    if "region_id" in df_concat.columns:
+                        df_concat["region_id"] = df_concat["region_id"].str.lower()
+                    monthly_data[var] = df_concat
 
         if not monthly_data:
             self.logger.warning("No monthly lead data found for pre-season rows")
             return
+
+        for var, df_m in monthly_data.items():
+            self.logger.info(f"  Pre-season: loaded {len(df_m)} rows for {var} "
+                             f"(cols: {list(df_m.columns)[:5]}...)")
+
+        # Build set of existing (region, year, month) to avoid duplicate rows
+        if "month" not in self.df_ccs.columns:
+            self.df_ccs["month"] = pd.to_datetime(
+                self.df_ccs["year"] * 1000 + self.df_ccs["doy"], format="%Y%j"
+            ).dt.month
+        existing_rym = set(
+            zip(self.df_ccs["region"], self.df_ccs["year"], self.df_ccs["month"])
+        )
 
         # For each (region, harvest_season), find the first in-season month
         pre_season_frames = []
@@ -560,6 +578,9 @@ class GeoMerge(base.BaseGeo):
                 pre_months.append((y, m, doy_mid))
 
             for y, m, doy_mid in pre_months:
+                # Skip if daily data already exists for this region/year/month
+                if (region, y, m) in existing_rym:
+                    continue
                 row = {
                     "country": country,
                     "region": region,
@@ -595,6 +616,16 @@ class GeoMerge(base.BaseGeo):
             if len(available_keys) == len(merge_keys):
                 df_monthly_dedup = df_monthly.groupby(available_keys, as_index=False).first()
                 df_pre = pd.merge(df_pre, df_monthly_dedup, on=available_keys, how="left")
+
+        # Log join results
+        for var in monthly_vars:
+            if var.startswith("fldas_"):
+                check_col = f"{var}_lead0"
+            else:
+                check_col = f"{var}_lead1"
+            if check_col in df_pre.columns:
+                n_filled = df_pre[check_col].notna().sum()
+                self.logger.info(f"  Pre-season join: {check_col} has {n_filled}/{len(df_pre)} non-NaN values")
 
         # Ensure all EO columns exist (as NaN for observational vars)
         for col in self.df_ccs.columns:
